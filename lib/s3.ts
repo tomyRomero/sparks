@@ -1,0 +1,45 @@
+"use client"
+
+export const getImageData = async (key: string) => {
+   
+    const encodedKey = encodeURIComponent(key);
+    const getResponse = await fetch(`/api/S3?key=${encodedKey}`, {
+      method: 'GET'
+    });
+
+    if (getResponse.ok) {
+      // Request was successful, handle the response
+      const getResponseData = await getResponse.json();
+      const match = key.match(/[^.]+$/);
+      const result = match ? match[0] : 'jpg';
+      console.log("RESULT IMAGE TYPE:", result)
+      let base64 = `data:image/${result};base64,` + getResponseData;
+      console.log('Success in Getting Image from server! Server response:', base64);
+      return base64;
+      
+    } else {
+      // Request failed, handle the error
+      console.error('Error:', getResponse.statusText);
+      return '/assets/profile.svg'
+    }
+  }  
+
+
+  export const postImage = async (data: any) => {
+    const response = await fetch('/api/S3', {
+      method: 'POST',
+      body: JSON.stringify(data), // Convert your data to JSON
+    });
+    
+    if (response.ok) {
+      // Request was successful, handle the response
+      const responseData = await response.json();
+      console.log('Server response:', responseData);
+      return responseData.filename;
+    } else {
+      // Request failed, handle the error
+      console.error('Error:', response.statusText);
+      alert(`There Was An Error Finishing Your Profile, Please Try Again, Error: ${response.statusText}`);
+      return false;
+    }
+  }
