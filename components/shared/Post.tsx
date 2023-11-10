@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getImageData } from "@/lib/s3";
 
-
 interface Props {
   id: string;
   currentUserId: string;
@@ -19,7 +18,7 @@ interface Props {
   }[];
   isComment?: boolean;
   image: string;
-  username: string
+  username: string;
 }
 
 function Post({
@@ -35,16 +34,8 @@ function Post({
 }: Props) {
     const [img, setImg] = useState('/assets/profile.svg');
     const [like, setLike] = useState(false);
-    const [floatingHearts, setFloatingHearts] = useState([]);
-
-    console.log("Inside Post")
-    console.log("id:" , id)
-    console.log("currentUserId: ", currentUserId)
-    console.log("parentId:", parentId)
-    console.log("content:", content)
-    console.log("created at:", createdAt)
-    console.log("isComment:", isComment )
-    console.log("image:", image)
+    const [commentImg, setCommentImg] = useState('/assets/profile.svg')
+    const [floatingHearts, setFloatingHearts] = useState(false);
 
     useEffect( () => {
         const load = async () => {
@@ -72,7 +63,13 @@ function Post({
       const handleLikeClick = () => {
         // Perform your "like" logic here
         setLike(!like);
+
+        setFloatingHearts(true)
+         // After a short delay (e.g., 1000ms), reset the "like" state to hide the floating heart
+        setTimeout(() => setFloatingHearts(false), 1000);
       };
+
+      const floatingHeartsClass = like ? "floating-hearts active" : "floating-hearts";
 
   return (
     <article
@@ -83,7 +80,7 @@ function Post({
       <div className='flex items-start justify-between'>
         <div className='flex w-full flex-1 flex-row gap-4'>
           <div className='flex flex-col items-center'>
-            <Link href={`/profile/${username}`} className='relative h-11 w-11'>
+            <Link href={`/profile/${currentUserId}`} className='relative h-11 w-11'>
               <Image
                 src={img}
                 alt='user_community_image'
@@ -96,7 +93,7 @@ function Post({
           </div>
 
           <div className='flex w-full flex-col'>
-            <Link href={`/profile/${username}`} className='w-fit'>
+            <Link href={`/profile/${currentUserId}`} className='w-fit'>
               <h4 className='cursor-pointer text-base-semibold text-light-1'>
                 {username}
               </h4>
@@ -114,7 +111,7 @@ function Post({
                   className={`cursor-pointer object-contain ${like ? 'pop-animation active' : 'pop-animation'}`}
                   onClick={() => {handleLikeClick()}}
                 />
-                <Link href={`/thread/${id}`}>
+                <Link href={`/post/${id}`}>
                   <Image
                     src='/assets/uncomment.svg'
                     alt='comment'
@@ -132,8 +129,8 @@ function Post({
                 />
               </div>
 
-              {isComment && comments.length > 0 && (
-                <Link href={`/thread/${id}`}>
+              {isComment && comments?.length > 0 && (
+                <Link href={`/post/${id}`}>
                   <p className='mt-1 text-subtle-medium text-gray-1'>
                     {comments.length} repl{comments.length > 1 ? "ies" : "y"}
                   </p>
@@ -142,32 +139,47 @@ function Post({
             </div>
           </div>
         </div>
+      {/* 
+        <DeleteThread
+          threadId={JSON.stringify(id)}
+          currentUserId={currentUserId}
+          authorId={author.id}
+          parentId={parentId}
+          isComment={isComment}
+        /> */}
         
       </div>
 
-      {/* {!isComment && comments.length > 0 && (
+      {!isComment && comments?.length > 0 && (
         <div className='ml-1 mt-3 flex items-center gap-2'>
           {comments.slice(0, 2).map((comment, index) => (
             <Image
               key={index}
-              src={comment.author.image}
+              src={commentImg}
+              // src={comment.author.image}
               alt={`user_${index}`}
               width={24}
               height={24}
               className={`${index !== 0 && "-ml-5"} rounded-full object-cover`}
             />
-          ))} */}
+          ))} 
 
-          {/* <Link href={`/thread/${id}`}>
+          <Link href={`/post/${id}`}>
             <p className='mt-1 text-subtle-medium text-gray-1'>
               {comments.length} repl{comments.length > 1 ? "ies" : "y"}
             </p>
           </Link>
         </div>
-      )} */}
+      )}
+
+
        {/* Render the floating hearts */}
-      
-                    
+       <div className={`relative ${floatingHearts? '': 'hidden'}`}>
+        {like && (
+          <div className={`floating-heart`}>❤️</div>
+        )}
+      </div>
+
     </article>
   );
 }

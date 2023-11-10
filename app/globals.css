@@ -131,11 +131,11 @@
 /* Like button styles */
 
 .pop-animation {
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
 }
 
 .pop-animation.active {
-  transform: scale(1.2); /* Adjust the scale factor as needed */
+  transform: scale(1.5); /* Adjust the scale factor as needed */
 }
 
 /* Floating Heart Animation */
@@ -144,27 +144,31 @@
     transform: translateY(0);
     opacity: 1;
   }
-  100% {
+  25% {
     transform: translateY(-50px);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translateY(-100px);
+    opacity: 0.50;
+  }
+  75% {
+    transform: translateY(-125px);
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateY(-150px);
     opacity: 0;
   }
 }
 
-.floating-heart-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-}
-
-.floating-heart-animation {
+.floating-heart {
   position: absolute;
   animation: floating-heart 1s linear;
   font-size: 24px;
   color: red;
+  pointer-events: none;
 }
-
-
 
 /* like button styles end */
 
