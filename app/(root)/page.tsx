@@ -1,9 +1,9 @@
-import Post from "@/components/shared/Post";
+import Post from "@/components/cards/Post";
 import UserImg from "@/components/shared/UserImg";
 import { fetchPosts} from "@/lib/actions/post.actions";
 import { currentUser } from "@clerk/nextjs";
 import { fetchUser } from "@/lib/actions/user.actions";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 async function Home({
   searchParams
@@ -21,8 +21,6 @@ async function Home({
     searchParams.page ? +searchParams.page : 1,
      30, 
   )  
-
-
 
  return (
     <>

@@ -130,7 +130,13 @@ export const fetchPostById = async (postId :string) => {
     // Fetch post's children
     if (post.children) {
       const childrenIds= post.children.split(',').filter(Boolean);
-      const childrenQuery = 'SELECT * FROM post WHERE idpost IN (?)';
+     // Fetch post's children with author username
+      const childrenQuery = `
+      SELECT P.*, U.username AS author_username
+      FROM post AS P
+      LEFT JOIN user AS U ON P.author_id = U.id
+      WHERE P.idpost IN (?);
+      `;
       //@ts-ignore
       const childrenPosts: any = await queryAsync(childrenQuery, [childrenIds]);
 

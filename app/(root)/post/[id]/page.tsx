@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs";
 
 import Comment from "@/components/forms/Comment";
-import Post from "@/components/shared/Post";
+import Post from "@/components/cards/Post";
 
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchPostById } from "@/lib/actions/post.actions";
@@ -25,6 +25,7 @@ async function page({ params }: { params: { id: string } }) {
 
  if(post)  console.log("POST FOUND: ", post)
 
+const kids = post.children ? post.children : []
 
   return (
     <section className='relative'>
@@ -47,25 +48,27 @@ async function page({ params }: { params: { id: string } }) {
           postId={params.id}
           currentUserImg={userInfo.image}
           currentUserId={userInfo.id}
+          parentId={post.parent_id}
         />
       </div>
 
       <div className='mt-10'>
-        {post.children?.map((childItem: any) => (
-          <Post
-            key={childItem.idpost}
-            id={childItem.idpost}
-            currentUserId={user.id}
-            parentId={childItem.parentId}
-            content={childItem.content}
-            username={post.author.username}
-            // author={childItem.author}
-            image={childItem.image}
-            createdAt={childItem.createdAt}
-            comments={childItem.children? childItem.children : []}
-            isComment = {true}
-          />
-        ))}
+
+            {kids.map((childItem: any) => (
+              <Post
+                key={childItem.idpost}
+                id={childItem.idpost}
+                currentUserId={user.id}
+                parentId={childItem.parentId}
+                content={childItem.content}
+                username={childItem.author_username}
+                image={childItem.image}
+                createdAt={childItem.createdAt}
+                comments={childItem.children? childItem.children : null}
+                isComment 
+              />
+            ))}
+      
       </div>
     </section>
   );

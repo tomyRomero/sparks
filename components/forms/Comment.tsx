@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { usePathname } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
 
 import {
   Form,
@@ -26,12 +27,15 @@ interface Props {
   postId: string;
   currentUserImg: string;
   currentUserId: string;
+  parentId: string
 }
 
 
-
-function Comment({ postId, currentUserImg, currentUserId }: Props) {
+function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
   const [img, setImg] = useState('/assets/profile.svg');
+  const [loading, setLoading] = useState(false);
+  const [backLoading, setBackLoading] = useState(false)
+  const router = useRouter();
 
   useEffect( () => {
     const load = async () => {
@@ -66,6 +70,7 @@ function Comment({ postId, currentUserImg, currentUserId }: Props) {
   });
 
   const onSubmit = async (values: z.infer<typeof CommentValdiation>) => {
+    setLoading(true)
     await addCommentToPost(
       postId,
       values.comment,
@@ -75,7 +80,19 @@ function Comment({ postId, currentUserImg, currentUserId }: Props) {
     );
 
     form.reset();
+    setLoading(false)
   };
+
+  const goBack = () => {
+    setBackLoading(true)
+    
+    if(!parentId)
+    {
+      router.push('/')
+    }else{
+      router.push(`/post/${parentId}`)
+    }
+  }
 
   return (
     <Form {...form}>
@@ -105,9 +122,11 @@ function Comment({ postId, currentUserImg, currentUserId }: Props) {
             </FormItem>
           )}
         />
-
+        <Button onClick={()=> {goBack()}} className="comment-form_btn">
+          {!backLoading? <h1>Back</h1> : <Image src={"/assets/lineloader.svg"} alt="loading" width={44} height={34}/> }
+        </Button>
         <Button type='submit' className='comment-form_btn'>
-          Reply
+          {!loading? <h1>Reply</h1> : <Image src={"/assets/lineloader.svg"} alt="loading" width={44} height={34}/> }
         </Button>
       </form>
     </Form>

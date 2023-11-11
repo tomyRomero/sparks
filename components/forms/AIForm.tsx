@@ -46,7 +46,9 @@ const getTitle = (name:string) => {
 }
 
 const AIForm = ({name, userId} : Props) => {
+
 const pathname = usePathname();
+const router = useRouter();
  const form = useForm<z.infer<typeof PostValdiation>>({
         resolver: zodResolver(PostValdiation),
         defaultValues: {
@@ -63,7 +65,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
           path: pathname,
         });
     
-        // router.push("/");
+        router.push("/");
       };
 
   return (

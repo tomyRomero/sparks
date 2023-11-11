@@ -19,6 +19,7 @@ interface Props {
   isComment?: boolean;
   image: string;
   username: string;
+  commentNum?: number
 }
 
 function Post({
@@ -30,11 +31,12 @@ function Post({
   comments,
   isComment,
   image,
-  username
+  username, 
+  commentNum
 }: Props) {
     const [img, setImg] = useState('/assets/profile.svg');
     const [like, setLike] = useState(false);
-    const [commentImg, setCommentImg] = useState('/assets/profile.svg')
+    const [commentImgs, setCommentImgs] = useState(['/assets/profile.svg', '/assets/profile.svg'])
     const [floatingHearts, setFloatingHearts] = useState(false);
 
     useEffect( () => {
@@ -50,14 +52,41 @@ function Post({
             }else{
                 setImg(image)
             }
+
+            //Logic to Set the Images of the Comments, using an Array so that it can load when we map them. 
+            const imgArray: any = []
+            for (let index = 0; index < 2; index++) {
+              const element = comments[index];
+              if(element)
+              {
+                //@ts-ignore
+                if(element.image)
+                {
+                  //@ts-ignore
+                  const img = element.image
+                  console.log("ELEMENT IMAGE:",img)
+                  if(img.startsWith('user'))
+                  {
+                    const res = await getImageData(img);
+                      if(res)
+                      {
+                      imgArray.push(res)
+                      }else{
+                        imgArray.push('/assets/profile.svg')
+                      }
+                  }else{
+                    imgArray.push(img)
+                  }
+                }
+              }
+            }
+            setCommentImgs(imgArray);
           }catch(error)
           {
             console.log("Error" , error)
           }
         }
-  
         load();
-  
       }, [])
 
       const handleLikeClick = () => {
@@ -70,6 +99,27 @@ function Post({
       };
 
       const floatingHeartsClass = like ? "floating-hearts active" : "floating-hearts";
+    
+      const likes = [1]
+
+     const filterComments = ()=> {
+        // Since children are stored in database as an string "1,2,3,4" of IDs they dont get populated
+        // Only if a query is ran however we only run the query for the main post so we have to manually figure out number of children based 
+        // off the string, we read the length of comments directly we be returned the legnth of the string and we dont want that
+        if(isComment)
+        {
+          // Remove trailing comma and split the string by commas
+          //@ts-ignore
+          const valuesArray = comments.slice(0, -1).split(',');
+
+          // Filter out empty strings and get the count
+          //@ts-ignore
+          const numberOfComments = valuesArray.filter(value => value !== '').length;
+          
+          return numberOfComments
+        }
+     }
+
 
   return (
     <article
@@ -129,13 +179,23 @@ function Post({
                 />
               </div>
 
-              {isComment && comments?.length > 0 && (
+               {/* If there is only likes render this */}
+               <div className=" flex gap-2 flex-row">
+               {likes?.length > 0 && (
+                  <p className='mt-1 text-subtle-medium text-white'>
+                    {likes.length} lik{likes.length > 1 ? "es" : "e"}
+                  </p>
+              )}
+
+              { isComment && comments?.length > 0 && (
                 <Link href={`/post/${id}`}>
-                  <p className='mt-1 text-subtle-medium text-gray-1'>
-                    {comments.length} repl{comments.length > 1 ? "ies" : "y"}
+                  <p className='mt-1 text-subtle-medium text-white'>
+                    {filterComments()} repl{filterComments() > 1 ? "ies" : "y"}
                   </p>
                 </Link>
               )}
+               </div>   
+
             </div>
           </div>
         </div>
@@ -155,7 +215,7 @@ function Post({
           {comments.slice(0, 2).map((comment, index) => (
             <Image
               key={index}
-              src={commentImg}
+              src={commentImgs[index]}
               // src={comment.author.image}
               alt={`user_${index}`}
               width={24}
@@ -163,9 +223,8 @@ function Post({
               className={`${index !== 0 && "-ml-5"} rounded-full object-cover`}
             />
           ))} 
-
           <Link href={`/post/${id}`}>
-            <p className='mt-1 text-subtle-medium text-gray-1'>
+            <p className='mt-1 text-subtle-medium text-white'>
               {comments.length} repl{comments.length > 1 ? "ies" : "y"}
             </p>
           </Link>
