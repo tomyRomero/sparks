@@ -6,7 +6,8 @@ import { fetchUser } from "@/lib/actions/user.actions";
 import { redirect, useRouter } from "next/navigation";
 
 async function Home({
-  searchParams
+  searchParams,
+  data
 }: {
   searchParams: { [key: string]: string | undefined }, data:any;
 }) 
