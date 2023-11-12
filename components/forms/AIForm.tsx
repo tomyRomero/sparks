@@ -18,6 +18,8 @@ import { PostValdiation } from "@/lib/validations/post"
 import { createPost } from "@/lib/actions/post.actions"
 import * as z from "zod";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react"
+import Image from "next/image"
 
 interface Props{
     name: string,
@@ -47,6 +49,8 @@ const getTitle = (name:string) => {
 
 const AIForm = ({name, userId} : Props) => {
 
+const [loading, setLoading] = useState(false);
+
 const pathname = usePathname();
 const router = useRouter();
  const form = useForm<z.infer<typeof PostValdiation>>({
@@ -58,7 +62,7 @@ const router = useRouter();
       });   
     
 const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
-    
+    setLoading(true);
         await createPost({
           text: values.content,
           author: userId,
@@ -99,7 +103,14 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
           )}
         />
          <CardFooter>
-            <Button type='submit' className="mx-auto hover:bg-primary-500">Generate Idea</Button>
+            <Button type='submit' className="mx-auto hover:bg-primary-500">{!loading? <p>Generate Idea</p> : 
+            <Image 
+            src={"/assets/postloader.svg"}
+            alt="loading animation for creating post"
+            width = {44}
+            height ={34}
+            />}
+            </Button>
           </CardFooter>
           </form>
             </Form>

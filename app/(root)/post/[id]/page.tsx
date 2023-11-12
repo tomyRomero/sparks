@@ -40,6 +40,7 @@ const kids = post.children ? post.children : []
                 comments={post.children}
                 image={post.author.image}
                 username={post.author.username}
+                likes={post.likes? post.likes : ''}
               />
       </div>
 
@@ -65,6 +66,7 @@ const kids = post.children ? post.children : []
                 image={childItem.image}
                 createdAt={childItem.createdAt}
                 comments={childItem.children? childItem.children : null}
+                likes={childItem.likes? childItem.likes : ''}
                 isComment 
               />
             ))}

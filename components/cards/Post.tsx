@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getImageData } from "@/lib/s3";
+import { addLikeToPost, removeLikeFromPost } from "@/lib/actions/post.actions";
+import { CSSTransition } from "react-transition-group";
 
 interface Props {
   id: string;
@@ -19,7 +21,7 @@ interface Props {
   isComment?: boolean;
   image: string;
   username: string;
-  commentNum?: number
+  likes: string
 }
 
 function Post({
@@ -32,15 +34,37 @@ function Post({
   isComment,
   image,
   username, 
-  commentNum
+  likes
 }: Props) {
+    const isInsideLikes = () => {
+        // Split the comma-separated string into an array
+      const userIdsArray = likes.split(',');
+
+      // Check if the userIdToCheck is in the array
+      return userIdsArray.includes(currentUserId);
+    }
+
+    const filterLikes = () => {
+      // Remove trailing comma and split the string by commas
+      //@ts-ignore
+      const valuesArray = likes.slice(0, -1).split(',');
+
+      // Filter out empty strings and get the count
+      //@ts-ignore
+      const numberOfLikes = valuesArray.filter(value => value !== '').length;
+      
+      return numberOfLikes
+    }
+
+    console.log("Created AT: ", createdAt)
     const [img, setImg] = useState('/assets/profile.svg');
-    const [like, setLike] = useState(false);
+    const [like, setLike] = useState(isInsideLikes());
     const [commentImgs, setCommentImgs] = useState(['/assets/profile.svg', '/assets/profile.svg'])
     const [floatingHearts, setFloatingHearts] = useState(false);
+    const [numLikes, setNumLikes] = useState(filterLikes())
 
     useEffect( () => {
-        const load = async () => {
+        const loadCommentImages = async () => {
           try{
             if(image.startsWith('user'))
             {
@@ -86,21 +110,33 @@ function Post({
             console.log("Error" , error)
           }
         }
-        load();
-      }, [])
+        
+        loadCommentImages();
+      }, [like])
 
-      const handleLikeClick = () => {
-        // Perform your "like" logic here
+      const handleLikeClick = async () => {
+        // Like logic here
         setLike(!like);
+        try{
+        // Toggle the like status in the database
+          if (like) {
+            await removeLikeFromPost(id, currentUserId);
+            setNumLikes(prevNumLikes => prevNumLikes - 1);
+          } else {
+            await addLikeToPost(id, currentUserId);
+            setNumLikes(prevNumLikes => prevNumLikes + 1);
+          }
 
         setFloatingHearts(true)
+
          // After a short delay (e.g., 1000ms), reset the "like" state to hide the floating heart
         setTimeout(() => setFloatingHearts(false), 1000);
+        
+        }catch (error) {
+          console.log("Error in Liking Post", error);
+          alert("Error In Server, Unable To Like/Unlike");
+        }
       };
-
-      const floatingHeartsClass = like ? "floating-hearts active" : "floating-hearts";
-    
-      const likes = [1]
 
      const filterComments = ()=> {
         // Since children are stored in database as an string "1,2,3,4" of IDs they dont get populated
@@ -120,6 +156,7 @@ function Post({
         }
      }
 
+     const floatingHeartsClass = like ? "floating-hearts active" : "floating-hearts";
 
   return (
     <article
@@ -178,12 +215,13 @@ function Post({
                   className='cursor-pointer object-contain'
                 />
               </div>
+              <p className="text-subtle-medium text-white">{createdAt}</p>
 
-               {/* If there is only likes render this */}
+               {/* If there is likes render this for the comments*/}
                <div className=" flex gap-2 flex-row">
-               {likes?.length > 0 && (
+               {isComment && numLikes > 0 && (
                   <p className='mt-1 text-subtle-medium text-white'>
-                    {likes.length} lik{likes.length > 1 ? "es" : "e"}
+                    {numLikes} lik{numLikes > 1 ? "es" : "e"}
                   </p>
               )}
 
@@ -210,6 +248,7 @@ function Post({
         
       </div>
 
+      <div className="flex flex-row gap-2 transition-all duration-300 ease-in-out">
       {!isComment && comments?.length > 0 && (
         <div className='ml-1 mt-3 flex items-center gap-2'>
           {comments.slice(0, 2).map((comment, index) => (
@@ -231,7 +270,14 @@ function Post({
         </div>
       )}
 
+      {!isComment && numLikes > 0 && (
+                  <p className='mt-4 text-subtle-medium text-white self-center'>
+                    {numLikes} lik{numLikes > 1 ? "es" : "e"}
+                  </p>
+              )}
+      </div>
 
+      
        {/* Render the floating hearts */}
        <div className={`relative ${floatingHearts? '': 'hidden'}`}>
         {like && (

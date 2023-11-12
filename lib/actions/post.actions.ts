@@ -5,33 +5,39 @@ import { revalidatePath } from 'next/cache';
 import util from 'util';
 
 export const createPost = async ({text,author,path} : {text: string, author: string, path: string}) => {
-    function getDate() {
-        const currentDate = new Date();
-        const year = currentDate.getFullYear();
-        const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-        const day = String(currentDate.getDate()).padStart(2, '0');
-      
-        // Combine the date components into a string with the desired format (e.g., "YYYY-MM-DD")
-        return `${year}-${month}-${day}`;
-      }
-    
+  function getDateTime() {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    let hours = currentDate.getHours();
+    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+    const period = hours >= 12 ? 'pm' : 'am';
+
+    // Convert hours to 12-hour format
+    hours = hours % 12 || 12;
+
+    // Combine the date and time components into a string with the desired format (e.g., "MM-DD-YYYY h:mm am/pm")
+    return `${month}-${day}-${year} ${hours}:${minutes} ${period}`;
+}
+
     try{
     
         const connection = connectDb('spark');
         // Promisify connection.query
         const queryAsync = util.promisify(connection.query).bind(connection);
         const insertQuery = 'INSERT INTO post (content, title, author_id, created_at) VALUES (?, ?, ?, ?)';
-        const insertValues = [text, "Regular Post", author, getDate() ]
+        const insertValues = [text, "Regular Post", author, getDateTime() ]
         //@ts-ignore
         const insertResults: any[] = await queryAsync(insertQuery, insertValues);
         console.log("Successfully Created Post: " , insertResults)
+        revalidatePath(path);
 
     }catch(error)
     {
         console.log("Error: " , error)
     }
 }
-
 
 export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
   try {
@@ -51,7 +57,8 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
           SELECT COUNT(*)
           FROM post AS C
           WHERE C.parent_id = P.idpost
-        ) AS children_count
+        ) AS children_count,
+        P.likes
       FROM
         post AS P
       LEFT JOIN
@@ -211,6 +218,104 @@ export const addCommentToPost = async (postId: string, commentText: string, user
   } catch (error) {
     console.log('Error:', error);
     throw new Error('Unable to add comment');
+  }
+};
+
+export const addLikeToPost = async (postId: string, userId: string) => {
+  try {
+    const connection = connectDb('spark'); 
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    // Fetch existing likes for the post
+    const selectQuery = 'SELECT likes FROM post WHERE idpost = ?';
+
+    //@ts-ignore
+    const existingLikesResult: any = await queryAsync(selectQuery, [postId]);
+
+    if (existingLikesResult.length === 0) {
+      // Post not found
+      connection.end();
+      throw new Error('Post not found');
+    }
+
+    const existingLikes = existingLikesResult[0].likes || '';
+
+    // Split the existing likes string into an array and filter out duplicates
+    const existingLikesArray = existingLikes.split(',').filter((id: string) => id !== userId);
+
+    // Add the new userId to the array
+    existingLikesArray.push(userId);
+
+    // Join the array back into a string
+    const newLikes = existingLikesArray.join(',');
+
+    // Update the post with the new likes
+    const updateQuery = 'UPDATE post SET likes = ? WHERE idpost = ?';
+
+    //@ts-ignore
+    const results = await queryAsync(updateQuery, [newLikes, postId]);
+    // Close the database connection
+    connection.end();
+
+    console.log("Like Resuls:", results)
+    return { success: true, message: 'Like added successfully' };
+  } catch (error) {
+    console.log('Error:', error);
+    throw new Error('Unable to add like to post');
+  }
+};
+
+export const removeLikeFromPost = async (postId: string, userId: string) => {
+  try {
+    const connection = connectDb('spark');
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    // Fetch existing likes for the post
+    const selectQuery = 'SELECT likes FROM post WHERE idpost = ?';
+
+    //@ts-ignore
+    const existingLikesResult: any = await queryAsync(selectQuery, [postId]);
+
+    if (existingLikesResult.length === 0) {
+      // Post not found
+      connection.end();
+      throw new Error('Post not found');
+    }
+
+    const existingLikes = existingLikesResult[0].likes || '';
+
+    // Split the existing likes string into an array
+    const existingLikesArray = existingLikes.split(',');
+
+    // Check if the userId is in the existingLikesArray
+    const userIndex = existingLikesArray.indexOf(userId);
+
+    if (userIndex !== -1) {
+      // Remove the userId from the array
+      existingLikesArray.splice(userIndex, 1);
+
+      // Join the array back into a string
+      const newLikes = existingLikesArray.join(',');
+
+      // Update the post with the new likes
+      const updateQuery = 'UPDATE post SET likes = ? WHERE idpost = ?';
+
+      //@ts-ignore
+      await queryAsync(updateQuery, [newLikes, postId]);
+
+      // Close the database connection
+      connection.end();
+
+      console.log("Like removed successfully");
+      return { success: true, message: 'Like removed successfully' };
+    } else {
+      // If userId is not in existingLikes, it means the user has not liked the post
+      connection.end();
+      return { success: false, message: 'User has not liked the post' };
+    }
+  } catch (error) {
+    console.log('Error:', error);
+    throw new Error('Unable to remove like from post');
   }
 };
 

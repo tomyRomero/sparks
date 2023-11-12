@@ -42,6 +42,7 @@ async function Home({
                 comments={post.children}
                 image={post.author_image}
                 username={post.author_username}
+                likes = {post.likes? post.likes: ''}
               />
             ))}
 
