@@ -9,15 +9,18 @@ const page = () => {
 
     const user = await currentUser();
 
-    console.log("USER: ", user)
+    console.log("USER: ", user?.id)
 
-    
+    return user?.id;
   }
   
-  getUser();
+  const data = getUser();
 
   return (
-    <div>Profile!</div>
+    <div>
+      <h1>Profile!!</h1>
+      <h2>{data}</h2>
+    </div>
   )
 }
 
