@@ -7,7 +7,7 @@ const page = () => {
     console.log("TEST")
 
     const user = await currentUser();
-    
+
     console.log("USER: ", user)
 
     
@@ -15,7 +15,7 @@ const page = () => {
   
 
   return (
-    <div>Profile</div>
+    <div>Profile!</div>
   )
 }
 

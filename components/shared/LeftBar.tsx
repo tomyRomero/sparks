@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { getImageData } from "@/lib/s3";
 
-function LeftSidebar({user} : any)
+function LeftSidebar()
 {
 
     const [img, setImg] = useState('/assets/profile.svg');
@@ -22,28 +22,6 @@ function LeftSidebar({user} : any)
                          || pathname === link.route;
     }
 
-    useEffect( () => {
-        const load = async () => {
-          try{
-            if(user.image.startsWith('user'))
-            {
-                const res = await getImageData(user.image);
-                if(res)
-                {
-                setImg(res);
-                }
-            }else{
-                setImg(user.image)
-            }
-          }catch(error)
-          {
-            console.log("Error" , error)
-          }
-        }
-  
-        load();
-  
-      }, [])
 
     return(
         <section className="custom-scrollbar leftsidebar">
@@ -86,7 +64,7 @@ function LeftSidebar({user} : any)
             >
                 <img src={img} alt="Profile Pic" className="w-12 h-12 rounded-full dark:bg-gray-500" />
                 <div>
-                    <h2 className="text-light-1 max-lg:hidden">{user? user.name: 'Sparkify User'}</h2>
+                    <h2 className="text-light-1 max-lg:hidden">{'Sparkify User'}</h2>
                     <span className="flex items-center space-x-1 max-lg:hidden">
                         <Image 
                         src={bottombarLinks[4].imgURL}
