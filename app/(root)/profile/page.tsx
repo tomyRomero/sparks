@@ -3,6 +3,7 @@ import { currentUser } from '@clerk/nextjs';
 
 const page = () => {
 
+  console.log("hello from vercel")
   const getUser = async () => {
     console.log("TEST")
 
@@ -13,6 +14,7 @@ const page = () => {
     
   }
   
+  getUser();
 
   return (
     <div>Profile!</div>
