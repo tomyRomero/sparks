@@ -22,18 +22,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const getDbUser = async () => {
-    const user = await currentUser();
-    if(user)
-    {
-      const dbUser = await fetchUser(user.id)
-      return dbUser;
-    }
-  }
-  
-  const data = await getDbUser();
-
-  console.log("Layout DATA:" , data)
 
   return (
     <ClerkProvider
@@ -46,7 +34,7 @@ export default async function RootLayout({
           <Topbar />
 
           <main className='flex flex-row'>
-            <LeftSidebar user={data}/>
+            <LeftSidebar/>
             <section className='main-container'>
               <div className='w-full max-w-4xl'>{children}</div>
             </section>
