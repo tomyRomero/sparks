@@ -7,11 +7,9 @@ import { redirect, useRouter } from "next/navigation";
 
 async function Home({
   searchParams,
-  data
 }: {
-  searchParams: { [key: string]: string | undefined }, data:any;
-}) 
-{
+  searchParams: { [key: string]: string | undefined };
+}) {
   const user = await currentUser();
   if (!user) return null;
 
