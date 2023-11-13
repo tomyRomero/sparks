@@ -3,18 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { currentUser } from '@clerk/nextjs';
 import { fetchUser } from '@/lib/actions/user.actions';
+import { connectDb } from '@/lib/sql';
+
 
 const ProfilePage = () => {
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState(false);
 
   const load = async () => {
-    try {
-      const userId = 'user_2XSaXcIXd9dXAjxVuNhq0L7RXkk';
-      const userInfo = await fetchUser(userId);
-      setUserData(userInfo);
-    } catch (error) {
-      console.error('Error loading user data:', error);
-    }
+
   };
 
   useEffect(() => {
@@ -24,10 +20,7 @@ const ProfilePage = () => {
   return (
     <div>
       <h1>Profile!!</h1>
-      {userData ? <h2>{
-        //@ts-ignore
-      userData.username
-      }</h2> : <p>Loading...</p>}
+      {userData ? <h2>Connected to DB</h2> : <p>Loading...</p>}
     </div>
   );
 };
