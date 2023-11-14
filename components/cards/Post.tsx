@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getImageData } from "@/lib/s3";
 import { addLikeToPost, removeLikeFromPost } from "@/lib/actions/post.actions";
-import { CSSTransition } from "react-transition-group";
+import DeletePost from "../forms/DeletePost";
 
 interface Props {
   id: string;
@@ -21,7 +21,9 @@ interface Props {
   isComment?: boolean;
   image: string;
   username: string;
-  likes: string
+  likes: string;
+  authorId: string;
+  contentImage?: string
 }
 
 function Post({
@@ -34,7 +36,9 @@ function Post({
   isComment,
   image,
   username, 
-  likes
+  likes,
+  authorId,
+  contentImage,
 }: Props) {
     const isInsideLikes = () => {
         // Split the comma-separated string into an array
@@ -56,12 +60,12 @@ function Post({
       return numberOfLikes
     }
 
-    console.log("Created AT: ", createdAt)
     const [img, setImg] = useState('/assets/profile.svg');
     const [like, setLike] = useState(isInsideLikes());
     const [commentImgs, setCommentImgs] = useState(['/assets/profile.svg', '/assets/profile.svg'])
     const [floatingHearts, setFloatingHearts] = useState(false);
     const [numLikes, setNumLikes] = useState(filterLikes())
+    const [contentImg, setContentImg] = useState('/assets/spinner.svg')
 
     useEffect( () => {
         const loadCommentImages = async () => {
@@ -110,13 +114,39 @@ function Post({
             console.log("Error" , error)
           }
         }
+
+        const loadContentImage = async () => {
+          //@ts-ignore
+          if(contentImage?.length > 0 && contentImage?.startsWith('user'))
+          {
+            try{
+              const content = await getImageData(contentImage)
+              if(content)
+              {
+                setContentImg(content);
+              }else{
+                setContentImg('/assets/failed.svg')
+              }
+            }catch(error)
+            {
+              console.log("Error Getting Content Image:", error)
+              setContentImg('/assets/failed.svg')
+            }
+          }else{
+            setContentImg('/assets/failed.svg')
+          }
+        }
         
         loadCommentImages();
-      }, [like])
+        loadContentImage();
+      }, [])
 
       const handleLikeClick = async () => {
         // Like logic here
         setLike(!like);
+
+        setFloatingHearts(true)
+
         try{
         // Toggle the like status in the database
           if (like) {
@@ -127,10 +157,8 @@ function Post({
             setNumLikes(prevNumLikes => prevNumLikes + 1);
           }
 
-        setFloatingHearts(true)
-
-         // After a short delay (e.g., 1000ms), reset the "like" state to hide the floating heart
-        setTimeout(() => setFloatingHearts(false), 1000);
+        // After a short delay (e.g., 500ms)
+        setTimeout(() => setFloatingHearts(false), 500);
         
         }catch (error) {
           console.log("Error in Liking Post", error);
@@ -157,6 +185,8 @@ function Post({
      }
 
      const floatingHeartsClass = like ? "floating-hearts active" : "floating-hearts";
+
+     const isContentImage = image.length > 0
 
   return (
     <article
@@ -186,7 +216,17 @@ function Post({
               </h4>
             </Link>
 
-            <p className='mt-2 text-small-regular text-light-2'>{content}</p>
+            <p className='mt-2 text-small-regular text-light-2 ml-3'>{content}</p>
+
+            <Image
+            src={contentImg}
+            alt={"postImage"}
+            width={250}
+            height={250}
+            className={`${
+              //@ts-ignore
+              contentImage?.length > 0 ? 'mt-4 object-contain rounded-md ml-3':'hidden'}`}
+            />
 
             <div className={`${isComment && "mb-10"} mt-5 flex flex-col gap-3`}>
               <div className='flex gap-3.5'>
@@ -237,14 +277,14 @@ function Post({
             </div>
           </div>
         </div>
-      {/* 
-        <DeleteThread
-          threadId={JSON.stringify(id)}
+      
+        <DeletePost
+          postId={id}
           currentUserId={currentUserId}
-          authorId={author.id}
+          authorId={authorId}
           parentId={parentId}
           isComment={isComment}
-        /> */}
+        />
         
       </div>
 
@@ -255,7 +295,6 @@ function Post({
             <Image
               key={index}
               src={commentImgs[index]}
-              // src={comment.author.image}
               alt={`user_${index}`}
               width={24}
               height={24}

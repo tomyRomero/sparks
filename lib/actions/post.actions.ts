@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import util from 'util';
 
-export const createPost = async ({text,author,path} : {text: string, author: string, path: string}) => {
+export const createPost = async ({text,author,path, image} : {text: string, author: string, path: string, image:string}) => {
   function getDateTime() {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
@@ -26,16 +26,17 @@ export const createPost = async ({text,author,path} : {text: string, author: str
         const connection = connectDb('spark');
         // Promisify connection.query
         const queryAsync = util.promisify(connection.query).bind(connection);
-        const insertQuery = 'INSERT INTO post (content, title, author_id, created_at) VALUES (?, ?, ?, ?)';
-        const insertValues = [text, "Regular Post", author, getDateTime() ]
+        const insertQuery = 'INSERT INTO post (content, image, title, author_id, created_at) VALUES (?,?, ?, ?, ?)';
+        const insertValues = [text,image, "Regular Post", author, getDateTime()]
         //@ts-ignore
         const insertResults: any[] = await queryAsync(insertQuery, insertValues);
         console.log("Successfully Created Post: " , insertResults)
         revalidatePath(path);
-
+        return true;
     }catch(error)
     {
         console.log("Error: " , error)
+        throw new Error(`Error Occured: ${error}`)
     }
 }
 
@@ -99,7 +100,7 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
 
     // Close the database connection
     connection.end();
-
+    // console.log("All Posts Results:", results)
     return results;
   } catch (error) {
     console.log('Error:', error);
@@ -161,7 +162,6 @@ export const fetchPostById = async (postId :string) => {
     throw new Error('Unable to fetch post');
   }
 };
-
 
 export const addCommentToPost = async (postId: string, commentText: string, userId: string, path: any, currentUserImg : string) => {
   function getDate() {
@@ -318,4 +318,56 @@ export const removeLikeFromPost = async (postId: string, userId: string) => {
     throw new Error('Unable to remove like from post');
   }
 };
+
+export const deletePost = async (postId: string, path: string, parent_id: string|null) => {
+  try {
+    const connection = connectDb('spark');
+    // Promisify connection.query
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    // Fetch all children IDs of the post
+    const fetchChildrenQuery = 'SELECT idpost FROM post WHERE parent_id = ?';
+    const fetchChildrenValues = [postId];
+
+    //@ts-ignore
+    const childrenResults: any[] = await queryAsync(fetchChildrenQuery, fetchChildrenValues);
+
+    // Delete each child post of the Targeted Post
+    for (const child of childrenResults) {
+      const deleteChildQuery = 'DELETE FROM post WHERE idpost = ?';
+      const deleteChildValues = [child.idpost];
+
+      //@ts-ignore
+      await queryAsync(deleteChildQuery, deleteChildValues);
+    }
+
+    if(parent_id)
+    {
+         // Then, update the parent post and set the children column to an empty string to represent no children
+         const updateParentQuery = 'UPDATE post SET children = null WHERE idpost = ?';
+         const updateParentValues = [parent_id];
+     
+         //@ts-ignore
+         await queryAsync(updateParentQuery, updateParentValues);
+    }
+
+    // Finally, delete the targeted post
+    const deleteQuery = 'DELETE FROM post WHERE idpost = ?';
+    const deleteValues = [postId];
+
+    //@ts-ignore
+    const deleteResults: any[] = await queryAsync(deleteQuery, deleteValues);
+
+    console.log("Successfully Deleted Post and its Children: ", deleteResults);
+
+    // Reload the Page
+    revalidatePath(path);
+
+  } catch (error) {
+    console.log("Error: ", error);
+  }
+}
+
+
+
 

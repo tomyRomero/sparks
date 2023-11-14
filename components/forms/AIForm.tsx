@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription , CardContent, CardFooter 
 import { Label } from "../ui/label"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
+import { Switch } from "../ui/switch"
 import {
     Form,
     FormControl,
@@ -11,15 +12,18 @@ import {
     FormLabel,
     FormMessage,
   } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Textarea } from "@/components/ui/textarea";
 import { PostValdiation } from "@/lib/validations/post"
 import { createPost } from "@/lib/actions/post.actions"
 import * as z from "zod";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react"
+import { useState, ChangeEvent} from "react"
 import Image from "next/image"
+import { isBase64Image } from "@/lib/utils"
+import { getImageData, postImage } from "@/lib/s3"
+import { v4 as uuidv4 } from 'uuid';
 
 interface Props{
     name: string,
@@ -47,9 +51,17 @@ const getTitle = (name:string) => {
     }
 }
 
+function generateUniqueImageID() {
+  return uuidv4();
+}
+
+
 const AIForm = ({name, userId} : Props) => {
 
 const [loading, setLoading] = useState(false);
+const [img, setImg] = useState("/assets/AI.jpg");
+const [includeImg, setIncludeImg ]= useState(false);
+const [files, setFiles] = useState<File[]>([]);
 
 const pathname = usePathname();
 const router = useRouter();
@@ -57,27 +69,92 @@ const router = useRouter();
         resolver: zodResolver(PostValdiation),
         defaultValues: {
           content: "",
+          image: "",
           accountId: userId,
         },
       });   
     
 const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
     setLoading(true);
-        await createPost({
+    const blob = values.image;
+    const uniqueId = generateUniqueImageID();
+
+    const data ={
+      image : blob,
+      name : `${userId}_postImg_${uniqueId}`
+    }
+
+    try{ 
+      if(blob)
+       {
+        const hasImageChanged = isBase64Image(blob);
+         if (hasImageChanged) 
+         {
+          const imgRes = await postImage(data);
+          const imgGetRes = await getImageData(imgRes);
+         if (imgRes && imgGetRes) {
+          values.image = imgRes;
+        }
+     }
+      } 
+     else{
+       values.image = ''
+     }
+
+        const post = await createPost({
           text: values.content,
           author: userId,
           path: pathname,
+          image: values.image
         });
-    
-        router.push("/");
+        
+        if(post)
+        {
+          router.push("/");
+        }
+
+      }catch(error)
+      {
+        alert("Error Creating Post, Please Try Again")
+      }
       };
+
+
+  const handleImage = (
+        e: ChangeEvent<HTMLInputElement>,
+        fieldChange: (value: string) => void
+      ) => {
+        e.preventDefault();
+    
+        const fileReader = new FileReader();
+    
+        if (e.target.files && e.target.files.length > 0) {
+          const file = e.target.files[0];
+          setFiles(Array.from(e.target.files));
+    
+          if (!file.type.includes("image")) return;
+    
+          fileReader.onload = async (event) => {
+            const imageDataUrl = event.target?.result?.toString() || "";
+            fieldChange(imageDataUrl);
+            setImg(imageDataUrl);
+          };
+    
+          fileReader.readAsDataURL(file);
+          
+        }
+      };
+
+  const handleSwitch = () => {
+    setIncludeImg(!includeImg);
+  }
 
   return (
     <div>
       <Card className="border-primary-500 border-2">
           <CardHeader>
             <CardTitle className="mx-auto mb-4 blue_gradient">{getTitle(name)}</CardTitle>
-            <CardDescription className="text-black">
+            <CardDescription className="text-black mx-auto text-base-semibold">
               {getBio(name)}
             </CardDescription>
           </CardHeader>
@@ -87,6 +164,8 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
         className='mt-4 flex flex-col justify-start gap-10'
         onSubmit={form.handleSubmit(onSubmit)}
       >
+
+        {/* Content */}
         <FormField
           control={form.control}
           name='content'
@@ -99,6 +178,43 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
                 <Textarea rows={2} {...field} />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className={`${name==='Regular'? "flex row gap-2" : "hidden"}`}>
+        <h2 className="text-base-semibold">Image</h2>
+        <Switch 
+          checked={includeImg}
+          onCheckedChange={handleSwitch}
+          />
+        </div>
+       
+        {/* Image */}
+        <FormField
+          control={form.control}
+          name='image'
+          render={({ field }) => (
+            <FormItem className={`${includeImg? 'flex items-center gap-2' : 'hidden' }`}>
+              <FormLabel className='account-form_image-label cursor-pointer'>
+                   <Image
+                   //@ts-ignore
+                   src={img}
+                   alt='profile_icon'
+                   width={96}
+                   height={96}
+                   priority
+                   className='rounded-full object-contain cursor-pointer'
+                 />
+              </FormLabel>
+              <FormControl className='flex-1 text-base-semibold text-black'>
+                <Input
+                  type='file'
+                  accept='image/*'
+                  placeholder='Add profile photo'
+                  className='cursor-pointer border-black hover:border-primary-500 bg-transparent outline-none file:text-black '
+                  onChange={(e) => handleImage(e, field.onChange)}
+                />
+              </FormControl>
             </FormItem>
           )}
         />

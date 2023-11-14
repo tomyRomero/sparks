@@ -12,7 +12,7 @@ export default function Page() {
                 <span className="teal_gradient text center"> AI-Powered Inspiration</span>
             </h1>  
             <p className="desc mx-auto text-center">
-            Sparkify is an AI Social Media platform that allows users to create and share AI generated Ideas with others as well as discover your own!
+            Sparks is an AI Social Media platform that allows users to create and share AI generated Ideas <span className="teal_gradient">(SPARKS)</span>  with others as well as discover your own!
             </p>
             <div className="mt-10 mx-auto lg:mx-auto lg:h-96 xl:h:96 max-lg:hidden">
             <Image

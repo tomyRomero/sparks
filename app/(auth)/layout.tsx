@@ -9,8 +9,8 @@ import "../globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Sparkify Auth",
-  description: "Auth for Sparkify App",
+  title: "Sparks Auth",
+  description: "Auth for Sparks App",
 };
 
 export default function RootLayout({

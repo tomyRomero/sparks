@@ -13,8 +13,8 @@ import { fetchUser } from "@/lib/actions/user.actions";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Sparkify",
-  description: "Discover New Litature Insiprations like never before",
+  title: "Sparks",
+  description: "Discover New AI Powered Ideas like never before",
 };
 
 export default async function RootLayout({

@@ -16,7 +16,7 @@ const page = async () => {
 
   return (
     <section>
-    <h1 className="head_text text-center blue_gradient">Create Studio </h1>
+    <h1 className="head_text text-center blue_gradient">Spark Studio </h1>
     <div className="mt-4">
     <Tabs defaultValue="Regular" className="w-full">
       <TabsList className="grid w-full grid-cols-4">

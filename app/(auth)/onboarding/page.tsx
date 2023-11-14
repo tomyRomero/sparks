@@ -22,7 +22,7 @@ async function Page() {
 
   return (
     <main className='mx-auto flex max-w-3xl flex-col justify-start px-10 py-10'>
-      <h1 className='head-text mx-auto'>Sparkify</h1>
+      <h1 className='head-text mx-auto'>Sparks</h1>
       <p className='mx-auto mt-3 text-base-regular text-light-2'>
         To get started, finish up your profile
       </p>

@@ -67,17 +67,7 @@
   }
 
 
-  /* Community Card */
-  .community-card {
-    @apply w-full rounded-lg bg-dark-3 px-4 py-5 sm:w-96;
-  }
-  .community-card_btn {
-    @apply rounded-lg bg-primary-500 px-5 py-1.5 text-small-regular !text-light-1 !important;
-  }
-
-
-
-  /* thread card  */
+  /* Post card  */
   .card_bar {
     @apply relative mt-2 w-0.5 grow rounded-full bg-white;
   }
@@ -118,7 +108,7 @@
     @apply sticky left-0 top-0 z-20 flex h-screen w-fit flex-col justify-between overflow-auto border-r border-r-slate-300 bg-black pb-2 pt-20 max-md:hidden;
   }
   .leftsidebar_link {
-    @apply relative flex justify-start gap-4 rounded-lg p-1.5;
+    @apply relative flex justify-start gap-4 rounded-xl p-2.5;
   }
   .pagination {
     @apply mt-10 flex w-full items-center justify-center gap-5;
@@ -219,7 +209,7 @@
   @apply flex h-24 w-24 items-center justify-center rounded-full bg-dark-4 !important;
 }
 .account-form_image-input {
-  @apply cursor-pointer border-black hover:border-white bg-transparent outline-none file:text-white !important;
+  @apply cursor-pointer border-black hover:border-white bg-transparent outline-none file:text-black !important;
 }
 .account-form_input {
   @apply border border-dark-4 focus:border-white bg-dark-3 text-light-1 rounded-xl !important;
