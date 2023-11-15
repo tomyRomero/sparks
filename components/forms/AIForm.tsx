@@ -101,11 +101,12 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
        values.image = ''
      }
 
+
         const post = await createPost({
           text: values.content,
           author: userId,
           path: pathname,
-          image: values.image
+          image: values.image,
         });
         
         if(post)

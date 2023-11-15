@@ -6,7 +6,7 @@ import AIForm from '../forms/AIForm';
 
 interface Props{
   data: string,
-  type: string
+  type: string,
 }
 
 const getTabs= (type: string)=> {
@@ -30,7 +30,7 @@ const Studio = ({data, type} : Props) => {
     <div className="mt-4">
       
     <div className={`${type === 'Regular' ? '' : 'hidden'}`}>
-      <AIForm name='Regular' userId={data}/>
+      <AIForm name='Regular' userId={data} />
     </div>
 
     <Tabs defaultValue=

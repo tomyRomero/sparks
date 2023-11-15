@@ -6,6 +6,7 @@ import Post from "@/components/cards/Post";
 
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchPostById } from "@/lib/actions/post.actions";
+import { title } from "process";
 
 export const revalidate = 0;
 
@@ -43,6 +44,7 @@ const kids = post.children ? post.children : []
                 likes={post.likes? post.likes : ''}
                 authorId={post.author_id}
                 contentImage={post.image}
+                title={post.title}
               />
       </div>
 
@@ -65,12 +67,13 @@ const kids = post.children ? post.children : []
                 parentId={childItem.parent_id}
                 content={childItem.content}
                 username={childItem.author_username}
-                image={childItem.image}
+                image={childItem.author_image}
                 createdAt={childItem.createdAt}
                 comments={childItem.children? childItem.children : null}
                 likes={childItem.likes? childItem.likes : ''}
                 isComment
                 authorId={childItem.author_id}
+                title={childItem.title}
               />
             ))}
       

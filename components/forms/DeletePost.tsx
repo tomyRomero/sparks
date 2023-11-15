@@ -25,6 +25,29 @@ function DeletePost({
 
   if (currentUserId !== authorId || pathname === "") return null;
 
+  
+const handleDelete = async () => {
+  const userConfirmed = window.confirm(`Are you sure you want to delete this ${isComment? 'comment' : 'post'}?`);
+
+  if (userConfirmed) {
+    // User clicked "OK" in the confirmation dialog
+    // Perform the delete operation
+    try{
+      await deletePost(postId, pathname, parentId, isComment);
+        if (!parentId || !isComment) {
+          router.push("/")
+        }
+    }catch(error)
+    {
+      alert("Error Deleting Content, Please Try Again Later")
+    }
+  } else {
+    // User clicked "Cancel" in the confirmation dialog
+    alert("Deletion canceled.");
+  }
+};
+
+
   return (
     <Image
       src='/assets/delete.svg'
@@ -32,12 +55,7 @@ function DeletePost({
       width={24}
       height={24}
       className='cursor-pointer object-contain'
-      onClick={async () => {
-        await deletePost(postId, pathname, parentId);
-        if (!parentId || !isComment) {
-          router.push("/")
-        }
-      }}
+      onClick={handleDelete}
     />
   );
 }

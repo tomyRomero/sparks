@@ -101,6 +101,7 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
     // Close the database connection
     connection.end();
     // console.log("All Posts Results:", results)
+    console.log("ALL POSTS: ", results)
     return results;
   } catch (error) {
     console.log('Error:', error);
@@ -140,7 +141,7 @@ export const fetchPostById = async (postId :string) => {
       const childrenIds= post.children.split(',').filter(Boolean);
      // Fetch post's children with author username
       const childrenQuery = `
-      SELECT P.*, U.username AS author_username
+      SELECT P.*, U.username AS author_username, U.image AS author_image
       FROM post AS P
       LEFT JOIN user AS U ON P.author_id = U.id
       WHERE P.idpost IN (?);
@@ -163,7 +164,7 @@ export const fetchPostById = async (postId :string) => {
   }
 };
 
-export const addCommentToPost = async (postId: string, commentText: string, userId: string, path: any, currentUserImg : string) => {
+export const addCommentToPost = async (postId: string, commentText: string, userId: string, path: any, currentUserImg: string) => {
   function getDate() {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
@@ -195,7 +196,7 @@ export const addCommentToPost = async (postId: string, commentText: string, user
       author_id: userId,
       created_at: getDate(),
       parent_id: postId, // Set the parent_id to the original post's ID
-      image: currentUserImg
+      image: currentUserImg,
     };
 
     // Insert the comment post into the database
@@ -211,10 +212,9 @@ export const addCommentToPost = async (postId: string, commentText: string, user
     const updateQuery = 'UPDATE post SET children = ? WHERE idpost = ?';
     //@ts-ignore
     await queryAsync(updateQuery, [updatedChildren, postId]);
-
+    revalidatePath(path);
     // Close the database connection
     connection.end();
-    revalidatePath(path);
   } catch (error) {
     console.log('Error:', error);
     throw new Error('Unable to add comment');
@@ -319,54 +319,89 @@ export const removeLikeFromPost = async (postId: string, userId: string) => {
   }
 };
 
-export const deletePost = async (postId: string, path: string, parent_id: string|null) => {
+export const deletePost = async (postId: string, path: string, parent_id: string|null, isComment: boolean|undefined) => {
   try {
     const connection = connectDb('spark');
     // Promisify connection.query
     const queryAsync = util.promisify(connection.query).bind(connection);
 
-    // Fetch all children IDs of the post
-    const fetchChildrenQuery = 'SELECT idpost FROM post WHERE parent_id = ?';
-    const fetchChildrenValues = [postId];
-
-    //@ts-ignore
-    const childrenResults: any[] = await queryAsync(fetchChildrenQuery, fetchChildrenValues);
-
-    // Delete each child post of the Targeted Post
-    for (const child of childrenResults) {
-      const deleteChildQuery = 'DELETE FROM post WHERE idpost = ?';
-      const deleteChildValues = [child.idpost];
-
+    if (isComment) {
+      // If it's a comment, delete the comment and its children first
+      const fetchChildrenQuery = 'SELECT idpost FROM post WHERE parent_id = ?';
+      const fetchChildrenValues = [postId];
       //@ts-ignore
-      await queryAsync(deleteChildQuery, deleteChildValues);
+      const commentChildrenResults: any[] = await queryAsync(fetchChildrenQuery, fetchChildrenValues);
+
+      for (const child of commentChildrenResults) {
+        await deletePost(child.idpost, path, postId, true);
+      }
+
+      // Now, delete the comment post
+      const deleteQuery = 'DELETE FROM post WHERE idpost = ?';
+      const deleteValues = [postId];
+      //@ts-ignore
+      await queryAsync(deleteQuery, deleteValues);
+
+      // Remove the comment post from the parent's children column
+      if (parent_id) {
+        const fetchParentQuery = 'SELECT children FROM post WHERE idpost = ?';
+        const fetchParentValues = [parent_id];
+        //@ts-ignore
+        const parent: any = await queryAsync(fetchParentQuery, fetchParentValues);
+
+        if (parent && parent.length > 0) {
+          const childrenString = parent[0].children;
+          const updatedChildrenString = childrenString.replace(`${postId},`, '');
+
+          const updateParentQuery = 'UPDATE post SET children = ? WHERE idpost = ?';
+          const updateParentValues = [updatedChildrenString, parent_id];
+
+          //@ts-ignore
+          await queryAsync(updateParentQuery, updateParentValues);
+        }
+      }
+
+    } else {
+      // If it's not a comment, delete the post and its children
+      const fetchChildrenQuery = 'SELECT idpost FROM post WHERE parent_id = ?';
+      const fetchChildrenValues = [postId];
+      //@ts-ignore
+      const childrenResults: any[] = await queryAsync(fetchChildrenQuery, fetchChildrenValues);
+
+      for (const child of childrenResults) {
+        await deletePost(child.idpost, path, postId, false);
+      }
+
+      // Now, delete the post
+      const deleteQuery = 'DELETE FROM post WHERE idpost = ?';
+      const deleteValues = [postId];
+      //@ts-ignore
+      await queryAsync(deleteQuery, deleteValues);
+
+      // Update the parent post's children column to null
+      if (parent_id) {
+        const updateParentQuery = 'UPDATE post SET children = null WHERE idpost = ?';
+        const updateParentValues = [parent_id];
+
+        //@ts-ignore
+        await queryAsync(updateParentQuery, updateParentValues);
+      }
     }
-
-    if(parent_id)
-    {
-         // Then, update the parent post and set the children column to an empty string to represent no children
-         const updateParentQuery = 'UPDATE post SET children = null WHERE idpost = ?';
-         const updateParentValues = [parent_id];
-     
-         //@ts-ignore
-         await queryAsync(updateParentQuery, updateParentValues);
-    }
-
-    // Finally, delete the targeted post
-    const deleteQuery = 'DELETE FROM post WHERE idpost = ?';
-    const deleteValues = [postId];
-
-    //@ts-ignore
-    const deleteResults: any[] = await queryAsync(deleteQuery, deleteValues);
-
-    console.log("Successfully Deleted Post and its Children: ", deleteResults);
 
     // Reload the Page
     revalidatePath(path);
-
   } catch (error) {
     console.log("Error: ", error);
+    throw new Error("Error Deleting Content")
   }
-}
+};
+
+
+
+
+
+
+
 
 
 

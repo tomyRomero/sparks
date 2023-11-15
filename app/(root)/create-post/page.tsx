@@ -35,7 +35,7 @@ const page = async () => {
       </TabsList>
       {postTabs.map((tab) => (
         <TabsContent key={`content-${tab.label}`} value={tab.value} className="w-full text-black">
-          <Studio data={user.id} type={tab.value}/>
+          <Studio data={user.id} type={tab.value} />
         </TabsContent>
           ))}
     </Tabs>

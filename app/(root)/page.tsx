@@ -23,7 +23,7 @@ async function Home({
 
  return (
     <>
-      <h1 className='head-text text-left teal-gradient'>Recent Sparks</h1>
+      <h1 className='head-text text-left text-black'>Recent Sparks...</h1>
       <section className='mt-9 flex flex-col gap-10'>
         {result?.length === 0 ? (
           <p className='no-result'>No posts found</p>
@@ -44,6 +44,7 @@ async function Home({
                 username={post.author_username}
                 likes = {post.likes? post.likes: ''}
                 authorId = {post.author_id}
+                title={post.title}
               />
             ))}
 

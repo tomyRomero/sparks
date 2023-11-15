@@ -32,7 +32,7 @@ interface Props {
 
 
 function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
-  const [img, setImg] = useState('/assets/profile.svg');
+  const [img, setImg] = useState('/assets/imgloader.svg');
   const [loading, setLoading] = useState(false);
   const [backLoading, setBackLoading] = useState(false)
   const router = useRouter();
@@ -53,6 +53,7 @@ function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
       }catch(error)
       {
         console.log("Error" , error)
+        setImg('/assets/profile.svg')
       }
     }
 
@@ -115,8 +116,8 @@ function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
                 <Input
                   type='text'
                   {...field}
-                  placeholder='Comment...'
-                  className='no-focus text-light-1 outline-none'
+                  placeholder='Comment On Post...'
+                  className='no-focus text-black outline-none'
                 />
               </FormControl>
             </FormItem>
@@ -125,6 +126,8 @@ function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
         <Button onClick={()=> {goBack()}} className="comment-form_btn">
           {!backLoading? <h1>Back</h1> : <Image src={"/assets/lineloader.svg"} alt="loading" width={44} height={34}/> }
         </Button>
+
+
         <Button type='submit' className='comment-form_btn'>
           {!loading? <h1>Reply</h1> : <Image src={"/assets/lineloader.svg"} alt="loading" width={44} height={34}/> }
         </Button>

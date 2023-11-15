@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { getImageData } from "@/lib/s3";
 import { addLikeToPost, removeLikeFromPost } from "@/lib/actions/post.actions";
 import DeletePost from "../forms/DeletePost";
+import { fetchUser } from "@/lib/actions/user.actions";
 
 interface Props {
   id: string;
@@ -24,6 +25,7 @@ interface Props {
   likes: string;
   authorId: string;
   contentImage?: string
+  title: string;
 }
 
 function Post({
@@ -39,6 +41,7 @@ function Post({
   likes,
   authorId,
   contentImage,
+  title
 }: Props) {
     const isInsideLikes = () => {
         // Split the comma-separated string into an array
@@ -60,60 +63,60 @@ function Post({
       return numberOfLikes
     }
 
-    const [img, setImg] = useState('/assets/profile.svg');
+    const [img, setImg] = useState('/assets/imgloader.svg');
     const [like, setLike] = useState(isInsideLikes());
-    const [commentImgs, setCommentImgs] = useState(['/assets/profile.svg', '/assets/profile.svg'])
+    const [commentImgs, setCommentImgs] = useState(['/assets/imgloader.svg', '/assets/imgloader.svg'])
     const [floatingHearts, setFloatingHearts] = useState(false);
     const [numLikes, setNumLikes] = useState(filterLikes())
-    const [contentImg, setContentImg] = useState('/assets/spinner.svg')
+    const [contentImg, setContentImg] = useState('/assets/postloader.svg')
 
     useEffect( () => {
-        const loadCommentImages = async () => {
-          try{
-            if(image.startsWith('user'))
-            {
-                const res = await getImageData(image);
-                if(res)
-                {
-                setImg(res);
-                }
-            }else{
-                setImg(image)
-            }
+      const loadImages = async () => {
+        try{
+          if(image.startsWith('user'))
+          {
+              const res = await getImageData(image);
+              if(res)
+              {
+              setImg(res);
+              }
+          }else{
+              setImg(image)
+          }
 
-            //Logic to Set the Images of the Comments, using an Array so that it can load when we map them. 
-            const imgArray: any = []
-            for (let index = 0; index < 2; index++) {
-              const element = comments[index];
-              if(element)
+          //Logic to Set the Images of the Comments, using an Array so that it can load when we map them. 
+          const imgArray: any = []
+          for (let index = 0; index < 2; index++) {
+            const element = comments[index];
+            if(element)
+            {
+              //@ts-ignore
+              if(element.image)
               {
                 //@ts-ignore
-                if(element.image)
+                const img = element.image
+                console.log("ELEMENT IMAGE:",img)
+                if(img.startsWith('user'))
                 {
-                  //@ts-ignore
-                  const img = element.image
-                  console.log("ELEMENT IMAGE:",img)
-                  if(img.startsWith('user'))
-                  {
-                    const res = await getImageData(img);
-                      if(res)
-                      {
-                      imgArray.push(res)
-                      }else{
-                        imgArray.push('/assets/profile.svg')
-                      }
-                  }else{
-                    imgArray.push(img)
-                  }
+                  const res = await getImageData(img);
+                    if(res)
+                    {
+                    imgArray.push(res)
+                    }else{
+                      imgArray.push('/assets/profile.svg')
+                    }
+                }else{
+                  imgArray.push(img)
                 }
               }
             }
-            setCommentImgs(imgArray);
-          }catch(error)
-          {
-            console.log("Error" , error)
           }
+          setCommentImgs(imgArray);
+        }catch(error)
+        {
+          console.log("Error" , error)
         }
+      }
 
         const loadContentImage = async () => {
           //@ts-ignore
@@ -137,7 +140,7 @@ function Post({
           }
         }
         
-        loadCommentImages();
+        loadImages();
         loadContentImage();
       }, [])
 
@@ -186,12 +189,17 @@ function Post({
 
      const floatingHeartsClass = like ? "floating-hearts active" : "floating-hearts";
 
-     const isContentImage = image.length > 0
 
   return (
-    <article
-      className={`flex w-full flex-col rounded-xl ${
-        isComment ? "px-0 xs:px-7" : "bg-primary-500 p-7"
+    <article className={`${isComment? '' : 'bg-black border-solid border-2 border-primary-500 rounded-xl'}`}>
+
+    {/* Title */}
+      <div className={`${isComment || title ==="Regular Post" ? 'hidden' : 'border-b border-solid border-primary-500 mb-1 p-1 bg-primary-500 rounded'} `}>
+          <h4 className="text-base-semibold text-light-1 ml-4">{title}</h4>
+      </div>
+    <div
+      className={`flex w-full flex-col ${
+        isComment ? "px-0 xs:px-7" : "p-5"
       }`}
     >
       <div className='flex items-start justify-between'>
@@ -216,18 +224,19 @@ function Post({
               </h4>
             </Link>
 
+            {/* Content */}
             <p className='mt-2 text-small-regular text-light-2 ml-3'>{content}</p>
 
             <Image
             src={contentImg}
             alt={"postImage"}
             width={250}
-            height={250}
+            height={150}
             className={`${
               //@ts-ignore
-              contentImage?.length > 0 ? 'mt-4 object-contain rounded-md ml-3':'hidden'}`}
+              contentImage?.length > 0 && title !== "Comment" ? 'mt-4 object-contain rounded-md ml-3':'hidden'}`}
             />
-
+          
             <div className={`${isComment && "mb-10"} mt-5 flex flex-col gap-3`}>
               <div className='flex gap-3.5'>
                 <Image
@@ -316,7 +325,7 @@ function Post({
               )}
       </div>
 
-      
+
        {/* Render the floating hearts */}
        <div className={`relative ${floatingHearts? '': 'hidden'}`}>
         {like && (
@@ -324,6 +333,7 @@ function Post({
         )}
       </div>
 
+      </div>
     </article>
   );
 }
