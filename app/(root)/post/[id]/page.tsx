@@ -6,7 +6,6 @@ import Post from "@/components/cards/Post";
 
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchPostById } from "@/lib/actions/post.actions";
-import { title } from "process";
 
 export const revalidate = 0;
 

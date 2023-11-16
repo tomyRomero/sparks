@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { getImageData } from "@/lib/s3";
 import { addLikeToPost, removeLikeFromPost } from "@/lib/actions/post.actions";
 import DeletePost from "../forms/DeletePost";
+import { fetchUser } from "@/lib/actions/user.actions";
 
 interface Props {
   id: string;
@@ -69,19 +70,30 @@ function Post({
     const [loading, setLoading] = useState(false);
 
     useEffect( () => {
-      const loadImages = async () => {
+      const loadProfile = async () => {
         try {
           let imgResult = '/assets/profile.svg';
-  
           if (image.startsWith('user')) {
             const res = await getImageData(image);
-            imgResult = res ? res : '/assets/profile.svg';
+            imgResult = res
           } else {
-            imgResult = image;
+            imgResult = image
           }
   
+          // Use Promise.all to wait for all asynchronous operations to complete
+          await Promise.all([
+            setImg(imgResult),
+          ]);
+        } catch (error) {
+          setImg('/assets/profile.svg');
+          console.log("Error", error);
+        }
+      }
+
+      const loadCommentImg = async () => {
           // Logic to Set the Images of the Comments, using an Array so that it can load when we map them.
           const imgArray: any = [];
+          try{
           for (let index = 0; index < 2; index++) {
             const element = comments[index];
             //@ts-ignore
@@ -96,16 +108,14 @@ function Post({
               }
             }
           }
-  
-          // Use Promise.all to wait for all asynchronous operations to complete
-          await Promise.all([
-            setImg(imgResult),
-            setCommentImgs(imgArray),
-          ]);
-        } catch (error) {
-          setImg('/assets/profile.svg');
-          console.log("Error", error);
+        }catch(error){
+          console.log("Error setting comment Image")
         }
+
+        // Use Promise.all to wait for all asynchronous operations to complete
+        await Promise.all([
+          setCommentImgs(imgArray),
+        ]);
       }
   
       const loadContentImage = async () => {
@@ -126,7 +136,8 @@ function Post({
       }
   
         
-        loadImages();
+        loadProfile();
+        loadCommentImg();
         loadContentImage();
       }, [])
 
@@ -319,7 +330,7 @@ function Post({
                   className='cursor-pointer object-contain'
                 />
                   {/* Title */}
-                <div className={`${isComment || title ==="Regular" || title === "Comment" ? 'hidden' : ''} `}>
+                <div className={`${title !=="Regular" && title !== "Comment" ? '' : 'hidden'} `}>
                     <h1 className="text-base-semibold teal_gradient cursor-pointer hover:text-light-1 ml-2  max-sm:hidden">{title}</h1>
                 </div>
               </div>
