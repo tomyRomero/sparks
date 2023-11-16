@@ -42,10 +42,10 @@ function Post({
   contentImage,
   title
 }: Props) {
+
     const isInsideLikes = () => {
         // Split the comma-separated string into an array
       const userIdsArray = likes.split(',');
-
       // Check if the userIdToCheck is in the array
       return userIdsArray.includes(currentUserId);
     }
@@ -54,11 +54,9 @@ function Post({
       // Remove trailing comma and split the string by commas
       //@ts-ignore
       const valuesArray = likes.slice(0, -1).split(',');
-
       // Filter out empty strings and get the count
       //@ts-ignore
       const numberOfLikes = valuesArray.filter(value => value !== '').length;
-      
       return numberOfLikes
     }
 
@@ -68,6 +66,7 @@ function Post({
     const [floatingHearts, setFloatingHearts] = useState(false);
     const [numLikes, setNumLikes] = useState(filterLikes())
     const [contentImg, setContentImg] = useState('/assets/postloader.svg')
+    const [loading, setLoading] = useState(false);
 
     useEffect( () => {
       const loadImages = async () => {
@@ -78,6 +77,8 @@ function Post({
               if(res)
               {
               setImg(res);
+              }else{
+                setImg("/assets/profile.svg")
               }
           }else{
               setImg(image)
@@ -111,9 +112,11 @@ function Post({
             }
           }
           setCommentImgs(imgArray);
+          setLoading(true)
         }catch(error)
         {
           console.log("Error" , error)
+          setLoading(false);
         }
       }
 
@@ -137,11 +140,13 @@ function Post({
           }else{
             setContentImg('/assets/failed.svg')
           }
+
+          setLoading(true)
         }
         
         loadImages();
         loadContentImage();
-      }, [])
+      }, [loading])
 
       const handleLikeClick = async () => {
         // Like logic here
@@ -329,9 +334,10 @@ function Post({
                 />
                   {/* Title */}
                 <div className={`${isComment || title ==="Regular" || title === "Comment" ? 'hidden' : ''} `}>
-                    <h1 className="text-base-semibold teal_gradient cursor-pointer hover:text-light-1 ml-2">{title}</h1>
+                    <h1 className="text-base-semibold teal_gradient cursor-pointer hover:text-light-1 ml-2  max-sm:hidden">{title}</h1>
                 </div>
               </div>
+              <h1 className="text-base-semibold teal_gradient cursor-pointer hover:text-light-1   sm:hidden">{title}</h1>
               <p className="text-subtle-medium text-white">{createdAt}</p>
 
                {/* If there is likes render this for the comments*/}

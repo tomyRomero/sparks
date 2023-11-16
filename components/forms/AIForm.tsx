@@ -58,7 +58,7 @@ const postTitle = (name:string) => {
     case 'Regular':
       return 'Regular'
     case 'movie':
-      return 'Spark: Movie'
+      return 'Movie Spark'
     default:
       return 'Regular'
   }
@@ -92,22 +92,20 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
     
     let submit = true;
     
-
-    // Simulate a long-running process
-    for (let i = 0; i <= 90; i += 5) {
-      if(i < 40)
-      {
-        await new Promise((resolve) => setTimeout(resolve, 700));
-        setProgress(i);
-      }else{
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        setProgress(i);
-      }
-    }
-
     //If it is not a regular post make a call to the API
     if(name !== 'Regular')
     {
+          // Simulate the loading of getting the request from openAI 
+          for (let i = 0; i <= 90; i += 5) {
+            if(i < 40)
+            {
+              await new Promise((resolve) => setTimeout(resolve, 700));
+              setProgress(i);
+            }else{
+              await new Promise((resolve) => setTimeout(resolve, 3000));
+              setProgress(i);
+            }
+          }
         const getResponse = await fetch(`/api/openAIChat?prompt=${values.content}&type=${name}`, 
         {
           method: 'GET'
