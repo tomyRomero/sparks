@@ -128,14 +128,16 @@ function Post({
         }
       };
     
-      // Execute the functions without getting into an infinite loop
-      if (!isDataLoaded) {
-        loadProfile();
-        loadCommentImg();
-        loadContentImage();
-        setIsDataLoaded(true);
+      const load = async () => {
+        await Promise.all([
+          loadProfile(),
+          loadCommentImg(),
+          loadContentImage()
+        ]);
       }
-    }, [image, comments, contentImage, isDataLoaded]);
+      // Execute the functions
+      load();
+    }, [comments]);
     
       const handleLikeClick = async () => {
         // Like logic here
