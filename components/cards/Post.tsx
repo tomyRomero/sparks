@@ -67,33 +67,30 @@ function Post({
     const [floatingHearts, setFloatingHearts] = useState(false);
     const [numLikes, setNumLikes] = useState(filterLikes())
     const [contentImg, setContentImg] = useState('/assets/postloader.svg')
-    const [loading, setLoading] = useState(false);
+    const [isDataLoaded, setIsDataLoaded] = useState(false);
 
-    useEffect( () => {
+    useEffect(() => {
       const loadProfile = async () => {
         try {
           let imgResult = '/assets/profile.svg';
           if (image.startsWith('user')) {
             const res = await getImageData(image);
-            imgResult = res
+            imgResult = res;
           } else {
-            imgResult = image
+            imgResult = image;
           }
-  
-          // Use Promise.all to wait for all asynchronous operations to complete
-          await Promise.all([
-            setImg(imgResult),
-          ]);
+    
+          setImg(imgResult);
         } catch (error) {
           setImg('/assets/profile.svg');
           console.log("Error", error);
         }
-      }
-
+      };
+    
       const loadCommentImg = async () => {
-          // Logic to Set the Images of the Comments, using an Array so that it can load when we map them.
-          const imgArray: any = [];
-          try{
+        // Logic to Set the Images of the Comments, using an Array so that it can load when we map them.
+        const imgArray = [];
+        try {
           for (let index = 0; index < 2; index++) {
             const element = comments[index];
             //@ts-ignore
@@ -108,16 +105,13 @@ function Post({
               }
             }
           }
-        }catch(error){
-          console.log("Error setting comment Image")
+        } catch (error) {
+          console.log("Error setting comment Image", error);
         }
-
-        // Use Promise.all to wait for all asynchronous operations to complete
-        await Promise.all([
-          setCommentImgs(imgArray),
-        ]);
-      }
-  
+    
+        setCommentImgs(imgArray);
+      };
+    
       const loadContentImage = async () => {
         try {
           let contentResult = '/assets/failed.svg';
@@ -126,21 +120,23 @@ function Post({
             const content = await getImageData(contentImage);
             contentResult = content ? content : '/assets/failed.svg';
           }
-  
-          // Use Promise.all to wait for all asynchronous operations to complete
-          await Promise.all([setContentImg(contentResult)]);
+    
+          setContentImg(contentResult);
         } catch (error) {
           console.log("Error Getting Content Image:", error);
           setContentImg('/assets/failed.svg');
         }
-      }
-  
-        
+      };
+    
+      // Execute the functions without getting into an infinite loop
+      if (!isDataLoaded) {
         loadProfile();
         loadCommentImg();
         loadContentImage();
-      }, [])
-
+        setIsDataLoaded(true);
+      }
+    }, [image, comments, contentImage, isDataLoaded]);
+    
       const handleLikeClick = async () => {
         // Like logic here
         setLike(!like);
@@ -199,9 +195,6 @@ function Post({
       return inputString.substring(synopsisStartIndex).trim();
     }
     
-    const toggleLoading = () => {
-      setLoading(!loading);
-    }
 
   return (
     <article className={`${isComment? '' : 'bg-black border-solid border-2 border-primary-500 rounded-xl'}`}>
@@ -334,7 +327,7 @@ function Post({
                     <h1 className="text-base-semibold teal_gradient cursor-pointer hover:text-light-1 ml-2  max-sm:hidden">{title}</h1>
                 </div>
               </div>
-              <h1 className="text-base-semibold teal_gradient cursor-pointer hover:text-light-1   sm:hidden">{title}</h1>
+              <h1 className={`${title !=="Regular" && title !== "Comment" ? '' : 'hidden'} text-base-semibold teal_gradient cursor-pointer hover:text-light-1 sm:hidden`}>{title}</h1>
               <p className="text-subtle-medium text-white">{createdAt}</p>
 
                {/* If there is likes render this for the comments*/}
