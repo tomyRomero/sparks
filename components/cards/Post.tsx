@@ -70,83 +70,65 @@ function Post({
 
     useEffect( () => {
       const loadImages = async () => {
-        try{
-          if(image.startsWith('user'))
-          {
-              const res = await getImageData(image);
-              if(res)
-              {
-              setImg(res);
-              }else{
-                setImg("/assets/profile.svg")
-              }
-          }else{
-              setImg(image)
+        try {
+          let imgResult = '/assets/profile.svg';
+  
+          if (image.startsWith('user')) {
+            const res = await getImageData(image);
+            imgResult = res ? res : '/assets/profile.svg';
+          } else {
+            imgResult = image;
           }
-
-          //Logic to Set the Images of the Comments, using an Array so that it can load when we map them. 
-          const imgArray: any = []
+  
+          // Logic to Set the Images of the Comments, using an Array so that it can load when we map them.
+          const imgArray: any = [];
           for (let index = 0; index < 2; index++) {
             const element = comments[index];
-            if(element)
-            {
+            //@ts-ignore
+            if (element && element.image) {
               //@ts-ignore
-              if(element.image)
-              {
-                //@ts-ignore
-                const img = element.image
-                console.log("ELEMENT IMAGE:",img)
-                if(img.startsWith('user'))
-                {
-                  const res = await getImageData(img);
-                    if(res)
-                    {
-                    imgArray.push(res)
-                    }else{
-                      imgArray.push('/assets/profile.svg')
-                    }
-                }else{
-                  imgArray.push(img)
-                }
+              const img = element.image;
+              if (img.startsWith('user')) {
+                const res = await getImageData(img);
+                imgArray.push(res ? res : '/assets/profile.svg');
+              } else {
+                imgArray.push(img);
               }
             }
           }
-          setCommentImgs(imgArray);
-          setLoading(true)
-        }catch(error)
-        {
-          console.log("Error" , error)
-          setLoading(false);
+  
+          // Use Promise.all to wait for all asynchronous operations to complete
+          await Promise.all([
+            setImg(imgResult),
+            setCommentImgs(imgArray),
+          ]);
+        } catch (error) {
+          setImg('/assets/profile.svg');
+          console.log("Error", error);
         }
       }
-
-        const loadContentImage = async () => {
+  
+      const loadContentImage = async () => {
+        try {
+          let contentResult = '/assets/failed.svg';
           //@ts-ignore
-          if(contentImage?.length > 0 && contentImage?.startsWith('user'))
-          {
-            try{
-              const content = await getImageData(contentImage)
-              if(content)
-              {
-                setContentImg(content);
-              }else{
-                setContentImg('/assets/failed.svg')
-              }
-            }catch(error)
-            {
-              console.log("Error Getting Content Image:", error)
-              setContentImg('/assets/failed.svg')
-            }
-          }else{
-            setContentImg('/assets/failed.svg')
+          if (contentImage?.length > 0 && contentImage?.startsWith('user')) {
+            const content = await getImageData(contentImage);
+            contentResult = content ? content : '/assets/failed.svg';
           }
-
-          setLoading(true)
+  
+          // Use Promise.all to wait for all asynchronous operations to complete
+          await Promise.all([setContentImg(contentResult)]);
+        } catch (error) {
+          console.log("Error Getting Content Image:", error);
+          setContentImg('/assets/failed.svg');
         }
+      }
+  
         
         loadImages();
         loadContentImage();
-      }, [loading])
+      }, [])
 
       const handleLikeClick = async () => {
         // Like logic here
@@ -206,6 +188,10 @@ function Post({
       return inputString.substring(synopsisStartIndex).trim();
     }
     
+    const toggleLoading = () => {
+      setLoading(!loading);
+    }
+
   return (
     <article className={`${isComment? '' : 'bg-black border-solid border-2 border-primary-500 rounded-xl'}`}>
     <div
