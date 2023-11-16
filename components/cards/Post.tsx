@@ -6,7 +6,6 @@ import { useState, useEffect } from "react";
 import { getImageData } from "@/lib/s3";
 import { addLikeToPost, removeLikeFromPost } from "@/lib/actions/post.actions";
 import DeletePost from "../forms/DeletePost";
-import { fetchUser } from "@/lib/actions/user.actions";
 
 interface Props {
   id: string;
@@ -189,14 +188,21 @@ function Post({
 
      const floatingHeartsClass = like ? "floating-hearts active" : "floating-hearts";
 
-
+     function extractTitle(inputString: string): string {
+      const titleStartIndex = inputString.indexOf('Title: ') + 'Title: '.length;
+      const synopsisStartIndex = inputString.indexOf('Synopsis: ');
+    
+      return inputString.substring(titleStartIndex, synopsisStartIndex).trim();
+    }
+    
+    function extractSynopsis(inputString: string): string {
+      const synopsisStartIndex = inputString.indexOf('Synopsis: ') + 'Synopsis: '.length;
+    
+      return inputString.substring(synopsisStartIndex).trim();
+    }
+    
   return (
     <article className={`${isComment? '' : 'bg-black border-solid border-2 border-primary-500 rounded-xl'}`}>
-
-    {/* Title */}
-      <div className={`${isComment || title ==="Regular Post" ? 'hidden' : 'border-b border-solid border-primary-500 mb-1 p-1 bg-primary-500 rounded'} `}>
-          <h4 className="text-base-semibold text-light-1 ml-4">{title}</h4>
-      </div>
     <div
       className={`flex w-full flex-col ${
         isComment ? "px-0 xs:px-7" : "p-5"
@@ -224,8 +230,16 @@ function Post({
               </h4>
             </Link>
 
-            {/* Content */}
-            <p className='mt-2 text-small-regular text-light-2 ml-3'>{content}</p>
+            {/* Content For Regular*/}
+            {title === 'Regular' && (
+              <div>
+              <p className='mt-2 text-small-regular text-light-2 ml-3 overflow-y-auto max-h-48'
+              >{content}</p>
+              {content.length > 300 && (
+                  <div className="">
+                  <p className="text-primary-500 mt-2 ml-3 text-tiny-medium">Scroll For More &darr;</p>
+                  </div>
+              )}
 
             <Image
             src={contentImg}
@@ -236,7 +250,57 @@ function Post({
               //@ts-ignore
               contentImage?.length > 0 && title !== "Comment" ? 'mt-4 object-contain rounded-md ml-3':'hidden'}`}
             />
-          
+              </div>
+            )}
+            
+             {/* Content For Comment*/}
+            {title === 'Comment' && (
+              <div>
+              <p className='mt-2 text-small-regular text-light-2 ml-3 overflow-y-auto max-h-48'
+              >{content}</p>
+              {content.length > 300 && (
+                  <div className="">
+                  <p className="text-primary-500 mt-2 ml-3 text-tiny-medium">Scroll For More &darr;</p>
+                  </div>
+              )}
+
+            <Image
+            src={contentImg}
+            alt={"postImage"}
+            width={250}
+            height={150}
+            className={`${
+              //@ts-ignore
+              contentImage?.length > 0 && title !== "Comment" ? 'mt-4 object-contain rounded-md ml-3':'hidden'}`}
+            />
+              </div>
+            )}
+
+            {/* Content for Sparks */}
+            {title !== 'Comment' && title !== "Regular" && (
+              <div>
+              <h1 className="mt-2 text-heading3-bold text-light-1 ml-3"><span className="text-primary-500">Title:</span> {extractTitle(content)}</h1>
+              <p className='mt-2 text-heading3-semibold text-primary-500 ml-3'
+              >{`Synopsis:`}</p>
+              <p className='mt-2 text-base-regular text-light-2 ml-3 overflow-y-auto max-h-48'>{extractSynopsis(content)}</p>
+              {content.length > 300 && (
+                  <div className="">
+                  <p className="text-primary-500 mt-2 ml-3.5 text-tiny-medium">Scroll For More &darr;</p>
+                  </div>
+              )}
+
+            <Image
+            src={contentImg}
+            alt={"postImage"}
+            width={250}
+            height={150}
+            className={`${
+              //@ts-ignore
+              contentImage?.length > 0 && title !== "Comment" ? 'mt-4 object-contain rounded-md ml-3':'hidden'}`}
+            />
+              </div>
+            )}
+
             <div className={`${isComment && "mb-10"} mt-5 flex flex-col gap-3`}>
               <div className='flex gap-3.5'>
                 <Image
@@ -263,6 +327,10 @@ function Post({
                   height={24}
                   className='cursor-pointer object-contain'
                 />
+                  {/* Title */}
+                <div className={`${isComment || title ==="Regular" || title === "Comment" ? 'hidden' : ''} `}>
+                    <h1 className="text-base-semibold teal_gradient cursor-pointer hover:text-light-1 ml-2">{title}</h1>
+                </div>
               </div>
               <p className="text-subtle-medium text-white">{createdAt}</p>
 

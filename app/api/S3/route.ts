@@ -18,7 +18,7 @@ export const GET = async (req: any, res: NextApiResponse) => {
 
       // Retrieve the image from S3
       const response = await client.send(command);
-      
+      //Take the response and parse it
       const streamToString = (stream: any) =>
       new Promise((resolve, reject) => {
           const chunks: any = [];

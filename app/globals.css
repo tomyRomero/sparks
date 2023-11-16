@@ -7,8 +7,9 @@
     @apply rounded-full border border-black bg-blue py-1.5 px-5 text-white transition-all hover:bg-white hover:text-black text-center text-small-regular flex items-center justify-center;
   }
   
+
   .outline_btn {
-    @apply rounded-full border border-black bg-transparent py-1.5 px-5 text-black transition-all hover:bg-black hover:text-white text-center text-small-regular flex items-center justify-center;
+    @apply rounded-full border-solid border-black bg-transparent py-1.5 px-5 text-black transition-all hover:bg-black hover:text-white text-center text-small-regular flex items-center justify-center;
   }
 
   /*carousel styles */
@@ -221,5 +222,13 @@
 }
 .comment-form_btn {
   @apply rounded-3xl bg-primary-500 px-8 py-2 !text-small-regular text-light-1 max-xs:w-full hover:bg-white hover:text-black !important;
+}
+
+
+/* Over flow styles for Content in Posts */
+.scroll-indicator {
+  color: #0060d4; /* Set the color of the scroll indicator */
+  font-size: 1.5rem; /* Set the font size of the scroll indicator */
+  /* Add any other styles you want for the scroll indicator */
 }
 

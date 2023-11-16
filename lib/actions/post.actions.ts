@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import util from 'util';
 
-export const createPost = async ({text,author,path, image} : {text: string, author: string, path: string, image:string}) => {
+export const createPost = async ({text,author,path, image, title} : {text: string, author: string, path: string, image:string , title: string}) => {
   function getDateTime() {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
@@ -27,7 +27,7 @@ export const createPost = async ({text,author,path, image} : {text: string, auth
         // Promisify connection.query
         const queryAsync = util.promisify(connection.query).bind(connection);
         const insertQuery = 'INSERT INTO post (content, image, title, author_id, created_at) VALUES (?,?, ?, ?, ?)';
-        const insertValues = [text,image, "Regular Post", author, getDateTime()]
+        const insertValues = [text,image, title, author, getDateTime()]
         //@ts-ignore
         const insertResults: any[] = await queryAsync(insertQuery, insertValues);
         console.log("Successfully Created Post: " , insertResults)
@@ -100,8 +100,7 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
 
     // Close the database connection
     connection.end();
-    // console.log("All Posts Results:", results)
-    console.log("ALL POSTS: ", results)
+    //console.log("ALL POSTS: ", results)
     return results;
   } catch (error) {
     console.log('Error:', error);

@@ -24,6 +24,8 @@ import Image from "next/image"
 import { isBase64Image } from "@/lib/utils"
 import { getImageData, postImage } from "@/lib/s3"
 import { v4 as uuidv4 } from 'uuid';
+import LoadingBar from "../shared/LoadingBar"
+
 
 interface Props{
     name: string,
@@ -51,10 +53,20 @@ const getTitle = (name:string) => {
     }
 }
 
+const postTitle = (name:string) => {
+  switch(name) {
+    case 'Regular':
+      return 'Regular'
+    case 'movie':
+      return 'Spark: Movie'
+    default:
+      return 'Regular'
+  }
+}
+
 function generateUniqueImageID() {
   return uuidv4();
 }
-
 
 const AIForm = ({name, userId} : Props) => {
 
@@ -62,6 +74,7 @@ const [loading, setLoading] = useState(false);
 const [img, setImg] = useState("/assets/AI.jpg");
 const [includeImg, setIncludeImg ]= useState(false);
 const [files, setFiles] = useState<File[]>([]);
+const [progress, setProgress] = useState(0);
 
 const pathname = usePathname();
 const router = useRouter();
@@ -76,6 +89,41 @@ const router = useRouter();
     
 const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
     setLoading(true);
+    
+    let submit = true;
+    
+
+    // Simulate a long-running process
+    for (let i = 0; i <= 90; i += 5) {
+      if(i < 40)
+      {
+        await new Promise((resolve) => setTimeout(resolve, 700));
+        setProgress(i);
+      }else{
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        setProgress(i);
+      }
+    }
+
+    //If it is not a regular post make a call to the API
+    if(name !== 'Regular')
+    {
+        const getResponse = await fetch(`/api/openAIChat?prompt=${values.content}&type=${name}`, 
+        {
+          method: 'GET'
+        });
+
+        if(getResponse.ok)
+        {
+          values.content =  await getResponse.json();
+          setProgress(100);
+        }else{
+          submit = false;
+          alert('There Was an Error with the AI Server API, Please Try Again');
+        }
+    }//if it is a regular post, check to see if an image is inlcuded and then create post
+    else
+    {
     const blob = values.image;
     const uniqueId = generateUniqueImageID();
 
@@ -83,8 +131,6 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
       image : blob,
       name : `${userId}_postImg_${uniqueId}`
     }
-
-    try{ 
       if(blob)
        {
         const hasImageChanged = isBase64Image(blob);
@@ -94,31 +140,32 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
           const imgGetRes = await getImageData(imgRes);
          if (imgRes && imgGetRes) {
           values.image = imgRes;
+        }else{
+           submit = false;
+           alert("There was an error uploading/getting the image, please try again")
         }
      }
-      } 
-     else{
-       values.image = ''
-     }
-
-
-        const post = await createPost({
-          text: values.content,
-          author: userId,
-          path: pathname,
-          image: values.image,
-        });
-        
-        if(post)
-        {
-          router.push("/");
-        }
-
-      }catch(error)
+    }
+  }
+    if(submit)
+    {
+      const post = await createPost({
+        text: values.content,
+        author: userId,
+        path: pathname,
+        image: values.image,
+        title: postTitle(name),
+      });
+      
+      if(post)
       {
-        alert("Error Creating Post, Please Try Again")
+        router.push("/");
       }
-      };
+    }else{
+      alert("An error occured and a post was not able to be created at this time")
+    }
+      setLoading(false);
+    };
 
 
   const handleImage = (
@@ -182,6 +229,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
             </FormItem>
           )}
         />
+
         <div className={`${name==='Regular'? "flex row gap-2" : "hidden"}`}>
         <h2 className="text-base-semibold">Image</h2>
         <Switch 
@@ -231,6 +279,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
           </CardFooter>
           </form>
             </Form>
+            {name !== 'Regular' && loading && <LoadingBar progress={progress} />}
           </CardContent>
         </Card>
     </div> 
