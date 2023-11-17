@@ -3,6 +3,7 @@ import OpenAI from "openai";
 const openai = new OpenAI();
 
 async function movie(outline: string) {
+  try{
   const completion = await openai.chat.completions.create({
     messages: [{"role": "system", "content": "You are a helpful assistant that generates ideas based on a sentence prompt."},
         {"role": "user", "content": "Generate an engaging, professional and marketable movie synopsis based on an outline. The synopsis should have an Title in the beginning, include actors names in brackets after each character. Choose actors that would be ideal for this role. Here is an example prompt Outline: A big-headed daredevil fighter pilot goes back to school only to be sent on a deadly mission."},
@@ -12,7 +13,6 @@ async function movie(outline: string) {
     temperature: 0.5,
     max_tokens: 300
   });
-
   console.log("Response from Movie Open AI")
   console.log(completion.choices[0])
 
@@ -20,6 +20,11 @@ async function movie(outline: string) {
   const content = completion.choices[0].message.content
   console.log("Content: ", content)
   return(content);
+}catch(error)
+{
+  console.log(`Error Occured: ${error}`)
+  return null;
+}
 }
 
 

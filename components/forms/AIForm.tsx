@@ -77,6 +77,14 @@ function generateUniqueImageID() {
   return uuidv4();
 }
 
+async function blobToBase64(blob: any) {
+  return new Promise((resolve, _) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+}
+
 const AIForm = ({name, userId} : Props) => {
 
 const [loading, setLoading] = useState(false);
@@ -101,7 +109,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
     
     const prompt = values.content
     let submit = true;
-    
+    try{
     //If it is not a regular post make a call to the API
     if(name !== 'Regular')
     {
@@ -128,8 +136,34 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
             if(imgResponse)
             {
               setProgress(70)
-              values.image = await imgResponse.json();
+              //Get DAll-E Image Blob From Server 
+              const blob = await imgResponse.blob();
               setProgress(80)
+              console.log("BLOB: " , blob)
+              //Convert Blob to Base 64
+              const base64: any = await blobToBase64(blob)
+              console.log("base64: ", base64)
+
+              //If base64 send image to s3 bucket and also test if you can retrieve it 
+              if(isBase64Image(base64)){
+                const uniqueId = generateUniqueImageID();
+
+                const data ={
+                  image : base64,
+                  name : `${userId}_postImg_${uniqueId}`
+                }
+                const imgRes = await postImage(data);
+                const imgGetRes = await getImageData(imgRes);
+               if (imgRes && imgGetRes) {
+                values.image = imgRes;
+              }else{
+                 submit = false;
+                 alert("There was an error uploading/getting the image, please try again")
+              }
+              }else{
+                alert("There was an error getting a correct Image from AI")
+              }
+              
             }
             else{
               alert('There Was An Error with Image AI Generation, Please Try Again')
@@ -186,6 +220,10 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
       alert("An error occured and a post was not able to be created at this time")
     }
       setLoading(false);
+  }catch(error){
+    console.log(`An Error Occured in Submit Function: ${error}`)
+  }
+
     };
 
 
