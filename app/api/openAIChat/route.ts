@@ -9,6 +9,8 @@ async function movie(outline: string) {
         {"role": "assistant", "content": "Title: Naval Fighter - The Journey Begins synopsis: The Top Gun Naval Fighter Weapons School is where the best of the best train to refine their elite flying skills. When hotshot fighter pilot Maverick (Tom Cruise) is sent to the school, his reckless attitude and cocky demeanor put him at odds with the other pilots, especially the cool and collected Iceman (Val Kilmer). But Maverick isn't only competing to be the top fighter pilot, he's also fighting for the attention of his beautiful flight instructor, Charlotte Blackwood (Kelly McGillis). Maverick gradually earns the respect of his instructors and peers - and also the love of Charlotte, but struggles to balance his personal and professional life. As the pilots prepare for a mission against a foreign enemy, Maverick must confront his own demons and overcome the tragedies rooted deep in his past to become the best fighter pilot and return from the mission triumphant."},
         {"role": "user", "content": outline}],
     model: "gpt-3.5-turbo",
+    temperature: 0.5,
+    max_tokens: 300
   });
 
   console.log("Response from Movie Open AI")

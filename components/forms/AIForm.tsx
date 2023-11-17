@@ -35,7 +35,7 @@ interface Props{
 const getBio = (name: string) => {
     switch (name) {
         case 'movie':
-            return "Input a one sentence concept. Sparkify will create an fanastic title! A synopsis that future studios will enjoy! You can even add a movie poster and a cast!"
+            return "Input a one sentence concept. Sparks will create an fanastic title based on it! A synopsis that future studios will enjoy with a recommended cast! You can even add a movie poster!"
         case 'Regular':
             return "Create a post"
         default:
@@ -61,6 +61,15 @@ const postTitle = (name:string) => {
       return 'Movie Spark'
     default:
       return 'Regular'
+  }
+}
+
+const getImageLabel = (name: string) => {
+  switch(name) {
+    case 'movie':
+      return 'AI Movie Poster'
+    default:
+      return 'AI Image'
   }
 }
 
@@ -90,36 +99,50 @@ const router = useRouter();
 const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
     setLoading(true);
     
+    const prompt = values.content
     let submit = true;
     
     //If it is not a regular post make a call to the API
     if(name !== 'Regular')
     {
-          // Simulate the loading of getting the request from openAI 
-          for (let i = 0; i <= 90; i += 5) {
-            if(i < 40)
-            {
-              await new Promise((resolve) => setTimeout(resolve, 700));
-              setProgress(i);
-            }else{
-              await new Promise((resolve) => setTimeout(resolve, 3000));
-              setProgress(i);
-            }
-          }
+      
+      setProgress(30)
+       
+        //Make API Call to Chat Model (Turbo 3.5) to Generate Content
         const getResponse = await fetch(`/api/openAIChat?prompt=${values.content}&type=${name}`, 
         {
           method: 'GET'
         });
-
         if(getResponse.ok)
         {
+          setProgress(40)
           values.content =  await getResponse.json();
+          setProgress(60)
+          if(includeImg){
+            //Make API Call to DALL-E model to Generate Image
+            const imgResponse = await fetch(`/api/openAIImage?prompt=${prompt}&type=${name}`, 
+            {
+              method: 'GET'
+            })
+
+            if(imgResponse)
+            {
+              setProgress(70)
+              values.image = await imgResponse.json();
+              setProgress(80)
+            }
+            else{
+              alert('There Was An Error with Image AI Generation, Please Try Again')
+            }
+          }
           setProgress(100);
         }else{
           submit = false;
-          alert('There Was an Error with the AI Server API, Please Try Again');
+          alert('There Was an Error with the AI Chat API, Please Try Again');
         }
-    }//if it is a regular post, check to see if an image is inlcuded and then create post
+
+
+    }//if it is a regular post, check to see if an image is included and then create post
     else
     {
     const blob = values.image;
@@ -200,7 +223,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
       <Card className="border-primary-500 border-2">
           <CardHeader>
             <CardTitle className="mx-auto mb-4 blue_gradient">{getTitle(name)}</CardTitle>
-            <CardDescription className="text-black mx-auto text-base-semibold">
+            <CardDescription className="text-black text-center text-base-semibold">
               {getBio(name)}
             </CardDescription>
           </CardHeader>
@@ -228,8 +251,8 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
           )}
         />
 
-        <div className={`${name==='Regular'? "flex row gap-2" : "hidden"}`}>
-        <h2 className="text-base-semibold">Image</h2>
+        <div className={`${name==='artwork' || name === "fashion" || name === "photography" ? 'hidden' : 'flex row gap-2 mx-auto'}`}>
+        <h2 className="text-base-semibold">{name === 'Regular' ? 'Image' : getImageLabel(name)}</h2>
         <Switch 
           checked={includeImg}
           onCheckedChange={handleSwitch}
@@ -241,7 +264,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
           control={form.control}
           name='image'
           render={({ field }) => (
-            <FormItem className={`${includeImg? 'flex items-center gap-2' : 'hidden' }`}>
+            <FormItem className={`${includeImg && name === "Regular" ? 'flex items-center gap-2' : 'hidden' }`}>
               <FormLabel className='account-form_image-label cursor-pointer'>
                    <Image
                    //@ts-ignore
@@ -266,7 +289,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
           )}
         />
          <CardFooter>
-            <Button type='submit' className="mx-auto hover:bg-primary-500">{!loading? <p>Generate Idea</p> : 
+            <Button type='submit' className="mx-auto hover:bg-primary-500">{!loading? <p>Generate Spark</p> : 
             <Image 
             src={"/assets/postloader.svg"}
             alt="loading animation for creating post"

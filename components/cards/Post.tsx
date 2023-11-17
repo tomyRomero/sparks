@@ -119,6 +119,13 @@ function Post({
           if (contentImage?.length > 0 && contentImage?.startsWith('user')) {
             const content = await getImageData(contentImage);
             contentResult = content ? content : '/assets/failed.svg';
+          }else{
+            //@ts-ignore
+            if(contentImage?.length > 0)
+            {
+              //@ts-ignore
+              contentResult = contentImage
+            }
           }
     
           setContentImg(contentResult);
@@ -185,16 +192,13 @@ function Post({
      const floatingHeartsClass = like ? "floating-hearts active" : "floating-hearts";
 
      function extractTitle(inputString: string): string {
-      const titleStartIndex = inputString.indexOf('Title: ') + 'Title: '.length;
-      const synopsisStartIndex = inputString.indexOf('Synopsis: ');
-    
-      return inputString.substring(titleStartIndex, synopsisStartIndex).trim();
+      const titleMatch = inputString.match(/Title:([\s\S]*?)(Synopsis:|$)/i);
+      return titleMatch ? titleMatch[1].trim() : '';
     }
     
     function extractSynopsis(inputString: string): string {
-      const synopsisStartIndex = inputString.indexOf('Synopsis: ') + 'Synopsis: '.length;
-    
-      return inputString.substring(synopsisStartIndex).trim();
+      const synopsisMatch = inputString.match(/Synopsis:([\s\S]*)/i);
+      return synopsisMatch ? synopsisMatch[1].trim() : '';
     }
     
 
