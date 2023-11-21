@@ -27,6 +27,10 @@
   @apply bg-gradient-to-r from-[#67e8f9] via-[white] to-[#67e8f9] bg-clip-text text-transparent;
 }
 
+.white{
+  @apply text-white
+}
+
 .blue_gradient {
   @apply bg-gradient-to-r from-black via-primary-500 to-black bg-clip-text text-transparent;
 }
