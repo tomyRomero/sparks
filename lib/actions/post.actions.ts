@@ -98,10 +98,22 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
       }
     }
 
+     // Count the total number of top-level posts
+     const totalPostsCountQuery = 'SELECT COUNT(*) AS total_count FROM post WHERE parent_id IS NULL';
+     //@ts-ignore
+     
+     const totalPostsCountResults: any = await queryAsync(totalPostsCountQuery);
+     console.log("Count Results: ", totalPostsCountResults)
+
+     const totalPostsCount = totalPostsCountResults[0].total_count;
+     console.log("Count: ",totalPostsCount)
+     const isNext = totalPostsCount > skipAmount + results.length;
+     console.log("isNext: ", isNext)
+
     // Close the database connection
     connection.end();
     //console.log("ALL POSTS: ", results)
-    return results;
+    return {results, isNext};
   } catch (error) {
     console.log('Error:', error);
     throw new Error('Failed to fetch top-level posts');

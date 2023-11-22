@@ -4,6 +4,7 @@ import { fetchPosts} from "@/lib/actions/post.actions";
 import { currentUser } from "@clerk/nextjs";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { redirect, useRouter } from "next/navigation";
+import Pagination from "@/components/shared/Pagination";
 
 async function Home({
   searchParams,
@@ -17,8 +18,8 @@ async function Home({
   if (!userInfo?.onboarded) redirect("/onboarding");
 
   const result: any = await fetchPosts(
-    searchParams.page ? +searchParams.page : 1,
-     30, 
+    searchParams.page ? + searchParams.page : 1,
+     10, 
   )  
 
  return (
@@ -30,7 +31,7 @@ async function Home({
         ) : (
           <>
           
-            {result.map((post: any) => (
+            {result.results.map((post: any) => (
               <Post
                 key={post.idpost}
                 id={post.idpost}
@@ -51,6 +52,11 @@ async function Home({
           </>
         )}
       </section>
+      <Pagination
+        path='/'
+        pageNumber={searchParams?.page ? + searchParams.page : 1}
+        isNext={result.isNext}
+      />
     </>
   );
 }
