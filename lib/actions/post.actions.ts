@@ -4,23 +4,23 @@ import { revalidatePath } from 'next/cache';
 
 import util from 'util';
 
-export const createPost = async ({text,author,path, image, title} : {text: string, author: string, path: string, image:string , title: string}) => {
-  function getDateTime() {
-    const currentDate = new Date();
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const day = String(currentDate.getDate()).padStart(2, '0');
-    let hours = currentDate.getHours();
-    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-    const period = hours >= 12 ? 'pm' : 'am';
+function getDateTime() {
+  const currentDate = new Date();
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+  const day = String(currentDate.getDate()).padStart(2, '0');
+  let hours = currentDate.getHours();
+  const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+  const period = hours >= 12 ? 'pm' : 'am';
 
-    // Convert hours to 12-hour format
-    hours = hours % 12 || 12;
+  // Convert hours to 12-hour format
+  hours = hours % 12 || 12;
 
-    // Combine the date and time components into a string with the desired format (e.g., "MM-DD-YYYY h:mm am/pm")
-    return `${month}-${day}-${year} ${hours}:${minutes} ${period}`;
+  // Combine the date and time components into a string with the desired format (e.g., "MM-DD-YYYY h:mm am/pm")
+  return `${month}-${day}-${year} ${hours}:${minutes} ${period}`;
 }
 
+export const createPost = async ({text,author,path, image, title} : {text: string, author: string, path: string, image:string , title: string}) => {
     try{
     
         const connection = connectDb('spark');
@@ -48,7 +48,7 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
     // Calculate the number of posts to skip based on the page number and page size.
     const skipAmount = (pageNumber - 1) * pageSize;
 
-    // Define the SQL query to fetch top-level posts with related data
+    // Define the SQL query to fetch top-level posts with related data, ordered by idpost in descending order
     const selectQuery = `
       SELECT
         P.*,
@@ -67,7 +67,7 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
       WHERE
         P.parent_id IS NULL
       ORDER BY
-        P.created_at DESC
+        P.idpost DESC
       LIMIT
         ?, ?;
     `;
@@ -164,15 +164,6 @@ export const fetchPostById = async (postId :string) => {
 };
 
 export const addCommentToPost = async (postId: string, commentText: string, userId: string, path: any, currentUserImg: string) => {
-  function getDate() {
-    const currentDate = new Date();
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const day = String(currentDate.getDate()).padStart(2, '0');
-
-    // Combine the date components into a string with the desired format (e.g., "YYYY-MM-DD")
-    return `${year}-${month}-${day}`;
-  }
 
   try {
     const connection = connectDb('spark'); // Replace 'spark' with your database name
@@ -193,7 +184,7 @@ export const addCommentToPost = async (postId: string, commentText: string, user
       content: commentText,
       title: 'Comment', // Adjust the title as needed
       author_id: userId,
-      created_at: getDate(),
+      created_at: getDateTime(),
       parent_id: postId, // Set the parent_id to the original post's ID
       image: currentUserImg,
     };
@@ -238,6 +229,7 @@ export const addLikeToPost = async (postId: string, userId: string) => {
     }
 
     const existingLikes = existingLikesResult[0].likes || '';
+    const existingRecentLike = existingLikesResult[0].recent_like || '';
 
     // Split the existing likes string into an array and filter out duplicates
     const existingLikesArray = existingLikes.split(',').filter((id: string) => id !== userId);
@@ -248,14 +240,16 @@ export const addLikeToPost = async (postId: string, userId: string) => {
     // Join the array back into a string
     const newLikes = existingLikesArray.join(',');
 
-    // Update the post with the new likes
-    const updateQuery = 'UPDATE post SET likes = ? WHERE idpost = ?';
+    // Update the post with the new likes and recent_like timestamp
+    const updateQuery = 'UPDATE post SET likes = ?, recent_like = ? WHERE idpost = ?';
+
+    const updateValues = [newLikes, getDateTime(), postId];
 
     //@ts-ignore
-    const results = await queryAsync(updateQuery, [newLikes, postId]);
+    const results = await queryAsync(updateQuery, updateValues);
+
     // Close the database connection
     connection.end();
-
     console.log("Like Resuls:", results)
     return { success: true, message: 'Like added successfully' };
   } catch (error) {
@@ -394,6 +388,114 @@ export const deletePost = async (postId: string, path: string, parent_id: string
     throw new Error("Error Deleting Content")
   }
 };
+
+export const fetchLikedPosts = async (userId: string, limit: number) => {
+  try {
+    const connection = connectDb('spark');
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    const selectQuery = `
+      SELECT
+        P.*,
+        U.username AS author_username,
+        U.image AS author_image
+      FROM
+        post AS P
+      INNER JOIN
+        user AS U ON P.author_id = U.id
+      WHERE
+        P.likes IS NOT NULL AND P.likes != '' AND P.author_id = ?
+      ORDER BY
+        P.recent_like DESC
+      LIMIT ?;
+    `;
+
+    const selectValues = [userId, limit];
+
+    //@ts-ignore
+    const results = await queryAsync(selectQuery, selectValues);
+
+    connection.end();
+    return results;
+  } catch (error) {
+    console.error('Error fetching recent liked posts:', error);
+    throw new Error('Failed to fetch recent liked posts');
+  }
+};
+
+export const fetchCommentsOnPostsByUser = async (userId: string, limit: number) => {
+  try {
+    const connection = connectDb('spark');
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    const selectQuery = `
+      SELECT
+        C.*,
+        P.title AS post_title,
+        U.username AS author_username,
+        U.image AS author_image
+      FROM
+        post AS C
+      INNER JOIN
+        post AS P ON C.parent_id = P.idpost
+      INNER JOIN
+        user AS U ON C.author_id = U.id
+      WHERE
+        P.author_id = ?
+      ORDER BY
+        C.created_at DESC
+      LIMIT ?;
+    `;
+
+    const selectValues = [userId, limit];
+
+    //@ts-ignore
+    const results = await queryAsync(selectQuery, selectValues);
+
+    connection.end();
+    return results;
+  } catch (error) {
+    console.error('Error fetching comments on posts by user:', error);
+    throw new Error('Failed to fetch comments on posts by user');
+  }
+};
+
+
+export const fetchLikesAndCommentsByUser = async (userId: string, limit: number) => {
+  try {
+    // Fetch liked posts
+    const likedPosts = await fetchLikedPosts(userId, limit);
+
+    // Fetch comments on posts
+    const commentsOnPosts = await fetchCommentsOnPostsByUser(userId, limit);
+
+    // Combine and add type property to each item
+    const combinedResults = [
+      //@ts-ignore
+      ...likedPosts.map(post => ({ ...post, type: 'like' })),
+      //@ts-ignore
+      ...commentsOnPosts.map(comment => ({ ...comment, type: 'comment' })),
+    ];
+
+    // Sort the combined array by the recent property (recent_like or created_at)
+    combinedResults.sort((a, b) => {
+      const recentA = a.recent_like || a.created_at;
+      const recentB = b.recent_like || b.created_at;
+      return new Date(recentB).getTime() - new Date(recentA).getTime();
+    });
+
+    return combinedResults;
+  } catch (error) {
+    console.error('Error fetching likes and comments:', error);
+    throw new Error('Failed to fetch likes and comments');
+  }
+};
+
+
+
+
+
+
 
 
 

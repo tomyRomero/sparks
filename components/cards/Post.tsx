@@ -280,7 +280,7 @@ function Post({
             {/* Content for Sparks */}
             {title !== 'Comment' && title !== "Regular" && (
               <div>
-              <h1 className="mt-2 text-heading3-bold text-light-1 ml-3"><span className="text-primary-500">Title:</span> {extractTitle(content)}</h1>
+              <h1 className="mt-2 text-heading3-bold text-light-1 ml-3"><span className="text-primary-500"></span> {extractTitle(content)}</h1>
               <p className={`${title === 'Artwork Spark' || title === "Fashion Spark" || title === "Photography Spark" ? 'hidden' : 'mt-2 text-heading3-semibold text-primary-500 ml-3'}`}
               >{`${title === "Movie Spark" || title === "Novel Spark" ? 'Synopsis:' : 'Content:'}`}</p>
               <p className={`${title === 'Artwork Spark' || title === "Fashion Spark" || title === "Photography Spark" ? 'hidden' : 'mt-2 text-base-regular text-light-2 ml-3 overflow-y-auto max-h-48'}`}>{extractSynopsis(content)}</p>
