@@ -25,9 +25,11 @@ async function Page({
     pageSize: 25,
   });
 
+  console.log("USER RESULTS: ", result.users)
+
   return (
     <section>
-      <h1 className='head-text mb-10'>Search</h1>
+      <h1 className='head-text mb-10 text-black'>Search</h1>
 
       <Searchbar routeType='search' />
 
@@ -36,14 +38,13 @@ async function Page({
           <p className='no-result'>No Result</p>
         ) : (
           <>
-            {result.users.map((person) => (
+            {result.users.map((person: any) => (
               <UserCard
                 key={person.id}
                 id={person.id}
                 name={person.name}
                 username={person.username}
                 imgUrl={person.image}
-                personType='User'
               />
             ))}
           </>

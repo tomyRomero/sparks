@@ -118,3 +118,80 @@ export const updateOrCreateUser = async (
     return false;
   }
 }
+
+export const fetchUsers = async ({
+  userId,
+  searchString = "",
+  pageNumber = 1,
+  pageSize = 20,
+  sortBy = "desc",
+}: {
+  userId: string;
+  searchString?: string;
+  pageNumber?: number;
+  pageSize?: number;
+  sortBy?: "asc" | "desc";
+}) => {
+  try {
+    const connection = connectDb("spark");
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    // Calculate the number of users to skip based on the page number and page size.
+    const skipAmount = (pageNumber - 1) * pageSize;
+
+    // Create a case-insensitive regular expression for the provided search string.
+    const regex = new RegExp(searchString, "i");
+
+    // Define the SQL query to fetch users with related data, ordered by createdAt in descending order
+    const selectQuery = `
+      SELECT
+        U.*,
+        (
+          SELECT COUNT(*)
+          FROM user AS U2
+          WHERE U2.id != ? AND (? = '' OR (U2.username LIKE ? OR U2.name LIKE ?))
+        ) AS total_count
+      FROM
+        user AS U
+      WHERE
+        U.id != ?
+        AND (? = '' OR (U.username LIKE ? OR U.name LIKE ?))
+      ORDER BY
+        U.id ${sortBy === "desc" ? "DESC" : "ASC"}
+      LIMIT
+        ?, ?;
+    `;
+
+    // Define query parameters
+    const selectValues = [
+      userId,
+      searchString,
+      `%${regex.source}%`,
+      `%${regex.source}%`,
+      userId,
+      searchString,
+      `%${regex.source}%`,
+      `%${regex.source}%`,
+      skipAmount,
+      pageSize,
+    ];
+
+    // Execute the SQL query to fetch users
+
+    //@ts-ignore
+    const results: any = await queryAsync(selectQuery, selectValues);
+
+    // Close the database connection
+    connection.end();
+
+    // Count the total number of users
+    const totalUsersCount =
+      results.length > 0 ? results[0].total_count : results.length;
+    const isNext = totalUsersCount > skipAmount + results.length;
+
+    return { users: results, isNext };
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    throw error;
+  }
+};
