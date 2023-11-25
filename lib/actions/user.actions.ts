@@ -119,6 +119,111 @@ export const updateOrCreateUser = async (
   }
 }
 
+//Function to fetch the posts that belong to the user that have been liked
+export const fetchLikedPosts = async (userId: string, limit: number) => {
+  try {
+    const connection = connectDb('spark');
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    const selectQuery = `
+      SELECT
+        P.*,
+        U.username AS author_username,
+        U.image AS author_image
+      FROM
+        post AS P
+      INNER JOIN
+        user AS U ON P.author_id = U.id
+      WHERE
+        P.likes IS NOT NULL AND P.likes != '' AND P.author_id = ?
+      ORDER BY
+        P.recent_like DESC
+      LIMIT ?;
+    `;
+
+    const selectValues = [userId, limit];
+
+    //@ts-ignore
+    const results = await queryAsync(selectQuery, selectValues);
+
+    connection.end();
+    return results;
+  } catch (error) {
+    console.error('Error fetching recent liked posts:', error);
+    throw new Error('Failed to fetch recent liked posts');
+  }
+};
+
+//fetches comments on Posts created by the User
+export const fetchCommentsOnPostsByUser = async (userId: string, limit: number) => {
+  try {
+    const connection = connectDb('spark');
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    const selectQuery = `
+      SELECT
+        C.*,
+        P.title AS post_title,
+        U.username AS author_username,
+        U.image AS author_image
+      FROM
+        post AS C
+      INNER JOIN
+        post AS P ON C.parent_id = P.idpost
+      INNER JOIN
+        user AS U ON C.author_id = U.id
+      WHERE
+        P.author_id = ?
+      ORDER BY
+        C.created_at DESC
+      LIMIT ?;
+    `;
+
+    const selectValues = [userId, limit];
+
+    //@ts-ignore
+    const results = await queryAsync(selectQuery, selectValues);
+
+    connection.end();
+    return results;
+  } catch (error) {
+    console.error('Error fetching comments on posts by user:', error);
+    throw new Error('Failed to fetch comments on posts by user');
+  }
+};
+
+//Fetches both of the functions above in a sorted array
+export const fetchLikesAndCommentsByUser = async (userId: string, limit: number) => {
+  try {
+    // Fetch liked posts
+    const likedPosts = await fetchLikedPosts(userId, limit);
+
+    // Fetch comments on posts
+    const commentsOnPosts = await fetchCommentsOnPostsByUser(userId, limit);
+
+    // Combine and add type property to each item
+    const combinedResults = [
+      //@ts-ignore
+      ...likedPosts.map(post => ({ ...post, type: 'like' })),
+      //@ts-ignore
+      ...commentsOnPosts.map(comment => ({ ...comment, type: 'comment' })),
+    ];
+
+    // Sort the combined array by the recent property (recent_like or created_at)
+    combinedResults.sort((a, b) => {
+      const recentA = a.recent_like || a.created_at;
+      const recentB = b.recent_like || b.created_at;
+      return new Date(recentB).getTime() - new Date(recentA).getTime();
+    });
+
+    return combinedResults;
+  } catch (error) {
+    console.error('Error fetching likes and comments:', error);
+    throw new Error('Failed to fetch likes and comments');
+  }
+};
+
+//fetches users based on a search query using a searchbar, if search query is empty all users are returned
 export const fetchUsers = async ({
   userId,
   searchString = "",
@@ -195,3 +300,207 @@ export const fetchUsers = async ({
     throw error;
   }
 };
+
+// Function to fetch user-specific posts
+export const fetchUserPosts = async (accountId: string) => {
+  try {
+    const connection = connectDb('spark');
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    // Define the SQL query to fetch user-specific posts
+    const selectQuery = `
+      SELECT
+        P.*,
+        U.username AS author_username,
+        U.image AS author_image,
+        (
+          SELECT COUNT(*)
+          FROM post AS C
+          WHERE C.parent_id = P.idpost
+        ) AS children_count,
+        P.likes
+      FROM
+        post AS P
+      LEFT JOIN
+        user AS U ON P.author_id = U.id
+      WHERE
+        P.parent_id IS NULL
+        AND P.author_id = ?  -- Filter posts by author ID
+      ORDER BY
+        P.idpost DESC;
+    `;
+
+    // Define query parameters
+    const selectValues = [accountId];
+
+    // Execute the SQL query to fetch user-specific top-level posts
+    //@ts-ignore
+    const results: any = await queryAsync(selectQuery, selectValues);
+
+    // Format children for each post
+    for (const post of results) {
+      // Fetch and format post's children
+      if (post.children_count > 0) {
+        const childrenIds = post.children.split(',').filter(Boolean); // Split the comma-separated string
+        const childrenQuery = 'SELECT * FROM post WHERE idpost IN (?)';
+        //@ts-ignore
+        const childrenPosts: any = await queryAsync(childrenQuery, [childrenIds]);
+
+        if (childrenPosts.length > 0) {
+          post.children = childrenPosts;
+        } else {
+          post.children = [];
+        }
+      } else {
+        post.children = [];
+      }
+    }
+
+    // Close the database connection
+    connection.end();
+
+    // Return the results
+    return results;
+  } catch (error) {
+    console.log('Error:', error);
+    throw new Error('Failed to fetch user-specific posts');
+  }
+};
+
+// Function to fetch user-specific comments and their children
+export const fetchUserComments = async (accountId: string) => {
+  try {
+    const connection = connectDb('spark');
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    // Define the SQL query to fetch user-specific comments and their children
+    const selectQuery = `
+      SELECT
+        C.*,
+        U.username AS author_username,
+        U.image AS author_image,
+        (
+          SELECT COUNT(*)
+          FROM post AS CC
+          WHERE CC.parent_id = C.idpost
+        ) AS children_count,
+        C.likes
+      FROM
+        post AS C
+      LEFT JOIN
+        user AS U ON C.author_id = U.id
+      WHERE
+        C.parent_id IS NOT NULL
+        AND C.author_id = ?  -- Filter comments by author ID
+      ORDER BY
+        C.idpost DESC;
+    `;
+
+    // Define query parameters
+    const selectValues = [accountId];
+
+    // Execute the SQL query to fetch user-specific comments
+    //@ts-ignore
+    const results: any = await queryAsync(selectQuery, selectValues);
+
+    // Format children for each comment
+    for (const comment of results) {
+      // Fetch and format comment's children
+      if (comment.children_count > 0) {
+        const childrenIds = comment.children.split(',').filter(Boolean); // Split the comma-separated string
+        const childrenQuery = 'SELECT * FROM post WHERE idpost IN (?)';
+        //@ts-ignore
+        const childrenComments: any = await queryAsync(childrenQuery, [childrenIds]);
+
+        if (childrenComments.length > 0) {
+          comment.children = childrenComments;
+        } else {
+          comment.children = [];
+        }
+      } else {
+        comment.children = [];
+      }
+    }
+
+    // Close the database connection
+    connection.end();
+
+    // Return the results
+    console.log("Comments by User results: ", results)
+    return results;
+  } catch (error) {
+    console.log('Error:', error);
+    throw new Error('Failed to fetch user-specific comments');
+  }
+};
+
+// Function to fetch posts liked by a specific user
+export const fetchLikedPostsByUser = async (userId: string) => {
+  try {
+    const connection = connectDb('spark');
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    // Define the SQL query to fetch posts liked by the user
+    const selectQuery = `
+      SELECT
+        P.*,
+        U.username AS author_username,
+        U.image AS author_image,
+        (
+          SELECT COUNT(*)
+          FROM post AS C
+          WHERE C.parent_id = P.idpost
+        ) AS children_count,
+        P.likes
+      FROM
+        post AS P
+      LEFT JOIN
+        user AS U ON P.author_id = U.id
+      WHERE
+        P.parent_id IS NULL
+        AND FIND_IN_SET(?, P.likes) > 0  -- Check if the user ID is in the likes column
+      ORDER BY
+        P.idpost DESC;
+    `;
+
+    // Define query parameters
+    const selectValues = [userId];
+
+    // Execute the SQL query to fetch liked posts
+    //@ts-ignore
+    const results: any = await queryAsync(selectQuery, selectValues);
+
+    // Format children for each post
+    for (const post of results) {
+      // Fetch and format post's children
+      if (post.children_count > 0) {
+        const childrenIds = post.children.split(',').filter(Boolean); // Split the comma-separated string
+        const childrenQuery = 'SELECT * FROM post WHERE idpost IN (?)';
+        //@ts-ignore
+        const childrenPosts: any = await queryAsync(childrenQuery, [childrenIds]);
+
+        if (childrenPosts.length > 0) {
+          post.children = childrenPosts;
+        } else {
+          post.children = [];
+        }
+      } else {
+        post.children = [];
+      }
+    }
+
+    // Close the database connection
+    connection.end();
+
+    // Return the results
+    console.log("Posts Liked by User: ", results)
+    return results;
+  } catch (error) {
+    console.log('Error:', error);
+    throw new Error('Failed to fetch liked posts');
+  }
+};
+
+
+
+

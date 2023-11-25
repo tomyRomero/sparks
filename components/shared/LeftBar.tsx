@@ -54,13 +54,11 @@ function LeftSidebar({user} : any)
                         const isActive = (pathname.includes(link.route) && link.route.length > 1)
                          || pathname === link.route;
 
-                         //if(link.route === '/profile') link.route = `${link.route}/${userId}`
-
                         return(
                         <Link 
                         href={link.route}
                         key={link.label}
-                        className={`leftsidebar_link hover:bg-primary-500 ${ isActive && 'bg-primary-500'}`}
+                        className={`leftsidebar_link hover:bg-primary-500 ${isActive && 'bg-primary-500'}`}
                         >
                             <Image 
                             src={link.imgURL}
@@ -68,7 +66,6 @@ function LeftSidebar({user} : any)
                             width={25}
                             height={25}
                             />
-
                             <p className="text-light-1 max-lg:hidden">
                             {link.label}
                             </p>
@@ -77,10 +74,9 @@ function LeftSidebar({user} : any)
                     )}    
             </div>
             
-           
             <div className="flex items-center justify-center p-2 space-x-4 ">
             <Link
-            href={bottombarLinks[4].route}
+            href={`${bottombarLinks[4].route}/${user.id}`}
             key={bottombarLinks[4].label}
             className={`leftsidebar_link hover:bg-primary-500 ${ isActive(bottombarLinks[4]) && 'bg-primary-500'}`}
             >

@@ -32,9 +32,10 @@ interface Props {
     image?: string;
   };
   btnTitle: string;
+  edit: boolean;
 }
 
-const AccountProfile = ({ user, btnTitle }: Props) => {
+const AccountProfile = ({ user, btnTitle , edit}: Props) => {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -202,6 +203,10 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
     }
   };
 
+  const handleBack = () => {
+    router.push(`/profile/${user.id}`)
+  }
+
   return (
     <Form {...form}>
       <form
@@ -253,7 +258,7 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
           name='name'
           render={({ field }) => (
             <FormItem className='flex w-full flex-col gap-3'>
-              <FormLabel className='text-base-semibold text-light-2'>
+              <FormLabel className={`text-base-semibold text-light-2 ${edit? 'text-primary-500' : ''}`}>
                 Full Name
               </FormLabel>
               <FormControl>
@@ -273,7 +278,7 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
           name='username'
           render={({ field }) => (
             <FormItem className='flex w-full flex-col gap-3'>
-              <FormLabel className='text-base-semibold text-light-2'>
+              <FormLabel className={`text-base-semibold text-light-2 ${edit? 'text-primary-500' : ''}`}>
                 Username
               </FormLabel>
               <FormControl>
@@ -293,7 +298,7 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
           name='bio'
           render={({ field }) => (
             <FormItem className='flex w-full flex-col gap-3'>
-              <FormLabel className='text-base-semibold text-light-2'>
+              <FormLabel className={`text-base-semibold text-light-2 ${edit? 'text-primary-500' : ''}`}>
                 Biography
               </FormLabel>
               <FormControl>
@@ -308,9 +313,19 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
           )}
         />
 
+        <div className="flex">
+        {
+          edit && (
+            <Button onClick={handleBack} className={`${loading? "hidden" : ""} bg-black w-28 mx-auto hover:bg-white hover:text-black`}>
+              Back
+            </Button>
+          )
+        }
+       
         <Button type='submit' className={`${loading? "hidden" : ""} bg-black w-28 mx-auto hover:bg-white hover:text-black`}>
           {btnTitle}
         </Button>
+        </div>
         <Image
           src={"/assets/spinner.svg"}
           alt={"loader"}

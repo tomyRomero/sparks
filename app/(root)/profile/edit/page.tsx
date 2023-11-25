@@ -1,15 +1,14 @@
 import { currentUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
 
 import { fetchUser } from "@/lib/actions/user.actions";
 import AccountProfile from "@/components/forms/AccountProfile";
 
 async function Page() {
   const user = await currentUser();
-  if (!user) return null; // to avoid typescript warnings
+  if (!user) return null; 
 
   const userInfo = await fetchUser(user.id);
-  if (userInfo?.onboarded) redirect("/");
+  
 
   const userData = {
     id: user.id,
@@ -22,12 +21,12 @@ async function Page() {
 
   return (
     <main className='mx-auto flex max-w-3xl flex-col justify-start px-10 py-10'>
-      <h1 className='head-text mx-auto'>Sparks</h1>
-      <p className='mx-auto mt-3 text-base-regular text-light-2'>
-        To get started, finish up your profile
+      <h1 className='head-text mx-auto text-primary-500'>Edit Sparks Profile</h1>
+      <p className='mx-auto mt-3 text-base-regular text-primary-500'>
+        Make adjustments to your profile.
       </p>
       <section className='mt-5 bg-blue-800 p-10 rounded-3xl'>
-        <AccountProfile user={userData} btnTitle='Continue' edit={false} />
+        <AccountProfile user={userData} btnTitle='Edit' edit={true} />
       </section>
     </main>
   );

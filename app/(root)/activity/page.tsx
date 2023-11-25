@@ -1,7 +1,8 @@
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { fetchUser } from "@/lib/actions/user.actions";
-import {fetchLikesAndCommentsByUser, fetchPostById} from "@/lib/actions/post.actions";
+import { fetchPostById} from "@/lib/actions/post.actions";
+import { fetchLikesAndCommentsByUser } from "@/lib/actions/user.actions";
 import Activity from "@/components/shared/Activity";
 
 async function Page() {
@@ -38,7 +39,7 @@ async function Page() {
 
   return (
     <>
-  <h1 className='head-text text-black'>Activity</h1>
+  <h1 className='head-text text-black'>Notifications</h1>
   <section className='mt-10 flex flex-col gap-5 rounded-lg'>
   {activity.length > 0 ? (
     <>

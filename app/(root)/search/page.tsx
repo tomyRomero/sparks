@@ -22,14 +22,14 @@ async function Page({
     userId: user.id,
     searchString: searchParams.q,
     pageNumber: searchParams?.page ? +searchParams.page : 1,
-    pageSize: 25,
+    pageSize: 15,
   });
 
   console.log("USER RESULTS: ", result.users)
 
   return (
     <section>
-      <h1 className='head-text mb-10 text-black'>Search</h1>
+      <h1 className='head-text mb-10 text-black'>Search for Users</h1>
 
       <Searchbar routeType='search' />
 

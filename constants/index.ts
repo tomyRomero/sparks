@@ -54,9 +54,9 @@ export const sidebarLinks = [
 
 
   export const profileTabs = [
-    { value: "threads", label: "Threads", icon: "/assets/reply.svg" },
-    { value: "replies", label: "Replies", icon: "/assets/members.svg" },
-    { value: "tagged", label: "Tagged", icon: "/assets/tag.svg" },
+    { value: "posts", label: "Posts", icon: "/assets/regular.svg" },
+    { value: "comments", label: "Comments", icon: "/assets/comment.svg" },
+    { value: "liked", label: "Liked Posts", icon: "/assets/like.svg" },
   ];
   
   export const postTabs = [
