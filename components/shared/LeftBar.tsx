@@ -20,6 +20,7 @@ function LeftSidebar({user} : any)
     const isActive = (link : any) => {
         return (pathname.includes(link.route) && link.route.length > 1)
                          || pathname === link.route;
+
     }
 
     useEffect( () => {
@@ -53,6 +54,8 @@ function LeftSidebar({user} : any)
                     sidebarLinks.map(( link)=> {
                         const isActive = (pathname.includes(link.route) && link.route.length > 1)
                          || pathname === link.route;
+
+                         if(link.route === '/profile') link.route = `${link.route}/${user.id}`
 
                         return(
                         <Link 

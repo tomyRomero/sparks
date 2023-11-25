@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from 'next/navigation'
 
-function Bottombar()
+function Bottombar({user} : any)
 {
     const pathname = usePathname();
 
@@ -19,7 +19,7 @@ function Bottombar()
 
                     return(
                     <Link 
-                    href={link.route}
+                    href={`${link.route === '/profile' ? `/profile/${user.id}` : `${link.route}`}`}
                     key={link.label}
                     className={`bottombar_link ${ isActive && 'bg-primary-500'}`}
                     >

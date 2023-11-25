@@ -214,7 +214,7 @@ function Post({
             <Link href={`/profile/${authorId}`} className='relative h-11 w-11'>
               <Image
                 src={img}
-                alt='user_community_image'
+                alt='user_image'
                 fill
                 className='cursor-pointer rounded-full'
               />

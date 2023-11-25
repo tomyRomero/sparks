@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
-
 import { fetchUserComments } from "@/lib/actions/user.actions";
-
 import Post from "../cards/Post";
+import Link from "next/link";
 
 interface Props {
   currentUserId: string;
@@ -21,7 +20,7 @@ async function CommentsTab({ currentUserId, accountId }: Props) {
   }
 
   return (
-    <section className='mt-9 flex flex-col gap-10'>
+    <section className='mt-9 flex flex-col gap-8'>
         {noResults && (
             <h2 className=" text-center text-primary-500">No Results</h2>
         )}
