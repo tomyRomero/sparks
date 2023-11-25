@@ -1,5 +1,4 @@
 import Post from "@/components/cards/Post";
-import UserImg from "@/components/shared/UserImg";
 import { fetchPosts} from "@/lib/actions/post.actions";
 import { currentUser } from "@clerk/nextjs";
 import { fetchUser } from "@/lib/actions/user.actions";
