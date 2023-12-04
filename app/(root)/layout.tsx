@@ -8,6 +8,7 @@ import "../globals.css";
 import Topbar from "@/components/shared/TopBar";
 import LeftSidebar from "@/components/shared/LeftBar";
 import Bottombar from "@/components/shared/BottomBar";
+import RightBar from "@/components/shared/RightBar";
 import { fetchUser } from "@/lib/actions/user.actions";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -50,6 +51,7 @@ export default async function RootLayout({
             <section className='main-container'>
               <div className='w-full max-w-4xl'>{children}</div>
             </section>
+            <RightBar />
           </main>
           <Bottombar user={data} />
         </body>

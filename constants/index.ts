@@ -19,6 +19,11 @@ export const sidebarLinks = [
       route: "/search",
       label: "Search",
     },
+    {
+      imgURL:"/assets/message.svg",
+      route:"/chat",
+      label:"Message"
+    }
   ];
 
   export const bottombarLinks = [

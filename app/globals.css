@@ -87,13 +87,13 @@
     @apply flex flex-1 items-start justify-start gap-3 xs:items-center;
   }
   .user-card_btn {
-    @apply h-auto min-w-[74px] rounded-lg bg-primary-500 text-[12px] text-light-1 !important;
+    @apply h-auto min-w-[74px] rounded-lg bg-primary-500 text-[12px] text-light-1  hover:bg-white hover:text-black !important;
   }
   .searchbar {
     @apply flex gap-1 rounded-lg bg-dark-3 px-4 py-2;
   }
   .searchbar_input {
-    @apply border-none bg-dark-3 text-base-regular text-light-4 outline-none !important;
+    @apply border-none bg-dark-3 text-base-regular text-light-1 outline-none !important;
   }
 
   /* Shared */
@@ -101,7 +101,7 @@
     @apply fixed top-0 z-30 flex w-full items-center justify-between bg-black px-6 py-3;
   }
   .bottombar {
-    @apply fixed bottom-0 z-10 w-full rounded-t-3xl bg-glassmorphism p-4 backdrop-blur-lg xs:px-7 md:hidden bg-black
+    @apply fixed bottom-0 z-10 w-full p-4 backdrop-blur-lg xs:px-7 md:hidden bg-black
   }
   .bottombar_container {
     @apply flex items-center justify-between gap-3 xs:gap-5 ;
@@ -119,7 +119,7 @@
     @apply mt-10 flex w-full items-center justify-center gap-5;
   }
   .rightsidebar {
-    @apply sticky right-0 top-0 z-20 flex h-screen w-fit flex-col justify-between gap-12 overflow-auto border-l border-l-dark-4 bg-dark-2 px-10 pb-6 pt-28 max-xl:hidden;
+    @apply sticky right-0 top-0 z-20 flex h-screen w-fit flex-col justify-between gap-6 overflow-auto border-l border-l-dark-4 bg-black px-6 pb-4 pt-20 max-xl:hidden;
   }
 }
 
@@ -228,6 +228,9 @@
   @apply rounded-3xl bg-primary-500 px-8 py-2 !text-small-regular text-light-1 max-xs:w-full hover:bg-white hover:text-black !important;
 }
 
+.overflow-wrap-break-word {
+  overflow-wrap: break-word;
+}
 
 /* Over flow styles for Content in Posts */
 .scroll-indicator {

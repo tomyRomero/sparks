@@ -313,19 +313,12 @@ const AccountProfile = ({ user, btnTitle , edit}: Props) => {
           )}
         />
 
-        <div className="flex">
-        {
-          edit && (
-            <Button onClick={handleBack} className={`${loading? "hidden" : ""} bg-black w-28 mx-auto hover:bg-white hover:text-black`}>
-              Back
-            </Button>
-          )
-        }
+      
        
         <Button type='submit' className={`${loading? "hidden" : ""} bg-black w-28 mx-auto hover:bg-white hover:text-black`}>
           {btnTitle}
         </Button>
-        </div>
+       
         <Image
           src={"/assets/spinner.svg"}
           alt={"loader"}

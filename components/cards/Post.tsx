@@ -322,7 +322,7 @@ function Post({
                 </Link>
                 <Image
                   src='/assets/share.svg'
-                  alt='heart'
+                  alt='share'
                   width={24}
                   height={24}
                   className='cursor-pointer object-contain'
