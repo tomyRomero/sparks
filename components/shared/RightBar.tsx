@@ -2,8 +2,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import ChatLogs from "../cards/ChatLogs";
 
-function RightBar()
+function RightBar({chats} : any)
 {
     const pathname = usePathname();
 
@@ -13,13 +14,11 @@ function RightBar()
 
     return(
         <section className={`custom-scrollbar rightsidebar ${isActive()? 'hidden': ''}`}>
-            <div className="flex flex-1 flex-col justify-start w-52">
-                
-
+            <div className="flex flex-1 flex-col justify-start w-72">
                 <Link
                 href={"/chat"}
                 >
-                <div className="flex gap-4 mx-auto">
+                <div className="flex gap-4 mx-auto w-40 hover:bg-primary-500 p-4 rounded-lg">
                     <h3 className="text-heading4-medium text-light-1 cursor-pointer">Recent Chats..</h3>
                     <Image 
                         src={"/assets/message.svg"}
@@ -31,7 +30,22 @@ function RightBar()
                 </div>
                 </Link>
                 <div className="w-48 mx-auto m-1 p-1 border-b-2 border-white" />
-                <h3 className="text-left mt-2 text-light-1">No Chats...</h3>
+                <div className="p-4 flex flex-col overflow-y-auto overflow-hidden">
+                    {chats.length === 0 ? (
+                    <h3 className="text-left mt-2 text-light-1">No Recent Chats... Click Above To Get Started or Go to Messages Tab</h3>
+                    ): (
+                    <>
+                    {chats.map((chat: any) => (
+                        <div 
+                        key= {chat.receiver_id}
+                        className="bg-white rounded-lg hover:bg-primary-500"
+                        >
+                        <ChatLogs chatRead={chat.read_status} senderID={chat.sender_id} receiverID={chat.receiver_id} chatMessages={chat.messages} receiverPicture={chat.user_image} chatName={chat.user_username} isHome={true}/>
+                        </div>
+                    ))}
+                    </>
+                )}
+                </div>
             </div>
             
         </section>

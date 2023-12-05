@@ -62,7 +62,7 @@ async function Page({
         ): (
           <>
           {chats.map((chat: any) => (
-           <ChatLogs chatRead={chat.read_status} receiverID={chat.receiver_id} chatMessages={chat.messages} receiverPicture={chat.user_image} chatName={chat.user_username}/>
+           <ChatLogs chatRead={chat.read_status} senderID={chat.sender_id} receiverID={chat.receiver_id} chatMessages={chat.messages} receiverPicture={chat.user_image} chatName={chat.user_username} isHome={false}/>
           ))}
         </>
       )}

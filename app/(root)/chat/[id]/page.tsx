@@ -34,7 +34,7 @@ const page = async ({ params }: { params: { id: string } }) => {
 
   return (
    <div>
-    <Chat  chatPicture={chatData.receiver_image}  chatName={chatData.receiver_name} chatMessages={chatData.messages} userID={chatData.sender_id} receiver={chatData.receiver_id}/>
+    <Chat  chatPicture={chatData.receiver_image}  chatName={chatData.receiver_name} chatMessages={chatData.messages} userID={chatData.sender_id} receiver={chatData.receiver_id} isRead={chatData.read_status}/>
    </div>
   )
 }

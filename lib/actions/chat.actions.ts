@@ -1,4 +1,5 @@
 "use server"
+
 import Pusher from "pusher";
 import { connectDb } from "../sql";
 import util from 'util';
@@ -105,7 +106,7 @@ const pusher = new Pusher({
       // Use a parameterized query to select chats with user information
       const connection = connectDb('spark');
       const queryAsync = util.promisify(connection.query).bind(connection);
-  
+      
       const query = `
         SELECT
           chat.*,
@@ -169,4 +170,41 @@ const pusher = new Pusher({
     }
   };
   
+  export const markChatAsRead = async (sender: string, receiver: string, messages: any[], pathname: string) => {
+    try {
+      console.log('Updating Chat with Read...');
+      
+      const connection = connectDb('spark');
+      const queryAsync = util.promisify(connection.query).bind(connection);
+
+      const updateQuery = 'UPDATE chat SET messages = ?, read_status = ? WHERE sender_id = ? AND receiver_id = ?';
+      const updateValues = [JSON.stringify(messages), true, sender, receiver];
   
+      // Emit an event to Pusher to notify the other user that the message has been read
+      const updateData = { sender, receiver, messages, pathname};
+      pusher.trigger('sparks', 'updateReadStatus', updateData);
+  
+      //@ts-ignore
+      const updateResults: any[] = await queryAsync(updateQuery, updateValues);
+      console.log('Successfully Updated Chat:', updateResults);
+      revalidatePath(pathname);
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  };
+  
+  // Function to update the online status of the user
+export const updateOnlineStatus = (userId: string, isOnline: boolean) => {
+  try {
+    console.log('Updating Online Status...');
+    const updateData = { userId, isOnline };
+    pusher.trigger('sparks', 'updateOnlineStatus', updateData);
+    console.log('Successfully Updated Online Status:', updateData);
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};

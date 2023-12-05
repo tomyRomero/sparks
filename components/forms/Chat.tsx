@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect, useRef} from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { boolean, z } from "zod";
 import {
     Form,
     FormControl,
@@ -17,11 +17,10 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { messageValdiation } from "@/lib/validations/chat";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Pusher from "pusher-js";
-import { sendMessage, updateChatForOther } from "@/lib/actions/chat.actions";
-import { fetchUser } from "@/lib/actions/user.actions";
-import { usePathname } from "next/navigation";
+import { markChatAsRead, sendMessage, updateChatForOther, updateOnlineStatus } from "@/lib/actions/chat.actions";
+import { usePathname, useRouter } from "next/navigation";
 import { getImageData } from "@/lib/s3";
+import pusherClient from "@/lib/pusher";
 
 interface chat{
     chatPicture: string;
@@ -33,28 +32,34 @@ interface chat{
     }[];
     userID: string;
     receiver: string;
+    isRead: boolean;
 }
 
-const Chat = ({chatPicture, chatName, chatMessages, userID, receiver}: chat) => {
+const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: chat) => {
   const [img, setImg] = useState("/assets/imgloader.svg")
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState(chatMessages);
   const messageEndRef = useRef<HTMLInputElement>(null);
+  const [read, setRead] = useState(false);
+  const [active, setActive] = useState(false);
 
   const pathname = usePathname();
+  const router = useRouter();
 
-  console.log("Sender: ", userID)
-  console.log("Reciever: ", receiver)
+  var pusher = pusherClient;
 
   useEffect(() => {
-
     try {
-      //@ts-ignore
-      var pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_APP_KEY, {
-        cluster: "us2",
-      });
-  
       const channel = pusher.subscribe('sparks');
+
+       // Handle the event for updating the online status
+      channel.bind('updateOnlineStatus', (data: any) => {
+        // Handle updating the online status of the user
+        // Use the data to update the online status in UI
+        console.log('Received updateOnlineStatus event:', data);
+        setActive(true);
+      });
+
       channel.bind('message', (data: any) => {
         // Handle new message received from Pusher
 
@@ -62,12 +67,31 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver}: chat) => 
         setMessages((prevMessages) => [...prevMessages, data]);
 
         const newArr = [...messages, data]
-        console.log(newArr)
+        console.log("New Message", newArr)
       });
   
+    // Handle the event for updating the read status
+    channel.bind('updateReadStatus', (data: any) => {
+      // Handle updating the read status of the messages
+      // Filter and update the messages based on the data received
+      console.log('Received updateReadStatus event:', data);
+
+      // Check if the current user is the sender of the message
+      const lastIndex = messages[messages.length - 1]
+      const lastMessageUser = lastIndex.sender
+
+      if(lastMessageUser === userID)
+      {
+        setRead(true);
+      }
+      
+    });
+
       // Clean up on component unmount
       return () => {
         channel.unbind('message');
+        channel.unbind('updateReadStatus');
+        channel.unbind('updateOnlineStatus');
         pusher.unsubscribe('chats');
       };
 
@@ -76,7 +100,38 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver}: chat) => 
     }
   }, [chatMessages, setMessages]);
 
+  useEffect ( ()=> {
+    try{
+      //Function that updates the readStatus of the Chat and also uses Pusher
+      const lastIndex = messages[messages.length - 1]
+      const lastMessageUser = lastIndex.sender
+      
+      if(lastMessageUser !== userID)
+      {
+        markChatAsRead(receiver, userID, messages, pathname);
+        markChatAsRead(userID, receiver, messages, pathname);
+      }
+      
+    }
+    catch(error){
+      console.log(error);
+    }
+  }, [read])
+
   useEffect( ()=> {
+
+    if(messages.length > 0)
+    {
+      const lastIndex = messages[messages.length - 1]
+      const lastMessageUser = lastIndex.sender
+
+      if(isRead && lastMessageUser === userID)
+      {
+        setRead(true);
+      }
+
+    }
+
     const loadChatImage = async ()=> {
       let imgResult = "/assets/profile.svg"
   
@@ -109,10 +164,14 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver}: chat) => 
   });
 
   const onSubmit = async (data: { message: string }) => {
-
+    setRead(false)
     setLoading(true)
     
-    const timestamp = new Date().toLocaleTimeString()
+    const date = new Date();
+    const options: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
+    
+    const timestamp = new Intl.DateTimeFormat('en-US', options).format(date);
+    
     // Call the sendMessage function with the entered message and sender
 
     const newMessages = [
@@ -122,7 +181,6 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver}: chat) => 
 
     //Send to Pusher and also save to Database
     sendMessage(data.message, userID, timestamp, receiver, newMessages, pathname);
-
     updateChatForOther(receiver, userID, newMessages, pathname);
 
     // Clear the form input after sending the message
@@ -130,46 +188,51 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver}: chat) => 
     form.setValue("message", "");
   };
 
+  const goBack = ()=> {
+    router.push("/chat")
+  }
 
   return (
     <section className="w-full h-[80vh] flex flex-col bg-black rounded-xl overflow-hidden">
-    <div className="flex items-center p-2 border-b-2 border-primary-500">
+    <div className="flex items-center p-2 border-b-2 border-primary-500 bg-primary-500">
 
       {/* Back button */}
 
-      <div className="cursor-pointer">
-        <Link
-        href="/chat">
-        <p className="text-light-1">Back</p>
-        </Link>
-      </div>
+      <Button onClick={goBack} className='bg-transparent hover:bg-transparent hover:scale-125 ease-in-out duration-300'>
+          {<Image src={"/assets/back.svg"} alt="loading" width={30} height={30}/> }
+        </Button>
 
       {/* User details in the middle */}
 
-      <div className="flex flex-col items-center ml-auto mr-auto">
+        <div className="flex flex-col items-center mx-auto cursor-pointer relative">
         <div className="relative rounded-full overflow-hidden">
           <Image
             src={img}
             alt={`Chat with ${chatName}`}
             width={40}
             height={40}
-            className="rounded-full object-contain"
+            className="rounded-full object-contain hover:scale-125 ease-in-out duration-300"
           />
         </div>
         <p className="text-light-1 mt-2">{chatName}</p>
       </div>
 
-      {/* Image bubble on top right */}
+      {/* Online Status on top right */}
 
-      <div className="relative rounded-full overflow-hidden">
-        <Image
-          src={img}
-          alt={`Chat with ${chatName}`}
-          width={40}
-          height={40}
-          className="rounded-full object-contain"
-        />
-      </div>
+        <div className="mr-2">
+          {active ? (
+              <div className="flex items-center gap-1">
+              <p className="text-light-1">online</p> 
+              <div className="online-dot active " />
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+              <p className="text-light-1">offline</p> 
+              <div className="online-dot inactive " />
+              </div>
+            )}
+        </div>
+
     </div>
 
     {/* Messages area with scroll */}
@@ -178,7 +241,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver}: chat) => 
       {messages.map((message, index) => (
         <div
           key={index}
-          className={`mb-4 ${
+          className={`mb-2 ${
           message.sender !== userID ?  
           `text-light-1 bg-gray-1 rounded-xl p-2 ${
             message.text.length < 30
@@ -197,14 +260,22 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver}: chat) => 
         >
           {message.text}
         </div>
+        
       ))}
+
+       {read && (
+        <div className="ml-auto w-6 mr-6">
+          <p className="text-light-1">Read</p>
+        </div>
+      )}
+
       <div ref={messageEndRef}></div>
     </div>
   
 
     {/* Input area with send button */}
     <Form {...form}>
-      <form className='comment-form p-4' onSubmit={form.handleSubmit(onSubmit)}>
+      <form className='chat-form p-2' onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
           name='message'

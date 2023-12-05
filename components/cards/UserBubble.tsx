@@ -7,14 +7,13 @@ import { getImageData } from "@/lib/s3";
 
 
 interface Bubble{
-    key: string;
     id: string;
     name: string;
     username: string;
     imgUrl: string;
 }
 
-const UserBubble = ({key,id,name,username, imgUrl}: Bubble) => {
+const UserBubble = ({id,name,username, imgUrl}: Bubble) => {
     const [img, setImg] = useState("/assets/imgloader.svg")
 
     useEffect(()=> {

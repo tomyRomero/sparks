@@ -123,7 +123,7 @@ function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
             </FormItem>
           )}
         />
-        <Button onClick={()=> {goBack()}} className="comment-form_btn">
+        <Button onClick={goBack} className="comment-form_btn">
           {!backLoading? <h1>Back</h1> : <Image src={"/assets/lineloader.svg"} alt="loading" width={44} height={34}/> }
         </Button>
 

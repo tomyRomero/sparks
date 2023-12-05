@@ -10,6 +10,7 @@ import LeftSidebar from "@/components/shared/LeftBar";
 import Bottombar from "@/components/shared/BottomBar";
 import RightBar from "@/components/shared/RightBar";
 import { fetchUser } from "@/lib/actions/user.actions";
+import { getChatsWithUsersByUserId } from "@/lib/actions/chat.actions";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,11 +29,12 @@ export default async function RootLayout({
     if(user)
     {
       const dbUser = await fetchUser(user.id)
-      return dbUser;
+      const chats: any[] = await getChatsWithUsersByUserId(user.id)
+      return {dbUser, chats};
     }
   }
   
-  const data = await getDbUser();
+  const data :any = await getDbUser();
 
   console.log("Layout DATA:" , data)
 
@@ -47,13 +49,13 @@ export default async function RootLayout({
           <Topbar />
 
           <main className='flex flex-row'>
-            <LeftSidebar user={data}/>
+            <LeftSidebar user={data.dbUser}/>
             <section className='main-container'>
               <div className='w-full max-w-4xl'>{children}</div>
             </section>
-            <RightBar />
+            <RightBar chats={data.chats} />
           </main>
-          <Bottombar user={data} />
+          <Bottombar user={data.dbUser} />
         </body>
       </html>
     </ClerkProvider>

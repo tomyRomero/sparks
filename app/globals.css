@@ -228,6 +228,10 @@
   @apply rounded-3xl bg-primary-500 px-8 py-2 !text-small-regular text-light-1 max-xs:w-full hover:bg-white hover:text-black !important;
 }
 
+.chat-form{
+  @apply mt-2 flex items-center gap-4 border-y border-y-primary-500 py-5 max-xs:flex-col !important;
+}
+
 .overflow-wrap-break-word {
   overflow-wrap: break-word;
 }
@@ -239,3 +243,17 @@
   /* Add any other styles you want for the scroll indicator */
 }
 
+.online-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid #fff; /* Adjust the border color as needed */
+}
+
+.active {
+  background-color: #00ff00; /* Green color for active status */
+}
+
+.inactive {
+  background-color: #ff0000; /* Red color for inactive status */
+}

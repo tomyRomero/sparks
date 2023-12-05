@@ -44,7 +44,6 @@ const HorizontalScroll = ({ results, bubbles }: any) => {
                 className={`flex-shrink-0 p-2 cursor-pointer hover:scale-105 ease-in-out duration-300`}
               >
                 <UserBubble
-                  key={person.id}
                   id={person.id}
                   name={person.name}
                   username={person.username}
