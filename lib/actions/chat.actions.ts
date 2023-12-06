@@ -19,8 +19,8 @@ const pusher = new Pusher({
   export const sendMessage = async (text: string, sender: string, timestamp: string, receiver: string,  messages: any[], pathname: string) => {
     try {
       
-      pusher.trigger("sparks", "message", { text, sender, timestamp});
-      pusher.trigger("sparks", "orgins" , {sender, receiver} )
+      pusher.trigger("sparks", "message", { text, sender, receiver, timestamp});
+      
       // Use a parameterized query to select a chat by sender and receiver IDs
       const connection = connectDb('spark');
       const queryAsync = util.promisify(connection.query).bind(connection);

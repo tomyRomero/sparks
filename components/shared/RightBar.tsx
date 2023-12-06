@@ -38,7 +38,7 @@ function RightBar({chats} : any)
                     {chats.map((chat: any) => (
                         <div 
                         key= {chat.receiver_id}
-                        className="bg-white rounded-lg hover:bg-primary-500"
+                        className="bg-white rounded-lg hover:bg-cyan-500  mb-4"
                         >
                         <ChatLogs chatRead={chat.read_status} senderID={chat.sender_id} receiverID={chat.receiver_id} chatMessages={chat.messages} receiverPicture={chat.user_image} chatName={chat.user_username} isHome={true}/>
                         </div>

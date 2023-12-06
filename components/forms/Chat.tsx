@@ -28,6 +28,7 @@ interface chat{
     chatMessages: {
         text: string;
         sender: string;
+        receiver: string;
         timestamp: string;
     }[];
     userID: string;
@@ -64,14 +65,15 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
         // Handle new message received from Pusher
 
         // Update the state with the new message if the sender ID and reciever ID match
-        channel.bind('orgins', (senderData: any) => {
-          if(senderData.sender === userID && senderData.receiver === receiver)
-          {
-            setMessages((prevMessages) => [...prevMessages, data]);
-            const newArr = [...messages, data]
-            console.log("New Message", newArr) 
-          }
-        })
+        
+        console.log("MESSAGE DATA: ", data)
+
+        if(data.sender === userID && data.receiver === receiver || data.sender === receiver && data.receiver === userID)
+        {
+          setMessages((prevMessages) => [...prevMessages, data]);
+          const newArr = [...messages, data]
+          console.log("New Message", newArr) 
+        }
 
       });
   
@@ -82,10 +84,8 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
       console.log('Received updateReadStatus event:', data);
 
       // Check if the current user is the sender of the message
-      const lastIndex = messages[messages.length - 1]
-      const lastMessageUser = lastIndex.sender
-
-      if(lastMessageUser === userID)
+ 
+      if(data.sender === userID && data.receiver === receiver)
       {
         setRead(true);
       }
@@ -108,10 +108,9 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
   useEffect ( ()=> {
     try{
       //Function that updates the readStatus of the Chat and also uses Pusher
-      const lastIndex = messages[messages.length - 1]
-      const lastMessageUser = lastIndex.sender
-      
-      if(lastMessageUser !== userID)
+      const lastMessage = messages[messages.length - 1]
+    
+      if(lastMessage.sender !== userID && lastMessage.receiver === userID)
       {
         markChatAsRead(receiver, userID, messages, pathname);
       }
@@ -126,10 +125,9 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
 
     if(messages.length > 0)
     {
-      const lastIndex = messages[messages.length - 1]
-      const lastMessageUser = lastIndex.sender
-
-      if(isRead && lastMessageUser === userID)
+      const lastMessage = messages[messages.length - 1]
+      
+      if(isRead && lastMessage.sender === userID && lastMessage.receiver === receiver)
       {
         setRead(true);
       }
@@ -180,7 +178,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
 
     const newMessages = [
       ...messages,
-      { text: data.message, sender: userID, timestamp: timestamp },
+      { text: data.message, sender: userID, receiver: receiver, timestamp: timestamp },
     ]
 
     //Send to Pusher and also save to Database

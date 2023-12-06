@@ -64,14 +64,15 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
         // Handle new message received from Pusher
 
         // Update the state with the new message if the sender ID and reciever ID match
-        channel.bind('orgins', (senderData: any) => {
-          if(senderData.sender === senderID && senderData.receiver === receiverID)
-          {
-            setMessages((prevMessages) => [...prevMessages, data]);
-            const newArr = [...messages, data]
-            console.log("New Message", newArr) 
-          }
-        })
+        
+        console.log("MESSAGE DATA: ", data)
+
+        if(data.sender === senderID && data.receiver === receiverID || data.sender === receiverID && data.receiver === senderID)
+        {
+          setMessages((prevMessages) => [...prevMessages, data]);
+          const newArr = [...messages, data]
+          console.log("New Message", newArr) 
+        }
 
       });
 
@@ -99,7 +100,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
   return (
     <Link
     href={`/chat/${receiverID}`}
-    className="hover:bg-primary-500 rounded-lg mt-4 bg-white"
+    className="hover:bg-cyan-500 rounded-lg mt-4 bg-white"
   >
   <div key={chatName} className={`flex p-4 items-center`}>
     <div className="relative rounded-full overflow-hidden">
@@ -136,7 +137,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
       )}  
 
       {!isMe && (
-        <p className={`text-black ${!chatRead ? 'font-bold  text-primary-500 hover:text-light-1' : ''}`}>
+        <p className={`text-black ${!chatRead ? 'font-bold  text-primary-500' : ''}`}>
         {getLastText().length > 20
           ? `${getLastText().slice(0, 20)}...`
           : getLastText()}
