@@ -26,6 +26,8 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
 
    var pusher = pusherClient;
 
+   console.log("read status: ", chatRead)
+
    useEffect( ()=> {
         const getImage = async () => {
         let imgResult = "/assets/profile.svg"
@@ -104,7 +106,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
         className="rounded-full object-contain"
         style={{ aspectRatio: '1/1', width: '65px', height: '65px' }}
       />
-      {chatRead === false && (
+      {!chatRead && (
         <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full"></div>
       )}
     </div>

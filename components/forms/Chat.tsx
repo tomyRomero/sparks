@@ -109,7 +109,6 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
       if(lastMessageUser !== userID)
       {
         markChatAsRead(receiver, userID, messages, pathname);
-        markChatAsRead(userID, receiver, messages, pathname);
       }
       
     }
@@ -212,6 +211,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
             width={40}
             height={40}
             className="rounded-full object-contain hover:scale-125 ease-in-out duration-300"
+            style={{ aspectRatio: '1/1', width: '65px', height: '65px' }}
           />
         </div>
         <p className="text-light-1 mt-2">{chatName}</p>
@@ -223,12 +223,12 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
           {active ? (
               <div className="flex items-center gap-1">
               <p className="text-light-1">online</p> 
-              <div className="online-dot active " />
+              <div className="online-dot online " />
               </div>
             ) : (
               <div className="flex items-center gap-1">
               <p className="text-light-1">offline</p> 
-              <div className="online-dot inactive " />
+              <div className="online-dot offline " />
               </div>
             )}
         </div>

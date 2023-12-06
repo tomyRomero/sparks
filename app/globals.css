@@ -250,10 +250,10 @@
   border: 2px solid #fff; /* Adjust the border color as needed */
 }
 
-.active {
+.online {
   background-color: #00ff00; /* Green color for active status */
 }
 
-.inactive {
+.offline {
   background-color: #ff0000; /* Red color for inactive status */
 }
