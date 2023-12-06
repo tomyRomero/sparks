@@ -49,6 +49,7 @@ const pusher = new Pusher({
         //@ts-ignore
         const updateResults: any[] = await queryAsync(updateQuery, updateValues);
         console.log('Successfully Updated Chat:', updateResults);
+        pusher.trigger("sparks", "message", { text, sender, receiver, timestamp});
         revalidatePath(pathname)
         return true;
       }
@@ -180,13 +181,14 @@ const pusher = new Pusher({
       const updateQuery = 'UPDATE chat SET messages = ?, read_status = ? WHERE sender_id = ? AND receiver_id = ?';
       const updateValues = [JSON.stringify(messages), true, sender, receiver];
   
-      // Emit an event to Pusher to notify the other user that the message has been read
-      const updateData = { sender, receiver, messages, pathname};
-      pusher.trigger('sparks', 'updateReadStatus', updateData);
-  
       //@ts-ignore
       const updateResults: any[] = await queryAsync(updateQuery, updateValues);
       console.log('Successfully Updated Chat:', updateResults);
+
+      // Emit an event to Pusher to notify the other user that the message has been read
+      const updateData = { sender, receiver, messages, pathname};
+      pusher.trigger('sparks', 'updateReadStatus', updateData);
+      
       revalidatePath(pathname);
       return true;
     } catch (error) {

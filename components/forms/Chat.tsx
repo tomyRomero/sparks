@@ -43,6 +43,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
   const messageEndRef = useRef<HTMLInputElement>(null);
   const [read, setRead] = useState(false);
   const [active, setActive] = useState(false);
+  const [didSend , setDidSend] = useState(false);
 
   const pathname = usePathname();
   const router = useRouter();
@@ -70,6 +71,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
 
         if(data.sender === userID && data.receiver === receiver || data.sender === receiver && data.receiver === userID)
         {
+          setRead(false);
           setMessages((prevMessages) => [...prevMessages, data]);
           const newArr = [...messages, data]
           console.log("New Message", newArr) 
@@ -182,8 +184,13 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
     ]
 
     //Send to Pusher and also save to Database
-    sendMessage(data.message, userID, timestamp, receiver, newMessages, pathname);
-    updateChatForOther(receiver, userID, newMessages, pathname);
+    const didSend = await sendMessage(data.message, userID, timestamp, receiver, newMessages, pathname);
+    const didUpdate = await updateChatForOther(receiver, userID, newMessages, pathname);
+    
+    if(didSend)
+    {
+      setDidSend(true);
+    }
 
     // Clear the form input after sending the message
     setLoading(false)
@@ -270,6 +277,12 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
         <div className="ml-auto w-6 mr-6">
           <p className="text-light-1">Read</p>
         </div>
+      )}
+
+      {didSend && !read &&(
+        <div className="ml-auto w-6 mr-6">
+        <p className="text-light-1">Delivered..</p>
+      </div>
       )}
 
       <div ref={messageEndRef}></div>
