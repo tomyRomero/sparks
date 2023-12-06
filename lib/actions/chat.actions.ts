@@ -171,6 +171,7 @@ const pusher = new Pusher({
       connection.end();
   
       console.log("Chat by Sender and Receiver: ", result);
+      revalidatePath(`/chat/${receiverId}`)
       return result[0]; // Assuming there is only one chat for the given sender and receiver
     } catch (error) {
       console.log(error);

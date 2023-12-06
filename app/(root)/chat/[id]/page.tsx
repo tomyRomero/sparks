@@ -28,10 +28,6 @@ const page = async ({ params }: { params: { id: string } }) => {
       chatData = chat;
     }
 
-  console.log("Chat Data: ", chatData)
-
-  console.log("Chat Recieve: ", chatData.receiver_id)
-
   return (
    <div>
     <Chat  chatPicture={chatData.receiver_image}  chatName={chatData.receiver_name} chatMessages={chatData.messages} userID={chatData.sender_id} receiver={chatData.receiver_id} isRead={chatData.read_status}/>
