@@ -17,7 +17,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { messageValdiation } from "@/lib/validations/chat";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { markChatAsRead, sendMessage, updateChatForOther, updateOnlineStatus } from "@/lib/actions/chat.actions";
+import { markChatAsRead, revalData, sendMessage, updateChatForOther, updateOnlineStatus } from "@/lib/actions/chat.actions";
 import { usePathname, useRouter } from "next/navigation";
 import { getImageData } from "@/lib/s3";
 import pusherClient from "@/lib/pusher";
@@ -59,7 +59,12 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
         // Handle updating the online status of the user
         // Use the data to update the online status in UI
         console.log('Received updateOnlineStatus event:', data);
-        setActive(true);
+
+        if(receiver === data.userID)
+        {
+          setActive(true);
+        }
+  
       });
 
       channel.bind('message', (data: any) => {
@@ -86,7 +91,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
       console.log('Received updateReadStatus event:', data);
 
       // Check if the current user is the sender of the message
- 
+
       if(data.sender === userID && data.receiver === receiver)
       {
         setRead(true);

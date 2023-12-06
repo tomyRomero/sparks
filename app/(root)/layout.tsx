@@ -10,7 +10,7 @@ import LeftSidebar from "@/components/shared/LeftBar";
 import Bottombar from "@/components/shared/BottomBar";
 import RightBar from "@/components/shared/RightBar";
 import { fetchUser } from "@/lib/actions/user.actions";
-import { getChatsWithUsersByUserId } from "@/lib/actions/chat.actions";
+import { getChatsWithUsersByUserId, updateOnlineStatus } from "@/lib/actions/chat.actions";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({
-  children,
+  children
 }: {
   children: React.ReactNode;
 }) {
@@ -28,11 +28,14 @@ export default async function RootLayout({
     const user = await currentUser();
     if(user)
     {
+      updateOnlineStatus(user.id, true);
       const dbUser = await fetchUser(user.id)
       const chats: any[] = await getChatsWithUsersByUserId(user.id)
       return {dbUser, chats};
     }
   }
+
+
   
   const data :any = await getDbUser();
 
@@ -53,7 +56,7 @@ export default async function RootLayout({
             <section className='main-container'>
               <div className='w-full max-w-4xl'>{children}</div>
             </section>
-            <RightBar chats={data.chats} />
+            <RightBar chats={data.chats}  />
           </main>
           <Bottombar user={data.dbUser} />
         </body>

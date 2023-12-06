@@ -1,8 +1,10 @@
 "use client"
+
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ChatLogs from "../cards/ChatLogs";
+
 
 function RightBar({chats} : any)
 {
@@ -40,7 +42,7 @@ function RightBar({chats} : any)
                         key= {chat.receiver_id}
                         className="bg-white rounded-lg hover:bg-cyan-500  mb-4"
                         >
-                        <ChatLogs chatRead={chat.read_status} senderID={chat.sender_id} receiverID={chat.receiver_id} chatMessages={chat.messages} receiverPicture={chat.user_image} chatName={chat.user_username} isHome={true}/>
+                        <ChatLogs chatRead={chat.read_status} senderID={chat.sender_id} receiverID={chat.receiver_id} chatMessages={chat.messages} receiverPicture={chat.user_image} chatName={chat.user_username} isHome={true} path={pathname}/>
                         </div>
                     ))}
                     </>

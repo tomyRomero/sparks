@@ -134,7 +134,6 @@ const pusher = new Pusher({
   
       // Close the database connection
       connection.end();
-  
       console.log("User Chats with Users: ", results);
       return results;
     } catch (error) {
@@ -220,3 +219,7 @@ export const updateOnlineStatus = (userId: string, isOnline: boolean) => {
     return false;
   }
 };
+
+export const revalData = (path : string)=> {
+  revalidatePath(path)
+}

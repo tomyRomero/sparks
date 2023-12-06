@@ -1,5 +1,4 @@
 import Image from "next/image"
-import Link from "next/link";
 import Searchbar from "@/components/shared/Searchbar"
 import { fetchUser, fetchUsers } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";
@@ -62,7 +61,7 @@ async function Page({
         ): (
           <>
           {chats.map((chat: any) => (
-           <ChatLogs chatRead={chat.read_status} senderID={chat.sender_id} receiverID={chat.receiver_id} chatMessages={chat.messages} receiverPicture={chat.user_image} chatName={chat.user_username} isHome={false}/>
+           <ChatLogs chatRead={chat.read_status} senderID={chat.sender_id} receiverID={chat.receiver_id} chatMessages={chat.messages} receiverPicture={chat.user_image} chatName={chat.user_username} isHome={false} path={'/chat'}/>
           ))}
         </>
       )}

@@ -4,7 +4,7 @@ import Image from "next/image"
 import { useEffect, useState } from "react";
 import { getImageData } from "@/lib/s3";
 import pusherClient from "@/lib/pusher";
-import { getChatBySenderAndReceiver } from "@/lib/actions/chat.actions";
+import { getChatBySenderAndReceiver, revalData } from "@/lib/actions/chat.actions";
 
 interface Chat {
     chatRead : boolean;
@@ -18,13 +18,14 @@ interface Chat {
     receiverPicture: string;
     chatName: string;
     isHome: boolean;
+    path: string;
 }
 
-const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPicture, chatName, isHome} : Chat) => {
+const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPicture, chatName, isHome , path} : Chat) => {
    const [chatPicture, setChatPicture] = useState("/assets/imgloader.svg")
    const [isMe, setIsMe] = useState(false);
    const [messages, setMessages] = useState(chatMessages);
-   const [read, setRead] = useState(chatRead)
+   const [read, setRead] = useState(true)
 
    var pusher = pusherClient;
 
@@ -72,8 +73,8 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
       const channel = pusher.subscribe('sparks');
 
       channel.bind('message', (data: any) => {
+        revalData(path)
         // Handle new message received from Pusher
-
         // Update the state with the new message if the sender ID and reciever ID match
         
         console.log("MESSAGE DATA: ", data)
@@ -126,7 +127,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
         width={isHome ? 40 : 65}
         height={isHome ? 40 : 65}
         className="rounded-full object-contain"
-        style={{ aspectRatio: '1/1', width: '65px', height: '65px' }}
+        style={{ aspectRatio: '1/1', width: '40px', height: '40px' }}
       />
       {!chatRead && (
         <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full"></div>
