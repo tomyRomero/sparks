@@ -63,11 +63,16 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
       channel.bind('message', (data: any) => {
         // Handle new message received from Pusher
 
-        // Update the state with the new message
-        setMessages((prevMessages) => [...prevMessages, data]);
+        // Update the state with the new message if the sender ID and reciever ID match
+        channel.bind('orgins', (senderData: any) => {
+          if(senderData.sender === userID && senderData.receiver === receiver)
+          {
+            setMessages((prevMessages) => [...prevMessages, data]);
+            const newArr = [...messages, data]
+            console.log("New Message", newArr) 
+          }
+        })
 
-        const newArr = [...messages, data]
-        console.log("New Message", newArr)
       });
   
     // Handle the event for updating the read status

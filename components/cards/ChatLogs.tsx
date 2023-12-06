@@ -63,11 +63,16 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
       channel.bind('message', (data: any) => {
         // Handle new message received from Pusher
 
-        // Update the state with the new message
-        setMessages((prevMessages) => [...prevMessages, data]);
+        // Update the state with the new message if the sender ID and reciever ID match
+        channel.bind('orgins', (senderData: any) => {
+          if(senderData.sender === senderID && senderData.receiver === receiverID)
+          {
+            setMessages((prevMessages) => [...prevMessages, data]);
+            const newArr = [...messages, data]
+            console.log("New Message", newArr) 
+          }
+        })
 
-        const newArr = [...messages, data]
-        console.log("New Message", newArr)
       });
 
       // Clean up on component unmount
