@@ -285,7 +285,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
         </div>
       )}
 
-      {didSend && !read &&(
+      {didSend && !read && messages[messages.length - 1].sender === userID &&(
         <div className="ml-auto w-6 mr-12">
         <p className="text-light-1">Delivered..</p>
       </div>

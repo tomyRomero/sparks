@@ -35,7 +35,12 @@ const pusher = new Pusher({
         const insertValues = [sender, receiver, JSON.stringify(messages), false];
         //@ts-ignore
         const insertResults: any[] = await queryAsync(insertQuery, insertValues);
-        console.log('Successfully Created Chat:', insertResults);
+
+        if(insertResults)
+        {
+          pusher.trigger("sparks", "message", { text, sender, receiver, timestamp});
+        }
+
         revalidatePath(pathname)
         return true;
       } else {
@@ -46,8 +51,12 @@ const pusher = new Pusher({
         const updateValues = [JSON.stringify(messages), false, sender, receiver];
         //@ts-ignore
         const updateResults: any[] = await queryAsync(updateQuery, updateValues);
-        console.log('Successfully Updated Chat:', updateResults);
-        pusher.trigger("sparks", "message", { text, sender, receiver, timestamp});
+        
+        if(updateResults)
+        {
+          pusher.trigger("sparks", "message", { text, sender, receiver, timestamp});
+        }
+
         revalidatePath(pathname)
         return true;
       }
@@ -183,10 +192,12 @@ const pusher = new Pusher({
       const updateResults: any[] = await queryAsync(updateQuery, updateValues);
       console.log('Successfully Updated Chat:', updateResults);
 
+      if(updateResults)
+      {
+        const updateData = { sender, receiver, messages, pathname};
+        pusher.trigger('sparks', 'updateReadStatus', updateData);
+      }
       // Emit an event to Pusher to notify the other user that the message has been read
-      const updateData = { sender, receiver, messages, pathname};
-      pusher.trigger('sparks', 'updateReadStatus', updateData);
-
       revalidatePath(pathname);
       return true;
     } catch (error) {

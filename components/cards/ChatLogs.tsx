@@ -57,11 +57,8 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
 
     const updateRead = async ()=> {
       const chat = await getChatBySenderAndReceiver(receiverID, senderID);
-
       const readStatus = chat.read_status
-
       console.log("Read Status: " , readStatus)
-
       setRead(readStatus)
 
     }
