@@ -19,8 +19,6 @@ const pusher = new Pusher({
   export const sendMessage = async (text: string, sender: string, timestamp: string, receiver: string,  messages: any[], pathname: string) => {
     try {
       
-      pusher.trigger("sparks", "message", { text, sender, receiver, timestamp});
-      
       // Use a parameterized query to select a chat by sender and receiver IDs
       const connection = connectDb('spark');
       const queryAsync = util.promisify(connection.query).bind(connection);
@@ -188,7 +186,7 @@ const pusher = new Pusher({
       // Emit an event to Pusher to notify the other user that the message has been read
       const updateData = { sender, receiver, messages, pathname};
       pusher.trigger('sparks', 'updateReadStatus', updateData);
-      
+
       revalidatePath(pathname);
       return true;
     } catch (error) {

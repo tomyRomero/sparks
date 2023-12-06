@@ -4,6 +4,7 @@ import Image from "next/image"
 import { useEffect, useState } from "react";
 import { getImageData } from "@/lib/s3";
 import pusherClient from "@/lib/pusher";
+import { getChatBySenderAndReceiver } from "@/lib/actions/chat.actions";
 
 interface Chat {
     chatRead : boolean;
@@ -23,10 +24,9 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
    const [chatPicture, setChatPicture] = useState("/assets/imgloader.svg")
    const [isMe, setIsMe] = useState(false);
    const [messages, setMessages] = useState(chatMessages);
+   const [read, setRead] = useState(chatRead)
 
    var pusher = pusherClient;
-
-   console.log("read status: ", chatRead)
 
    useEffect( ()=> {
         const getImage = async () => {
@@ -54,6 +54,20 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
     }else{
       setIsMe(false);
     }
+
+    const updateRead = async ()=> {
+      const chat = await getChatBySenderAndReceiver(receiverID, senderID);
+
+      const readStatus = chat.read_status
+
+      console.log("Read Status: " , readStatus)
+
+      setRead(readStatus)
+
+    }
+
+    updateRead();
+
    }, [messages])
 
    useEffect(() => {
@@ -72,6 +86,11 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
           setMessages((prevMessages) => [...prevMessages, data]);
           const newArr = [...messages, data]
           console.log("New Message", newArr) 
+
+          if(data.sender !== senderID)
+          {
+            setRead(false);
+          }
         }
 
       });
@@ -137,7 +156,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
       )}  
 
       {!isMe && (
-        <p className={`text-black ${!chatRead ? 'font-bold  text-primary-500' : ''}`}>
+        <p className={`text-black ${!read ? 'font-bold  text-primary-500' : ''}`}>
         {getLastText().length > 20
           ? `${getLastText().slice(0, 20)}...`
           : getLastText()}
@@ -145,14 +164,14 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
       )}  
 
       {isHome && (
-      <div className={`text-black ${!chatRead && !isMe ? 'font-bold' : ''} `}>{getLastTime()}</div>
+      <div className={`text-black ${!read && !isMe ? 'font-bold' : ''} `}>{getLastTime()}</div>
       )
       }
 
     </div>
 
     {!isHome && (
-      <div className={`ml-auto text-black ${!chatRead && !isMe ? 'font-bold' : ''} `}>{getLastTime()}</div>
+      <div className={`ml-auto text-black ${!read && !isMe ? 'font-bold' : ''} `}>{getLastTime()}</div>
     )
     }
 

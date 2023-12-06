@@ -108,19 +108,25 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
   }, [chatMessages, setMessages]);
 
   useEffect ( ()=> {
-    try{
-      //Function that updates the readStatus of the Chat and also uses Pusher
-      const lastMessage = messages[messages.length - 1]
-    
-      if(lastMessage.sender !== userID && lastMessage.receiver === userID)
-      {
-        markChatAsRead(receiver, userID, messages, pathname);
-      }
+
+    const readChat = async ()=> {
+      try{
+        //Function that updates the readStatus of the Chat and also uses Pusher
+        const lastMessage = messages[messages.length - 1]
       
+        if(lastMessage.sender !== userID)
+        {
+          const read = await markChatAsRead(receiver, userID, messages, pathname);
+        }
+        
+      }
+      catch(error){
+        console.log(error);
+      }
     }
-    catch(error){
-      console.log(error);
-    }
+
+    readChat();
+   
   }, [read])
 
   useEffect( ()=> {
@@ -280,7 +286,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
       )}
 
       {didSend && !read &&(
-        <div className="ml-auto w-6 mr-6">
+        <div className="ml-auto w-6 mr-12">
         <p className="text-light-1">Delivered..</p>
       </div>
       )}
