@@ -1,24 +1,10 @@
 "use server"
 import {connectDb} from '@/lib/sql'
 import { revalidatePath } from 'next/cache';
-
+import { getDateTime } from '../utils';
 import util from 'util';
 
-function getDateTime() {
-  const currentDate = new Date();
-  const year = currentDate.getFullYear();
-  const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-  const day = String(currentDate.getDate()).padStart(2, '0');
-  let hours = currentDate.getHours();
-  const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-  const period = hours >= 12 ? 'pm' : 'am';
 
-  // Convert hours to 12-hour format
-  hours = hours % 12 || 12;
-
-  // Combine the date and time components into a string with the desired format (e.g., "MM-DD-YYYY h:mm am/pm")
-  return `${month}-${day}-${year} ${hours}:${minutes} ${period}`;
-}
 
 export const createPost = async ({text,author,path, image, title} : {text: string, author: string, path: string, image:string , title: string}) => {
     try{

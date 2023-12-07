@@ -114,6 +114,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
     return lastIndex.timestamp
    }
 
+
   return (
     <Link
     href={`/chat/${receiverID}`}
@@ -162,16 +163,36 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
       )}  
 
       {isHome && (
-      <div className={`text-black ${!read && !isMe ? 'font-bold' : ''} `}>{getLastTime()}</div>
-      )
-      }
+      <div className={`ml-auto text-black ${!read && !isMe ? 'font-bold' : ''}`}>
+        <div className="text-left">
+          {/* Date */}
+          {getLastTime().split(' ')[0]}
+        </div>
+        <div className="text-left">
+          {/* Time */}
+          {getLastTime().split(' ')[1]}{' '}
+          {getLastTime().split(' ')[2]} {/* AM/PM */}
+        </div>
+      </div>
+    )}
 
     </div>
-
+    
     {!isHome && (
-      <div className={`ml-auto text-black ${!read && !isMe ? 'font-bold' : ''} `}>{getLastTime()}</div>
-    )
-    }
+      <div className={`ml-auto text-black ${!read && !isMe ? 'font-bold' : ''}`}>
+        <div className="text-right">
+          {/* Date */}
+          {getLastTime().split(' ')[0]}
+        </div>
+        <div className="text-right">
+          {/* Time */}
+          {getLastTime().split(' ')[1]}{' '}
+          {getLastTime().split(' ')[2]} {/* AM/PM */}
+        </div>
+      </div>
+    )}
+
+
 
   </div>
   </Link>

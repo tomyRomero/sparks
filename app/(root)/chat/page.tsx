@@ -25,7 +25,30 @@ async function Page({
     pageSize: 15,
   });
 
-  const chats: any[] = await getChatsWithUsersByUserId(user.id)
+  let chats: any[] = await getChatsWithUsersByUserId(user.id)
+
+  const sortedChats = chats.sort((chatA, chatB) => {
+    const lastMessageA = chatA.messages[chatA.messages.length - 1];
+    const lastMessageB = chatB.messages[chatB.messages.length - 1];
+  
+    const dateA = new Date(lastMessageA.timestamp);
+    const dateB = new Date(lastMessageB.timestamp);
+  
+    console.log("Timestamp A: ", lastMessageA.timestamp);
+    console.log("Date A: ", dateA);
+  
+    console.log("Timestamp B: ", lastMessageB.timestamp);
+    console.log("Date B: ", dateB);
+  
+    // Compare the dates (descending order, latest time first)
+    //@ts-ignore
+    return dateB - dateA;
+  });  
+  
+  if(sortedChats.length > 1)
+  {
+    chats = sortedChats;
+  }
   
   return (
     <section className='w-full h-screen flex flex-col bg-black rounded-xl'>

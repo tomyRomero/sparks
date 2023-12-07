@@ -21,6 +21,7 @@ import { markChatAsRead, revalData, sendMessage, updateChatForOther, updateOnlin
 import { usePathname, useRouter } from "next/navigation";
 import { getImageData } from "@/lib/s3";
 import pusherClient from "@/lib/pusher";
+import { getDateTime } from "@/lib/utils";
 
 interface chat{
     chatPicture: string;
@@ -60,7 +61,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
         // Use the data to update the online status in UI
         console.log('Received updateOnlineStatus event:', data);
 
-        if(receiver === data.userID)
+        if(receiver === data.userId)
         {
           setActive(true);
         }
@@ -182,10 +183,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
     setRead(false)
     setLoading(true)
     
-    const date = new Date();
-    const options: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: 'numeric', hour12: true };
-    
-    const timestamp = new Intl.DateTimeFormat('en-US', options).format(date);
+    const timestamp = getDateTime();
     
     // Call the sendMessage function with the entered message and sender
 
