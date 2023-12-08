@@ -12,6 +12,9 @@ import RightBar from "@/components/shared/RightBar";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { getChatsWithUsersByUserId, updateOnlineStatus } from "@/lib/actions/chat.actions";
 
+//Global State
+import { AppProvider } from "@/lib/AppContext";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -71,8 +74,8 @@ export default async function RootLayout({
     >
       <html lang='en'>
         <body className={inter.className}>
+        <AppProvider>
           <Topbar />
-
           <main className='flex flex-row'>
             <LeftSidebar user={data.dbUser}/>
             <section className='main-container'>
@@ -81,8 +84,12 @@ export default async function RootLayout({
             <RightBar chats={data.chats}  />
           </main>
           <Bottombar user={data.dbUser} />
+          </AppProvider>
         </body>
       </html>
     </ClerkProvider>
   );
 }
+
+
+

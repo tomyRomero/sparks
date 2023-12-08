@@ -4,7 +4,7 @@ import { fetchUser, fetchUsers } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import HorizontalScroll from "@/components/shared/HorizontalScroll";
-import { getChatsWithUsersByUserId } from "@/lib/actions/chat.actions";
+import { getChatsWithUsersByUserId, updateOnlineStatus } from "@/lib/actions/chat.actions";
 import ChatLogs from "@/components/cards/ChatLogs";
 
 async function Page({
@@ -17,6 +17,8 @@ async function Page({
 
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
+
+  updateOnlineStatus(user.id, true);
 
   const result = await fetchUsers({
     userId: user.id,

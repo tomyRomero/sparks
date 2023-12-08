@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { getImageData } from "@/lib/s3";
 import pusherClient from "@/lib/pusher";
 import { getChatBySenderAndReceiver, revalData } from "@/lib/actions/chat.actions";
+import { useAppContext } from "@/lib/AppContext";
 
 interface Chat {
     chatRead : boolean;
@@ -22,6 +23,9 @@ interface Chat {
 }
 
 const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPicture, chatName, isHome , path} : Chat) => {
+
+   const {globalMessages, setGlobalMessages, setReadMessages, readMessages} =  useAppContext();
+
    const [chatPicture, setChatPicture] = useState("/assets/imgloader.svg")
    const [isMe, setIsMe] = useState(false);
    const [messages, setMessages] = useState(chatMessages);
@@ -46,6 +50,9 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
    }, [])
 
    useEffect( ()=> {
+
+    console.log("Right Bar Set Read active:")
+
     const lastIndex = messages[ messages.length - 1]
     const lastMessageSender = lastIndex.sender
 
@@ -59,32 +66,31 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
     const updateRead = async ()=> {
       const chat = await getChatBySenderAndReceiver(receiverID, senderID);
       const readStatus = chat.read_status
-      console.log("Read Status: " , readStatus)
       setRead(readStatus)
 
     }
 
     updateRead();
 
-   }, [messages])
+   }, [messages , setRead, setReadMessages])
 
    useEffect(() => {
     try {
+      console.log("Chat Logs Ran")
       const channel = pusher.subscribe('sparks');
 
       channel.bind('message', (data: any) => {
         revalData(path)
         // Handle new message received from Pusher
         // Update the state with the new message if the sender ID and reciever ID match
+        setGlobalMessages((prevGlobalMessages: any) => [...prevGlobalMessages, data]);
         
-        console.log("MESSAGE DATA: ", data)
-
         if(data.sender === senderID && data.receiver === receiverID || data.sender === receiverID && data.receiver === senderID)
         {
           setMessages((prevMessages) => [...prevMessages, data]);
+          
           const newArr = [...messages, data]
-          console.log("New Message", newArr) 
-
+          
           if(data.sender !== senderID)
           {
             setRead(false);
@@ -102,7 +108,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
     } catch (error) {
       console.error(error);
     }
-  }, [messages, setMessages]);
+  }, [messages, setMessages, globalMessages, setGlobalMessages]);
 
    const getLastText = () => {
     const lastIndex = messages[messages.length - 1]
@@ -164,11 +170,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
 
       {isHome && (
       <div className={`ml-auto text-black ${!read && !isMe ? 'font-bold' : ''}`}>
-        <div className="text-left">
-          {/* Date */}
-          {getLastTime().split(' ')[0]}
-        </div>
-        <div className="text-left">
+        <div>
           {/* Time */}
           {getLastTime().split(' ')[1]}{' '}
           {getLastTime().split(' ')[2]} {/* AM/PM */}
@@ -180,11 +182,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
     
     {!isHome && (
       <div className={`ml-auto text-black ${!read && !isMe ? 'font-bold' : ''}`}>
-        <div className="text-right">
-          {/* Date */}
-          {getLastTime().split(' ')[0]}
-        </div>
-        <div className="text-right">
+        <div >
           {/* Time */}
           {getLastTime().split(' ')[1]}{' '}
           {getLastTime().split(' ')[2]} {/* AM/PM */}

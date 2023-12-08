@@ -1,5 +1,5 @@
 import Chat from "@/components/forms/Chat";
-import { getChatBySenderAndReceiver } from "@/lib/actions/chat.actions";
+import { getChatBySenderAndReceiver, updateOnlineStatus } from "@/lib/actions/chat.actions";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";
 
@@ -9,6 +9,8 @@ const page = async ({ params }: { params: { id: string } }) => {
     if (!user) return null;
    
     const dbUser = await fetchUser(params.id)
+
+    updateOnlineStatus(user.id, true);
 
     //user would then use its ID and the ID of the searchParams to get the chat that belongs to those two
     //Chat data would look a little like this. 

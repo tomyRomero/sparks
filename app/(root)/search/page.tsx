@@ -6,6 +6,7 @@ import Searchbar from "@/components/shared/Searchbar";
 import Pagination from "@/components/shared/Pagination";
 
 import { fetchUser, fetchUsers } from "@/lib/actions/user.actions";
+import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 
 async function Page({
   searchParams,
@@ -14,6 +15,8 @@ async function Page({
 }) {
   const user = await currentUser();
   if (!user) return null;
+
+  updateOnlineStatus(user.id, true);
 
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");

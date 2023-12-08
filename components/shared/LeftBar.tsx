@@ -8,12 +8,19 @@ import { SignOutButton, SignedIn, currentUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { getImageData } from "@/lib/s3";
+import { getChatBySenderAndReceiver, getChatsWithUsersByUserId, revalData } from "@/lib/actions/chat.actions";
+import pusherClient from "@/lib/pusher";
+import { useAppContext } from "@/lib/AppContext";
 
 function LeftSidebar({user} : any)
 {
 
     const [img, setImg] = useState('/assets/profile.svg');
+    const [noti, setNoti] = useState(false);
 
+    const { globalMessages, setGlobalMessages, readMessages, setReadMessages} = useAppContext();
+
+    var pusher = pusherClient;
     const router = useRouter();
     const pathname = usePathname();
 
@@ -22,6 +29,46 @@ function LeftSidebar({user} : any)
                          || pathname === link.route;
 
     }
+
+    const getNoti = async () => {
+        const userChats = await getChatsWithUsersByUserId(user.id);
+    
+        const readStatusArray = await Promise.all(
+          userChats.map(async (chat) => {
+            const senderID = chat.sender_id;
+            const receiverID = chat.receiver_id;
+    
+            const chatfromOtherSide = await getChatBySenderAndReceiver(receiverID, senderID);
+            const user = await fetchUser(receiverID)
+
+            const lastMessage = chatfromOtherSide.messages[ chatfromOtherSide.messages.length - 1]
+
+            if(lastMessage.receiver === user.id)
+            {
+              return 1;
+            }else{
+              return chatfromOtherSide.read_status;
+            }
+          })
+        );
+    
+        console.log("Read Status Array: ", readStatusArray);
+    
+        // Check if readStatusArray contains 0 (unread)
+        const hasUnreadChat = readStatusArray.includes(0);
+    
+        // Now you can use hasUnreadChat to determine if there is at least one unread chat
+        if (hasUnreadChat) {
+          // There is at least one unread chat
+          console.log("There is at least one unread chat");
+          setNoti(true);
+        } else {
+          // All chats are read
+          console.log("All chats are read");
+          setNoti(false);
+        }
+      };
+    
 
     useEffect( () => {
         const load = async () => {
@@ -45,6 +92,57 @@ function LeftSidebar({user} : any)
         load();
   
       }, [])
+
+      useEffect(() => {
+        getNoti();
+      }, [noti]);
+
+
+      useEffect(()=> {
+        try {
+            const channel = pusher.subscribe('sparks');
+            console.log("Left Bar Pusher Active: ")
+
+            channel.bind('message', (data: any) => {
+                // Handle new message received from Pusher
+        
+                if(data.sender === user.id || data.receiver === user.id)
+                {
+                    getNoti();
+                }
+              });
+
+              // Handle the event for updating the read status
+              channel.bind('updateReadStatus', (data: any) => {
+                // Handle updating the read status of the messages
+                // Filter and update the messages based on the data received
+                console.log('Left Bar updateReadStatus event:', data);
+
+                // Check if the current user is the sender of the message
+
+                if(data.sender === user.id || data.receiver === user.id)
+                {
+                    getNoti();
+                }
+               
+              });
+
+              return () => {
+                channel.unbind('message');
+                channel.unbind("updateReadStatus")
+                pusher.unsubscribe('chats');
+              };
+
+
+        }catch(error)
+        {
+            console.log(error)
+        }
+      
+      }, [globalMessages, setGlobalMessages, readMessages, setReadMessages])
+
+
+      
 
     return(
         <section className="custom-scrollbar leftsidebar">
@@ -71,6 +169,18 @@ function LeftSidebar({user} : any)
                             />
                             <p className="text-light-1 max-lg:hidden">
                             {link.label}
+                            {
+                            noti && link.label === "Message" && (
+                            <div className="inline-block">
+                            <Image 
+                                src={"/assets/alert.svg"}
+                                alt={"alert"}
+                                width={20}
+                                height={20}
+                            />
+                            </div>
+                            )
+                            }
                             </p>
                         </Link>
                         )}

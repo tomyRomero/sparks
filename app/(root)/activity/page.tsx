@@ -4,6 +4,7 @@ import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchPostById} from "@/lib/actions/post.actions";
 import { fetchLikesAndCommentsByUser } from "@/lib/actions/user.actions";
 import Activity from "@/components/shared/Activity";
+import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 
 async function Page() {
   const user = await currentUser();
@@ -12,6 +13,7 @@ async function Page() {
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
+  updateOnlineStatus(user.id, true);
   const activity = await fetchLikesAndCommentsByUser(user.id, 5);
   console.log("Activity: ", activity)
 

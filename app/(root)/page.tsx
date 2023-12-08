@@ -4,6 +4,7 @@ import { currentUser } from "@clerk/nextjs";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { redirect, useRouter } from "next/navigation";
 import Pagination from "@/components/shared/Pagination";
+import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 
 async function Home({
   searchParams,
@@ -20,6 +21,8 @@ async function Home({
     searchParams.page ? + searchParams.page : 1,
      10, 
   )  
+
+  updateOnlineStatus(user.id, true);
 
  return (
     <>

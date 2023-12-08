@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { postTabs } from "@/constants";
 import Image from "next/image";
 import Studio from "@/components/studio/Studio";
+import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 
 
 const page = async () => {
@@ -13,6 +14,8 @@ const page = async () => {
 
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
+
+  updateOnlineStatus(user.id, true);
 
   return (
     <section>

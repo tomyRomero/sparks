@@ -8,6 +8,7 @@ import CommentsTab from "@/components/shared/CommentsTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetchUser } from "@/lib/actions/user.actions";
 import LikedTab from "@/components/shared/LikedTab";
+import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 
 async function Page({ params }: { params: { id: string } }) {
   const user = await currentUser();
@@ -16,6 +17,7 @@ async function Page({ params }: { params: { id: string } }) {
   const userInfo = await fetchUser(params.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
+  updateOnlineStatus(user.id, true);
   
 
   return (

@@ -226,3 +226,5 @@ export const updateOnlineStatus = (userId: string, isOnline: boolean) => {
 export const revalData = (path : string)=> {
   revalidatePath(path)
 }
+
+

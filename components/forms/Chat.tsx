@@ -1,10 +1,9 @@
 "use client"
 
-import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect, useRef} from "react";
 import { useForm } from "react-hook-form";
-import { boolean, z } from "zod";
+import { z } from "zod";
 import {
     Form,
     FormControl,
@@ -22,6 +21,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getImageData } from "@/lib/s3";
 import pusherClient from "@/lib/pusher";
 import { getDateTime } from "@/lib/utils";
+import { useAppContext } from "@/lib/AppContext";
 
 interface chat{
     chatPicture: string;
@@ -51,6 +51,8 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
 
   var pusher = pusherClient;
 
+  const { globalMessages, setGlobalMessages, readMessages, setReadMessages} = useAppContext();
+
   useEffect(() => {
     try {
       const channel = pusher.subscribe('sparks');
@@ -72,12 +74,13 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
         // Handle new message received from Pusher
 
         // Update the state with the new message if the sender ID and reciever ID match
-        
-        console.log("MESSAGE DATA: ", data)
+
+        setGlobalMessages((prevGlobalMessages: any) => [...prevGlobalMessages, data]);
 
         if(data.sender === userID && data.receiver === receiver || data.sender === receiver && data.receiver === userID)
         {
           setRead(false);
+         
           setMessages((prevMessages) => [...prevMessages, data]);
           const newArr = [...messages, data]
           console.log("New Message", newArr) 
@@ -90,6 +93,8 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
       // Handle updating the read status of the messages
       // Filter and update the messages based on the data received
       console.log('Received updateReadStatus event:', data);
+
+      setReadMessages(true);
 
       // Check if the current user is the sender of the message
 
@@ -111,7 +116,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
     } catch (error) {
       console.error(error);
     }
-  }, [chatMessages, setMessages]);
+  }, [chatMessages, setMessages, readMessages, setReadMessages, loading, setLoading]);
 
   useEffect ( ()=> {
 
@@ -136,7 +141,9 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
   }, [read])
 
   useEffect( ()=> {
+    
 
+    //Check To See If Chat Was Read Already
     if(messages.length > 0)
     {
       const lastMessage = messages[messages.length - 1]
@@ -148,6 +155,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
 
     }
 
+    //Load Chat Image
     const loadChatImage = async ()=> {
       let imgResult = "/assets/profile.svg"
   

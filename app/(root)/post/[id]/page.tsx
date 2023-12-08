@@ -6,6 +6,7 @@ import Post from "@/components/cards/Post";
 
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchPostById } from "@/lib/actions/post.actions";
+import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 
 export const revalidate = 0;
 
@@ -13,10 +14,10 @@ async function page({ params }: { params: { id: string } }) {
   if (!params.id) return null;
 
 
-  console.log("PARAMS ID:", params.id)
-
   const user = await currentUser();
   if (!user) return null;
+
+  updateOnlineStatus(user.id, true);
 
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
