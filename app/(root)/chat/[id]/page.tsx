@@ -1,4 +1,5 @@
 import Chat from "@/components/forms/Chat";
+import { AppProvider } from "@/lib/AppContext";
 import { getChatBySenderAndReceiver, updateOnlineStatus } from "@/lib/actions/chat.actions";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";

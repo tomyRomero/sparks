@@ -45,16 +45,18 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
   const [read, setRead] = useState(false);
   const [active, setActive] = useState(false);
   const [didSend , setDidSend] = useState(false);
+  
 
   const pathname = usePathname();
   const router = useRouter();
 
   var pusher = pusherClient;
 
-  const { globalMessages, setGlobalMessages, readMessages, setReadMessages} = useAppContext();
+  const { globalMessages, setGlobalMessages, readMessages, setReadMessages, setRefresh} = useAppContext();
 
   useEffect(() => {
     try {
+
       const channel = pusher.subscribe('sparks');
 
        // Handle the event for updating the online status
@@ -141,7 +143,8 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
   }, [read])
 
   useEffect( ()=> {
-    
+
+    setRefresh(true);
 
     //Check To See If Chat Was Read Already
     if(messages.length > 0)

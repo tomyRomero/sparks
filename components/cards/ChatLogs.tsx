@@ -6,6 +6,7 @@ import { getImageData } from "@/lib/s3";
 import pusherClient from "@/lib/pusher";
 import { getChatBySenderAndReceiver, revalData } from "@/lib/actions/chat.actions";
 import { useAppContext } from "@/lib/AppContext";
+import {  useRouter } from "next/navigation";
 
 interface Chat {
     chatRead : boolean;
@@ -24,7 +25,7 @@ interface Chat {
 
 const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPicture, chatName, isHome , path} : Chat) => {
 
-   const {globalMessages, setGlobalMessages, setReadMessages, readMessages} =  useAppContext();
+   const {globalMessages, setGlobalMessages, setReadMessages, readMessages, refresh, setRefresh} =  useAppContext();
 
    const [chatPicture, setChatPicture] = useState("/assets/imgloader.svg")
    const [isMe, setIsMe] = useState(false);
@@ -32,8 +33,22 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
    const [read, setRead] = useState(true)
 
    var pusher = pusherClient;
+   const router = useRouter();
 
    useEffect( ()=> {
+        
+    if(path === "/" || path === "/create-post" || path === "/activity" || path === "/search" || path.startsWith("/profile"))
+    {
+      if(refresh)
+      {
+        setRefresh(false)
+        router.refresh();
+      }
+    }else if(path === "/chat")
+    {
+      setRefresh(true)
+    }
+
         const getImage = async () => {
         let imgResult = "/assets/profile.svg"
     
@@ -72,11 +87,10 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
 
     updateRead();
 
-   }, [messages , setRead, setReadMessages])
+   }, [messages , setRead, setReadMessages, readMessages])
 
    useEffect(() => {
     try {
-      console.log("Chat Logs Ran")
       const channel = pusher.subscribe('sparks');
 
       channel.bind('message', (data: any) => {

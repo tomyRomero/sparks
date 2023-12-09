@@ -2,9 +2,10 @@ import Post from "@/components/cards/Post";
 import { fetchPosts} from "@/lib/actions/post.actions";
 import { currentUser } from "@clerk/nextjs";
 import { fetchUser } from "@/lib/actions/user.actions";
-import { redirect, useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import Pagination from "@/components/shared/Pagination";
 import { updateOnlineStatus } from "@/lib/actions/chat.actions";
+
 
 async function Home({
   searchParams,

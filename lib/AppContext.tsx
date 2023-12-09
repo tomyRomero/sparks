@@ -15,6 +15,9 @@ type AppContextProps = {
   readMessages: any;
   setReadMessages: React.Dispatch<React.SetStateAction<any>>;
 
+  refresh: any;
+  setRefresh: React.Dispatch<React.SetStateAction<any>>;
+
 };
 
 // Create the AppContext with an initial value of undefined
@@ -27,11 +30,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Add additional states using the useState hook
   const [globalMessages, setGlobalMessages] = useState([]);
-
   const [readMessages, setReadMessages] = useState(false)
 
+  const [refresh, setRefresh] = useState(false);
+
   // Provide the context value to the children components , include addtional states if there is
-  return <AppContext.Provider value={{ user, setUser, globalMessages, setGlobalMessages, readMessages, setReadMessages }}>{children}</AppContext.Provider>;
+  return <AppContext.Provider value={{ user, setUser, globalMessages, setGlobalMessages, readMessages, setReadMessages, 
+    refresh, setRefresh
+}}>{children}</AppContext.Provider>;
 };
 
 // Create a custom hook (useAppContext) to easily access the context
