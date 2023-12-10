@@ -501,6 +501,42 @@ export const fetchLikedPostsByUser = async (userId: string) => {
   }
 };
 
+export const doesPostBelongToUser = async (postId: string, userId: string) => {
+  try {
+    const connection = connectDb('spark');
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    // Fetch the post by its ID
+    const selectQuery = 'SELECT author_id FROM post WHERE idpost = ?';
+    //@ts-ignore
+    const posts: any = await queryAsync(selectQuery, [postId]);
+
+
+    console.log("DOES POST BELONG: ", posts)
+
+    if (posts.length === 0) {
+      // Post not found
+      connection.end();
+      return false;
+    }
+
+    const postAuthorId = posts[0].author_id;
+
+    // Check if the post belongs to the specified user
+
+    const belongsToUser = postAuthorId === userId;
+
+    // Close the database connection
+    connection.end();
+
+    return belongsToUser;
+  } catch (error) {
+    console.log('Error:', error);
+    throw new Error('Unable to check post ownership');
+  }
+};
+
+
 
 
 

@@ -7,6 +7,7 @@ import { getImageData } from "@/lib/s3";
 import { addLikeToPost, removeLikeFromPost } from "@/lib/actions/post.actions";
 import DeletePost from "../forms/DeletePost";
 import { fetchUser } from "@/lib/actions/user.actions";
+import { useAppContext } from "@/lib/AppContext";
 
 interface Props {
   id: string;
@@ -44,6 +45,7 @@ function Post({
   title
 }: Props) {
 
+
     const isInsideLikes = () => {
         // Split the comma-separated string into an array
       const userIdsArray = likes.split(',');
@@ -67,6 +69,8 @@ function Post({
     const [floatingHearts, setFloatingHearts] = useState(false);
     const [numLikes, setNumLikes] = useState(filterLikes())
     const [contentImg, setContentImg] = useState('/assets/postloader.svg')
+
+    const {setNewLike, newLike} = useAppContext();
 
     useEffect(() => {
       const loadProfile = async () => {
@@ -159,6 +163,9 @@ function Post({
           } else {
             await addLikeToPost(id, currentUserId);
             setNumLikes(prevNumLikes => prevNumLikes + 1);
+
+            //Adjust global state for notifactions
+            setNewLike(!newLike)
           }
 
         // After a short delay (e.g., 500ms)

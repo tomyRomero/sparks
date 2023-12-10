@@ -3,7 +3,7 @@ import {connectDb} from '@/lib/sql'
 import { revalidatePath } from 'next/cache';
 import { getDateTime } from '../utils';
 import util from 'util';
-
+import { getPusher } from './chat.actions';
 
 
 export const createPost = async ({text,author,path, image, title} : {text: string, author: string, path: string, image:string , title: string}) => {
@@ -185,6 +185,8 @@ export const addCommentToPost = async (postId: string, commentText: string, user
       created_at: getDateTime(),
       parent_id: postId, // Set the parent_id to the original post's ID
       image: currentUserImg,
+      //Used later on for Activity
+      read_status: true
     };
 
     // Insert the comment post into the database
@@ -199,13 +201,23 @@ export const addCommentToPost = async (postId: string, commentText: string, user
     // Update the original post with the new children
     const updateQuery = 'UPDATE post SET children = ? WHERE idpost = ?';
     //@ts-ignore
-    await queryAsync(updateQuery, [updatedChildren, postId]);
+    const updateResults = await queryAsync(updateQuery, [updatedChildren, postId]);
+
+     //If comment was successful use Pusher for Real Time Events
+     if(updateResults && insertResults)
+     {
+      const pusher = await getPusher();
+      pusher.trigger("sparks", "comment", {postId, userId});
+     }
+
     revalidatePath(path);
     // Close the database connection
     connection.end();
+    return true
   } catch (error) {
     console.log('Error:', error);
     throw new Error('Unable to add comment');
+    return false
   }
 };
 
@@ -239,12 +251,18 @@ export const addLikeToPost = async (postId: string, userId: string) => {
     const newLikes = existingLikesArray.join(',');
 
     // Update the post with the new likes and recent_like timestamp
-    const updateQuery = 'UPDATE post SET likes = ?, recent_like = ? WHERE idpost = ?';
+    const updateQuery = 'UPDATE post SET likes = ? , read_status = ? , recent_like = ? WHERE idpost = ?';
 
-    const updateValues = [newLikes, getDateTime(), postId];
+    const updateValues = [newLikes, 1 , getDateTime(), postId];
 
     //@ts-ignore
     const results = await queryAsync(updateQuery, updateValues);
+
+    if(results)
+    {
+      const pusher = await getPusher();
+      pusher.trigger("sparks", "like", {postId, userId});
+    }
 
     // Close the database connection
     connection.end();
@@ -289,10 +307,10 @@ export const removeLikeFromPost = async (postId: string, userId: string) => {
       const newLikes = existingLikesArray.join(',');
 
       // Update the post with the new likes
-      const updateQuery = 'UPDATE post SET likes = ? WHERE idpost = ?';
+      const updateQuery = 'UPDATE post SET likes = ?, read_status = ? WHERE idpost = ?';
 
       //@ts-ignore
-      await queryAsync(updateQuery, [newLikes, postId]);
+      await queryAsync(updateQuery, [newLikes, 0, postId]);
 
       // Close the database connection
       connection.end();

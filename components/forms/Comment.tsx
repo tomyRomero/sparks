@@ -22,6 +22,7 @@ import { Button } from "../ui/button";
 import { CommentValdiation } from "@/lib/validations/post";
 import { addCommentToPost } from "@/lib/actions/post.actions";
 import { getImageData } from "@/lib/s3";
+import { AppProvider, useAppContext } from "@/lib/AppContext";
 
 interface Props {
   postId: string;
@@ -36,6 +37,8 @@ function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
   const [loading, setLoading] = useState(false);
   const [backLoading, setBackLoading] = useState(false)
   const router = useRouter();
+
+  const {newComment, setNewComment} = useAppContext();
 
   useEffect( () => {
     const load = async () => {
@@ -72,13 +75,17 @@ function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
 
   const onSubmit = async (values: z.infer<typeof CommentValdiation>) => {
     setLoading(true)
-    await addCommentToPost(
+    const added = await addCommentToPost(
       postId,
       values.comment,
       currentUserId,
       pathname,
       currentUserImg,
     );
+
+    if(added){
+      setNewComment(!newComment)
+    }
 
     form.reset();
     setLoading(false)

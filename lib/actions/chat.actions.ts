@@ -1,14 +1,13 @@
 "use server"
 
-import { getDateTime } from "../utils";
-
 
 import Pusher from "pusher";
 import { connectDb } from "../sql";
 import util from 'util';
 import { revalidatePath } from 'next/cache';
 
-const pusher = new Pusher({
+export const getPusher = async()=> {
+ return new Pusher ({
     //@ts-ignore
     appId: process.env.PUSHER_APP_ID,
     //@ts-ignore
@@ -18,6 +17,8 @@ const pusher = new Pusher({
     cluster: 'us2',
     useTLS: true,
   });
+} 
+
 
   export const sendMessage = async (text: string, sender: string, timestamp: string, receiver: string,  messages: any[], pathname: string) => {
     try {
@@ -41,6 +42,7 @@ const pusher = new Pusher({
 
         if(insertResults)
         {
+          const pusher = await getPusher();
           pusher.trigger("sparks", "message", { text, sender, receiver, timestamp});
         }
 
@@ -57,6 +59,7 @@ const pusher = new Pusher({
         
         if(updateResults)
         {
+          const pusher = await getPusher();
           pusher.trigger("sparks", "message", { text, sender, receiver, timestamp});
         }
 
@@ -197,6 +200,7 @@ const pusher = new Pusher({
 
       if(updateResults)
       {
+        const pusher = await getPusher();
         const updateData = { sender, receiver, messages, pathname};
         pusher.trigger('sparks', 'updateReadStatus', updateData);
       }
@@ -210,10 +214,11 @@ const pusher = new Pusher({
   };
   
   // Function to update the online status of the user
-export const updateOnlineStatus = (userId: string, isOnline: boolean) => {
+export const updateOnlineStatus = async (userId: string, isOnline: boolean) => {
   try {
     console.log('Updating Online Status...');
     const updateData = { userId, isOnline };
+    const pusher = await getPusher();
     pusher.trigger('sparks', 'updateOnlineStatus', updateData);
     console.log('Successfully Updated Online Status:', updateData);
     return true;

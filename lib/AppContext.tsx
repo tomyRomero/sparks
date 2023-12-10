@@ -1,7 +1,8 @@
-// Import necessary React modules
-
 "use client"
-import React, { createContext, useContext, ReactNode, useState } from 'react';
+
+// Import necessary React modules
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import pusherClient from './pusher';
 
 // Define the types for the context
 type AppContextProps = {
@@ -15,9 +16,14 @@ type AppContextProps = {
   readMessages: any;
   setReadMessages: React.Dispatch<React.SetStateAction<any>>;
 
-  refresh: any;
-  setRefresh: React.Dispatch<React.SetStateAction<any>>;
+  pusherChannel: any;
+  setPusherChannel: React.Dispatch<React.SetStateAction<any>>;
 
+  newComment: any;
+  setNewComment: React.Dispatch<React.SetStateAction<any>>;
+
+  newLike: any;
+  setNewLike: React.Dispatch<React.SetStateAction<any>>;
 };
 
 // Create the AppContext with an initial value of undefined
@@ -29,15 +35,71 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [user, setUser] = useState<any>("test");
 
   // Add additional states using the useState hook
+
+  //For when there is a new text message, activate all listening components
   const [globalMessages, setGlobalMessages] = useState([]);
-  const [readMessages, setReadMessages] = useState(false)
 
-  const [refresh, setRefresh] = useState(false);
+  //For when a message is read, activate all listening components
+  const [readMessages, setReadMessages] = useState(false);
 
-  // Provide the context value to the children components , include addtional states if there is
-  return <AppContext.Provider value={{ user, setUser, globalMessages, setGlobalMessages, readMessages, setReadMessages, 
-    refresh, setRefresh
-}}>{children}</AppContext.Provider>;
+  //For when there is a new comment activate all listening components
+  const [newComment, setNewComment] = useState(false);
+
+  //For when there is a new like activate all listening components
+  const [newLike, setNewLike] = useState(false);
+
+
+  //Client Pusher Instance Logic
+  const pusher = pusherClient;
+  const [pusherChannel, setPusherChannel] = useState(pusher.subscribe('sparks'));
+
+  // Set the timeout duration in milliseconds (e.g., 15 minutes)
+  const timeoutDuration = 15 * 60 * 1000; // 15 minutes
+
+  // Create a variable to hold the timeout ID
+  let timeoutId: NodeJS.Timeout | undefined;
+
+  // Function to handle user activity
+  const handleUserActivity = () => {
+    // Clear the existing timeout (if any)
+    clearTimeout(timeoutId);
+
+    // Reset the timeout
+    timeoutId = setTimeout(() => {
+      // Unsubscribe from the Pusher channel after the timeout
+      pusherChannel.unsubscribe();
+      console.log('Pusher channel unsubscribed due to inactivity.');
+    }, timeoutDuration);
+  };
+
+  // Provide the context value to the children components, include additional states if there are any
+  const contextValue: AppContextProps = {
+    user,
+    setUser,
+    globalMessages,
+    setGlobalMessages,
+    readMessages,
+    setReadMessages,
+    pusherChannel,
+    setPusherChannel,
+    newComment, 
+    setNewComment,
+    newLike, setNewLike
+  };
+
+  // Set up event listeners for user activity (adjust as needed based on your application)
+  useEffect(() => {
+    // Example: Listen for mouse move events
+    window.addEventListener('mousemove', handleUserActivity);
+
+    // Example: Listen for keyboard events
+    window.addEventListener('keydown', handleUserActivity);
+
+    // Clear the timeout when the component unmounts
+    return () => clearTimeout(timeoutId);
+  }, [timeoutId]);
+
+  return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
 };
 
 // Create a custom hook (useAppContext) to easily access the context

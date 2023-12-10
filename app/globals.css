@@ -113,7 +113,7 @@
     @apply sticky left-0 top-0 z-20 flex h-screen w-fit flex-col justify-between overflow-auto border-r border-r-slate-300 bg-black pb-2 pt-20 max-md:hidden;
   }
   .leftsidebar_link {
-    @apply relative flex justify-start gap-4 rounded-xl p-2.5;
+    @apply relative flex justify-start gap-4 rounded-xl p-2.5 max-lg:gap-1 max-lg:justify-center;
   }
   .pagination {
     @apply mt-10 flex w-full items-center justify-center gap-5;

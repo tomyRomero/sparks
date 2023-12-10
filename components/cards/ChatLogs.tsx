@@ -6,7 +6,7 @@ import { getImageData } from "@/lib/s3";
 import pusherClient from "@/lib/pusher";
 import { getChatBySenderAndReceiver, revalData } from "@/lib/actions/chat.actions";
 import { useAppContext } from "@/lib/AppContext";
-import {  useRouter } from "next/navigation";
+
 
 interface Chat {
     chatRead : boolean;
@@ -25,30 +25,15 @@ interface Chat {
 
 const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPicture, chatName, isHome , path} : Chat) => {
 
-   const {globalMessages, setGlobalMessages, setReadMessages, readMessages, refresh, setRefresh} =  useAppContext();
+   const {globalMessages, setGlobalMessages, setReadMessages, readMessages, pusherChannel} =  useAppContext();
 
    const [chatPicture, setChatPicture] = useState("/assets/imgloader.svg")
    const [isMe, setIsMe] = useState(false);
    const [messages, setMessages] = useState(chatMessages);
    const [read, setRead] = useState(true)
 
-   var pusher = pusherClient;
-   const router = useRouter();
 
    useEffect( ()=> {
-        
-    if(path === "/" || path === "/create-post" || path === "/activity" || path === "/search" || path.startsWith("/profile"))
-    {
-      if(refresh)
-      {
-        setRefresh(false)
-        router.refresh();
-      }
-    }else if(path === "/chat")
-    {
-      setRefresh(true)
-    }
-
         const getImage = async () => {
         let imgResult = "/assets/profile.svg"
     
@@ -65,8 +50,6 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
    }, [])
 
    useEffect( ()=> {
-
-    console.log("Right Bar Set Read active:")
 
     const lastIndex = messages[ messages.length - 1]
     const lastMessageSender = lastIndex.sender
@@ -91,7 +74,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
 
    useEffect(() => {
     try {
-      const channel = pusher.subscribe('sparks');
+      const channel =  pusherChannel
 
       channel.bind('message', (data: any) => {
         revalData(path)
@@ -114,10 +97,9 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
       });
 
       // Clean up on component unmount
-      return () => {
-        channel.unbind('message');
-        pusher.unsubscribe('chats');
-      };
+      // return () => {
+      //   channel.unbind('message');
+      // };
 
     } catch (error) {
       console.error(error);

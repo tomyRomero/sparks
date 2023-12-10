@@ -19,10 +19,11 @@ interface Props {
   time: string;
   content: string;
   title: string;
+  read_status: boolean | null;
 }
 
 
-const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, type, likes, time, content, title} : Props) => {
+const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, type, likes, time, content, title, read_status} : Props) => {
   const [img, setImg] = useState("/assets/imgloader.svg");
   const [parentContent, setParentContent] = useState('')
 
@@ -160,6 +161,14 @@ const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, t
           )}
     <span>{` at ${reformatDateString(time)}`}</span>
     </p>
+    { read_status && (
+             <Image 
+             src={"/assets/alert.svg"}
+             alt={"alert"}
+             width={20}
+             height={20}
+            />
+          )}
     </article>
     </Link>
     </>

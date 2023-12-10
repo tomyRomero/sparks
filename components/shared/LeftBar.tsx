@@ -3,12 +3,12 @@
 import { sidebarLinks, bottombarLinks } from "@/constants";
 import Link from "next/link";
 import Image from "next/image";
-import { redirect, usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { SignOutButton, SignedIn, currentUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import { fetchUser } from "@/lib/actions/user.actions";
+import { fetchUser, doesPostBelongToUser } from "@/lib/actions/user.actions";
 import { getImageData } from "@/lib/s3";
-import { getChatBySenderAndReceiver, getChatsWithUsersByUserId, revalData } from "@/lib/actions/chat.actions";
+import { getChatBySenderAndReceiver, getChatsWithUsersByUserId } from "@/lib/actions/chat.actions";
 import pusherClient from "@/lib/pusher";
 import { useAppContext } from "@/lib/AppContext";
 
@@ -17,12 +17,13 @@ function LeftSidebar({user} : any)
 
     const [img, setImg] = useState('/assets/profile.svg');
     const [noti, setNoti] = useState(false);
+    const [activity, setActivity] = useState(false);
 
-    const { globalMessages, setGlobalMessages, readMessages, setReadMessages} = useAppContext();
+    const { globalMessages, setGlobalMessages, readMessages, setReadMessages, pusherChannel, newComment, setNewComment, newLike, setNewLike} = useAppContext();
 
-    var pusher = pusherClient;
     const router = useRouter();
     const pathname = usePathname();
+    const channel =  pusherChannel
 
     const isActive = (link : any) => {
         return (pathname.includes(link.route) && link.route.length > 1)
@@ -69,6 +70,44 @@ function LeftSidebar({user} : any)
         }
       };
     
+    useEffect( ()=> {
+      try {
+        //Look for realtime events on new notifactions from activity
+        channel.bind('comment', async (data: any) => {
+          
+          // Handle new comment received from Pusher
+
+          const myPost = await doesPostBelongToUser(data.postId, user.id)
+          
+          if(myPost)
+          {
+            setActivity(true);
+          }
+  
+        });
+  
+      } catch (error) {
+        console.error(error);
+      }
+
+    }, [newComment, setNewComment])
+
+    useEffect(()=> {
+
+      //Look for Real time updates of Likes
+      channel.bind('like', async (data: any) => {
+          
+        // Handle new comment received from Pusher
+
+        const myPost = await doesPostBelongToUser(data.postId, user.id)
+        
+        if(myPost)
+        {
+          setActivity(true);
+        }
+      });
+
+    }, [newLike, setNewLike])
 
     useEffect( () => {
         const load = async () => {
@@ -100,39 +139,7 @@ function LeftSidebar({user} : any)
 
       useEffect(()=> {
         try {
-            const channel = pusher.subscribe('sparks');
-            console.log("Left Bar Pusher Active: ")
-
-            channel.bind('message', (data: any) => {
-                // Handle new message received from Pusher
-        
-                if(data.sender === user.id || data.receiver === user.id)
-                {
-                    getNoti();
-                }
-              });
-
-              // Handle the event for updating the read status
-              channel.bind('updateReadStatus', (data: any) => {
-                // Handle updating the read status of the messages
-                // Filter and update the messages based on the data received
-                console.log('Left Bar updateReadStatus event:', data);
-
-                // Check if the current user is the sender of the message
-
-                if(data.sender === user.id || data.receiver === user.id)
-                {
-                    getNoti();
-                }
-               
-              });
-
-              return () => {
-                channel.unbind('message');
-                channel.unbind("updateReadStatus")
-                pusher.unsubscribe('chats');
-              };
-
+            getNoti();
 
         }catch(error)
         {
@@ -140,8 +147,6 @@ function LeftSidebar({user} : any)
         }
       
       }, [globalMessages, setGlobalMessages, readMessages, setReadMessages])
-
-
       
 
     return(
@@ -169,6 +174,7 @@ function LeftSidebar({user} : any)
                             />
                             <p className="text-light-1 max-lg:hidden">
                             {link.label}
+                            </p>
                             {
                             noti && link.label === "Message" && (
                             <div className="inline-block">
@@ -181,7 +187,19 @@ function LeftSidebar({user} : any)
                             </div>
                             )
                             }
-                            </p>
+                            {
+                            activity && link.label === "Activity" && (
+                            <div className="inline-block">
+                            <Image 
+                                src={"/assets/alert.svg"}
+                                alt={"alert"}
+                                width={20}
+                                height={20}
+                            />
+                            </div>
+                            )
+                            }
+                            
                         </Link>
                         )}
                     )}    
@@ -211,7 +229,7 @@ function LeftSidebar({user} : any)
             
             
 
-            <div className="mt-5 px-6">
+            <div className="mt-4 p-4 mx-auto max-lg:justify-center max-lg:p-2 max-lg:mx-auto">
                 <SignedIn>
                     <SignOutButton signOutCallback={
                         ()=> router.push('/sign-in')

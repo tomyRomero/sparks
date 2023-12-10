@@ -52,12 +52,12 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
 
   var pusher = pusherClient;
 
-  const { globalMessages, setGlobalMessages, readMessages, setReadMessages, setRefresh} = useAppContext();
+  const { globalMessages, setGlobalMessages, readMessages, setReadMessages, pusherChannel} = useAppContext();
 
   useEffect(() => {
     try {
 
-      const channel = pusher.subscribe('sparks');
+      const channel = pusherChannel
 
        // Handle the event for updating the online status
       channel.bind('updateOnlineStatus', (data: any) => {
@@ -96,10 +96,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
       // Filter and update the messages based on the data received
       console.log('Received updateReadStatus event:', data);
 
-      setReadMessages(true);
-
       // Check if the current user is the sender of the message
-
       if(data.sender === userID && data.receiver === receiver)
       {
         setRead(true);
@@ -112,13 +109,12 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
         channel.unbind('message');
         channel.unbind('updateReadStatus');
         channel.unbind('updateOnlineStatus');
-        pusher.unsubscribe('chats');
       };
 
     } catch (error) {
       console.error(error);
     }
-  }, [chatMessages, setMessages, readMessages, setReadMessages, loading, setLoading]);
+  }, [chatMessages, setMessages,loading, setLoading]);
 
   useEffect ( ()=> {
 
@@ -130,6 +126,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
         if(lastMessage.sender !== userID)
         {
           const read = await markChatAsRead(receiver, userID, messages, pathname);
+          setReadMessages(!readMessages);
         }
         
       }
@@ -143,8 +140,6 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
   }, [read])
 
   useEffect( ()=> {
-
-    setRefresh(true);
 
     //Check To See If Chat Was Read Already
     if(messages.length > 0)

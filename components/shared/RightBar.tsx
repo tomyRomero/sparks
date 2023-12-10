@@ -2,13 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import ChatLogs from "../cards/ChatLogs";
+import { useEffect } from "react";
+import { useAppContext } from "@/lib/AppContext";
 
 
 function RightBar({chats} : any)
 {
     const pathname = usePathname();
+    const router = useRouter();
 
     const isActive = () => {
         return pathname.includes("/chat")

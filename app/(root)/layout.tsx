@@ -41,12 +41,6 @@ export default async function RootLayout({
         const dateA = new Date(lastMessageA.timestamp);
         const dateB = new Date(lastMessageB.timestamp);
       
-        console.log("Timestamp A: ", lastMessageA.timestamp);
-        console.log("Date A: ", dateA);
-      
-        console.log("Timestamp B: ", lastMessageB.timestamp);
-        console.log("Date B: ", dateB);
-      
         // Compare the dates (descending order, latest time first)
         //@ts-ignore
         return dateB - dateA;
@@ -75,7 +69,7 @@ export default async function RootLayout({
       <html lang='en'>
         <body className={inter.className}>
         <AppProvider>
-          <Topbar />
+          <Topbar user={data.dbUser}/>
           <main className='flex flex-row'>
             <LeftSidebar user={data.dbUser}/>
             <section className='main-container'>

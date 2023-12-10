@@ -15,7 +15,6 @@ async function Page() {
 
   updateOnlineStatus(user.id, true);
   const activity = await fetchLikesAndCommentsByUser(user.id, 5);
-  console.log("Activity: ", activity)
 
   function getLastUserId(likes: string) {
     // Split the string using commas and filter out empty strings
@@ -38,6 +37,8 @@ async function Page() {
       return "A user"
     }
   }
+
+  console.log("Activity: ", activity)
 
   return (
     <>
@@ -72,6 +73,7 @@ async function Page() {
           }
           content = {activity.content}
           title = {activity.title}
+          read_status = {activity.read_status}
         />
       ))}
     </>
