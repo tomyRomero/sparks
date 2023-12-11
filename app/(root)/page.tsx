@@ -20,7 +20,7 @@ async function Home({
 
   const result: any = await fetchPosts(
     searchParams.page ? + searchParams.page : 1,
-     10, 
+     2, 
   )  
 
   updateOnlineStatus(user.id, true);

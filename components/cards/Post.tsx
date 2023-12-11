@@ -8,6 +8,7 @@ import { addLikeToPost, removeLikeFromPost } from "@/lib/actions/post.actions";
 import DeletePost from "../forms/DeletePost";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { useAppContext } from "@/lib/AppContext";
+import Modal from "../shared/Modal";
 
 interface Props {
   id: string;
@@ -327,13 +328,15 @@ function Post({
                     className='cursor-pointer object-contain'
                   />
                 </Link>
-                <Image
+
+                <Modal postId={id} user={currentUserId} />
+                {/* <Image
                   src='/assets/share.svg'
                   alt='share'
                   width={24}
                   height={24}
                   className='cursor-pointer object-contain'
-                />
+                /> */}
                   {/* Title */}
                 <div className={`${title !=="Regular" && title !== "Comment" ? '' : 'hidden'} `}>
                     <h1 className="text-base-semibold teal_gradient cursor-pointer hover:text-light-1 ml-2  max-sm:hidden">{title}</h1>

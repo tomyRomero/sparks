@@ -78,6 +78,20 @@ function ProfileHeader({
             </div>
           </Link>
         )}
+        {accountId !== authUserId && (
+           <Link href={`/chat/${accountId}`}>
+           <div className='flex cursor-pointer gap-1 rounded-lg hover:bg-primary-500 bg-dark-3 px-4 py-2'>
+                 
+             <Image
+               src='/assets/message.svg'
+               alt='logout'
+               width={26}
+               height={26}
+             />
+              <p className='text-light-2 max-sm:hidden'>Message</p>       
+           </div>
+         </Link>
+        )}
       </div>
       <h2 className="text-primary-500 mt-4">Biography: </h2>
       <p className='mt-6 max-w-lg text-base-regular text-black'>{bio}</p>

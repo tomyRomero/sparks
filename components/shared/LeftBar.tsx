@@ -73,8 +73,6 @@ function LeftSidebar({user} : any)
     const getAcivityAtStartUp = async () => {
       const activity = await fetchLikesAndCommentsByUser(user.id, 5);
 
-      console.log("Left Bar Activity: ", activity)
-
       // Check if any Activity has read_status === 1
       const hasUnreadPost = activity.some(activity => activity.read_status === 1);
       

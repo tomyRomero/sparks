@@ -28,7 +28,6 @@ async function Page({
     pageSize: 15,
   });
 
-  console.log("USER RESULTS: ", result.users)
 
   return (
     <section>
@@ -48,6 +47,9 @@ async function Page({
                 name={person.name}
                 username={person.username}
                 imgUrl={person.image}
+                type="search"
+                postId={null}
+                sender = {null}
               />
             ))}
           </>

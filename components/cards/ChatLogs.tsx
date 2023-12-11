@@ -165,12 +165,10 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
       )}  
 
       {isHome && (
-      <div className={`ml-auto text-black ${!read && !isMe ? 'font-bold' : ''}`}>
-        <div>
+      <div className={`ml-auto text-black text-right ${!read && !isMe ? 'font-bold' : ''}`}>
           {/* Time */}
           {getLastTime().split(' ')[1]}{' '}
           {getLastTime().split(' ')[2]} {/* AM/PM */}
-        </div>
       </div>
     )}
 

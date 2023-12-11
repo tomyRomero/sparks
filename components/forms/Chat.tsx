@@ -63,9 +63,8 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
       channel.bind('updateOnlineStatus', (data: any) => {
         // Handle updating the online status of the user
         // Use the data to update the online status in UI
-        console.log('Received updateOnlineStatus event:', data);
 
-        if(receiver === data.userId)
+        if(data.userId === receiver)
         {
           setActive(true);
         }
@@ -85,7 +84,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
          
           setMessages((prevMessages) => [...prevMessages, data]);
           const newArr = [...messages, data]
-          console.log("New Message", newArr) 
+         
         }
 
       });
@@ -94,7 +93,6 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
     channel.bind('updateReadStatus', (data: any) => {
       // Handle updating the read status of the messages
       // Filter and update the messages based on the data received
-      console.log('Received updateReadStatus event:', data);
 
       // Check if the current user is the sender of the message
       if(data.sender === userID && data.receiver === receiver)
@@ -108,7 +106,6 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
       return () => {
         channel.unbind('message');
         channel.unbind('updateReadStatus');
-        channel.unbind('updateOnlineStatus');
       };
 
     } catch (error) {

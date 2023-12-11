@@ -6,15 +6,33 @@ import Image from "next/image";
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from "react";
 import { useAppContext } from "@/lib/AppContext";
-import { doesPostBelongToUser } from "@/lib/actions/user.actions";
+import { doesPostBelongToUser, fetchLikesAndCommentsByUser } from "@/lib/actions/user.actions";
 
 function Bottombar({user} : any)
 {
     const pathname = usePathname();
     const [activity, setActivity] = useState(false)
 
-    const { globalMessages, setGlobalMessages, readMessages, setReadMessages, pusherChannel, newComment, setNewComment, newLike, setNewLike} = useAppContext();
+    const { pusherChannel, newComment, setNewComment, newLike, setNewLike, setReadActivity, readActivity} = useAppContext();
     const channel =  pusherChannel
+
+    const getAcivityAtStartUp = async () => {
+      const activity = await fetchLikesAndCommentsByUser(user.id, 5);
+
+      // Check if any Activity has read_status === 1
+      const hasUnreadPost = activity.some(activity => activity.read_status === 1);
+      
+      if(hasUnreadPost)
+      {
+        setActivity(true)
+      }else{
+        setActivity(false)
+      }
+    }
+
+    useEffect(()=> {
+      getAcivityAtStartUp();
+    }, [readActivity, setReadActivity])
 
     useEffect( ()=> {
         try {
