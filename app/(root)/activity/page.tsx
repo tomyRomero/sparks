@@ -38,8 +38,6 @@ async function Page() {
     }
   }
 
-  console.log("Activity: ", activity)
-
   return (
     <>
   <h1 className='head-text text-black'>Notifications</h1>

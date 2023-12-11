@@ -1,12 +1,13 @@
 "use client"
 
-import React from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { getImageData } from '@/lib/s3'
 import { useEffect, useState } from 'react'
 import { fetchUser } from '@/lib/actions/user.actions'
-import { fetchPostById } from '@/lib/actions/post.actions'
+import { fetchPostById, updatePostReadStatus } from '@/lib/actions/post.actions'
+import { useAppContext } from '@/lib/AppContext'
 
 interface Props {
   parentid: string
@@ -26,6 +27,10 @@ interface Props {
 const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, type, likes, time, content, title, read_status} : Props) => {
   const [img, setImg] = useState("/assets/imgloader.svg");
   const [parentContent, setParentContent] = useState('')
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const {readActivity, setReadActivity} = useAppContext();
 
   const filterLikes = () => {
     // Remove trailing comma and split the string by commas
@@ -90,7 +95,6 @@ const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, t
 
         let imgResult = '/assets/profile.svg';
 
-        console.log("Client Author Image:", loadImg)
         if (loadImg.startsWith('user')) {
           const res = await getImageData(loadImg);
           imgResult = res;
@@ -121,10 +125,27 @@ const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, t
   }
   , [])
 
+  const goToActivity = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+    setLoading(true)
+    event.preventDefault();
+    const clearActivity = await updatePostReadStatus(idpost)
+
+    if(clearActivity)
+    {
+      router.push(`/post/${parentid? parentid: idpost}`)
+      setReadActivity(!readActivity)
+    }else{
+      alert("Something happened and the Notifaction was Deleted")
+    }
+  }
+  useEffect (()=> {
+    router.refresh()
+  },[readActivity, setReadActivity] )
+
   return (
     <>
-    <Link key={activityKey} href={`/post/${parentid? parentid: idpost}`}>
-        <article className='activity-card hover:bg-cyan-500'>
+    <Link key={activityKey} href={`/post/${parentid? parentid: idpost}`} onClick= {goToActivity}>
+        <article className={`activity-card hover:bg-cyan-500 ${ loading ? "hidden" : ""}`}>
             <Image
                 src={img}
                 alt='user_logo'
@@ -169,7 +190,19 @@ const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, t
              height={20}
             />
           )}
+      
     </article>
+    
+    
+    <article className={`activity-card hover:bg-cyan-500 ${ loading ? "" : "hidden"}`}>
+      <Image
+        src={"/assets/postloader.svg"}
+        alt={"loading animation"}
+        width={40}
+        height={20}
+      />
+    </article>
+      
     </Link>
     </>
   )

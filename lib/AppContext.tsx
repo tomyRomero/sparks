@@ -24,6 +24,9 @@ type AppContextProps = {
 
   newLike: any;
   setNewLike: React.Dispatch<React.SetStateAction<any>>;
+
+  readActivity: any;
+  setReadActivity:  React.Dispatch<React.SetStateAction<any>>;
 };
 
 // Create the AppContext with an initial value of undefined
@@ -48,10 +51,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   //For when there is a new like activate all listening components
   const [newLike, setNewLike] = useState(false);
 
+  //For when an acitivty notifcation has been read
+  const [readActivity, setReadActivity] = useState(false)
+
 
   //Client Pusher Instance Logic
   const pusher = pusherClient;
   const [pusherChannel, setPusherChannel] = useState(pusher.subscribe('sparks'));
+
+  //If User Is inActvie for more than 15 mins, close the connection to Pusher
 
   // Set the timeout duration in milliseconds (e.g., 15 minutes)
   const timeoutDuration = 15 * 60 * 1000; // 15 minutes
@@ -84,7 +92,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setPusherChannel,
     newComment, 
     setNewComment,
-    newLike, setNewLike
+    newLike, setNewLike,
+    setReadActivity, readActivity
   };
 
   // Set up event listeners for user activity (adjust as needed based on your application)

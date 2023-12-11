@@ -6,7 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from 'next/navigation'
 import { SignOutButton, SignedIn, currentUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import { fetchUser, doesPostBelongToUser } from "@/lib/actions/user.actions";
+import { fetchUser, doesPostBelongToUser, fetchLikesAndCommentsByUser } from "@/lib/actions/user.actions";
 import { getImageData } from "@/lib/s3";
 import { getChatBySenderAndReceiver, getChatsWithUsersByUserId } from "@/lib/actions/chat.actions";
 import pusherClient from "@/lib/pusher";
@@ -19,7 +19,7 @@ function LeftSidebar({user} : any)
     const [noti, setNoti] = useState(false);
     const [activity, setActivity] = useState(false);
 
-    const { globalMessages, setGlobalMessages, readMessages, setReadMessages, pusherChannel, newComment, setNewComment, newLike, setNewLike} = useAppContext();
+    const { globalMessages, setGlobalMessages, readMessages, setReadMessages, pusherChannel, newComment, setNewComment, newLike, setNewLike, setReadActivity, readActivity} = useAppContext();
 
     const router = useRouter();
     const pathname = usePathname();
@@ -70,6 +70,22 @@ function LeftSidebar({user} : any)
         }
       };
     
+    const getAcivityAtStartUp = async () => {
+      const activity = await fetchLikesAndCommentsByUser(user.id, 5);
+
+      console.log("Left Bar Activity: ", activity)
+
+      // Check if any Activity has read_status === 1
+      const hasUnreadPost = activity.some(activity => activity.read_status === 1);
+      
+      if(hasUnreadPost)
+      {
+        setActivity(true)
+      }else{
+        setActivity(false)
+      }
+    }
+
     useEffect( ()=> {
       try {
         //Look for realtime events on new notifactions from activity
@@ -127,7 +143,7 @@ function LeftSidebar({user} : any)
             console.log("Error" , error)
           }
         }
-  
+        
         load();
   
       }, [])
@@ -136,6 +152,9 @@ function LeftSidebar({user} : any)
         getNoti();
       }, [noti]);
 
+      useEffect(()=> {
+        getAcivityAtStartUp();
+      }, [readActivity, setReadActivity])
 
       useEffect(()=> {
         try {

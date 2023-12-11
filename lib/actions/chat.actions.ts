@@ -20,11 +20,11 @@ export const getPusher = async()=> {
 } 
 
 
+
   export const sendMessage = async (text: string, sender: string, timestamp: string, receiver: string,  messages: any[], pathname: string) => {
     try {
-      
-      // Use a parameterized query to select a chat by sender and receiver IDs
       const connection = connectDb('spark');
+      // Use a parameterized query to select a chat by sender and receiver IDs
       const queryAsync = util.promisify(connection.query).bind(connection);
   
       const query = 'SELECT * FROM chat WHERE sender_id = ? AND receiver_id = ?';
@@ -75,9 +75,9 @@ export const getPusher = async()=> {
 
   export const updateChatForOther = async ( sender: string, receiver: string, messages: any[], pathname: string) => {
     try{
+     const connection = connectDb('spark');
      console.log("OTHER USER PROCESSING")
      // Use a parameterized query to select a chat by sender and receiver IDs
-     const connection = connectDb('spark');
      const queryAsync = util.promisify(connection.query).bind(connection);
  
      const query = 'SELECT * FROM chat WHERE sender_id = ? AND receiver_id = ?';
@@ -117,8 +117,8 @@ export const getPusher = async()=> {
   //Get Chats that belong to the User who is the Sender
   export const getChatsWithUsersByUserId = async (userId: string) => {
     try {
-      // Use a parameterized query to select chats with user information
       const connection = connectDb('spark');
+      // Use a parameterized query to select chats with user information
       const queryAsync = util.promisify(connection.query).bind(connection);
       
       const query = `
@@ -151,8 +151,8 @@ export const getPusher = async()=> {
   //Get Chat that fills the reciever UI chat
   export const getChatBySenderAndReceiver = async (senderId: string, receiverId: string) => {
     try {
-      // Use a parameterized query to select a chat by both sender and receiver IDs
       const connection = connectDb('spark');
+      // Use a parameterized query to select a chat by both sender and receiver IDs
       const queryAsync = util.promisify(connection.query).bind(connection);
   
       const query = `
@@ -187,7 +187,6 @@ export const getPusher = async()=> {
   export const markChatAsRead = async (sender: string, receiver: string, messages: any[], pathname: string) => {
     try {
       console.log('Updating Chat with Read...');
-      
       const connection = connectDb('spark');
       const queryAsync = util.promisify(connection.query).bind(connection);
 

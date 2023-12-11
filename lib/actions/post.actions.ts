@@ -405,6 +405,31 @@ export const deletePost = async (postId: string, path: string, parent_id: string
   }
 };
 
+export const updatePostReadStatus = async (postId: string): Promise<boolean> => {
+  try {
+    const connection = connectDb('spark'); // Replace 'spark' with your database name
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    // Update post's read_status to 1
+    const updateQuery = 'UPDATE post SET read_status = null WHERE idpost = ?';
+
+    //@ts-ignore
+    const updateResult: any[] = await queryAsync(updateQuery, [postId]);
+
+    console.log("Read_status Update: ", updateResult)
+
+    // Close the database connection
+    connection.end();
+
+    return true
+  } catch (error) {
+    console.log('Error:', error);
+    throw new Error('Unable to update post read status');
+  }
+};
+
+
+
 
 
 
