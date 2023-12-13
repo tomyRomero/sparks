@@ -30,6 +30,9 @@ Sparks is a full stack social media web app that is designed to help users disco
   - Fully Responsive for all screens
   - Global State System - using app context the app has a global state which helps with real-time functionalities
 
+## Contact
+tomyfletcher99@hotmail.com
+
 ## Screenshots
 
 User interface and different functionalities of Sparks.
