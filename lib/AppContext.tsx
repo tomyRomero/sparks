@@ -27,6 +27,9 @@ type AppContextProps = {
 
   readActivity: any;
   setReadActivity:  React.Dispatch<React.SetStateAction<any>>;
+
+  title: any;
+  setTitle: React.Dispatch<React.SetStateAction<any>>;
 };
 
 // Create the AppContext with an initial value of undefined
@@ -53,6 +56,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   //For when an acitivty notifcation has been read
   const [readActivity, setReadActivity] = useState(false)
+
+  //For filtering Pagination
+  const [title, setTitle] = useState("");
 
 
   //Client Pusher Instance Logic
@@ -93,7 +99,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     newComment, 
     setNewComment,
     newLike, setNewLike,
-    setReadActivity, readActivity
+    setReadActivity, readActivity,
+    setTitle, title
   };
 
   // Set up event listeners for user activity (adjust as needed based on your application)

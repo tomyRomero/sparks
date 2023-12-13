@@ -57,9 +57,7 @@ export default async function RootLayout({
 
   
   const data :any = await getDbUser();
-
-  console.log("Layout DATA:" , data)
-
+  
   return (
     <ClerkProvider
       appearance={{

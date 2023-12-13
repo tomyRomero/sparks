@@ -5,6 +5,7 @@ import { fetchUser } from "@/lib/actions/user.actions";
 import { redirect } from "next/navigation";
 import Pagination from "@/components/shared/Pagination";
 import { updateOnlineStatus } from "@/lib/actions/chat.actions";
+import FilterBox from "@/components/shared/FilterBox";
 
 
 async function Home({
@@ -20,14 +21,18 @@ async function Home({
 
   const result: any = await fetchPosts(
     searchParams.page ? + searchParams.page : 1,
-     2, 
+     10, 
+    searchParams.title ? searchParams.title : ""
   )  
 
   updateOnlineStatus(user.id, true);
 
+  const includesTitle = searchParams.title? true : false
+
  return (
     <>
-      <h1 className='head-text text-left text-black'>Recent Sparks...</h1>
+      <h1 className='head-text text-left text-black mb-4'>Recent Sparks...</h1>
+      <FilterBox />
       <section className='mt-9 flex flex-col gap-10'>
         {result?.length === 0 ? (
           <p className='no-result'>No posts found</p>
@@ -56,9 +61,10 @@ async function Home({
         )}
       </section>
       <Pagination
-        path='/'
+        path="/"
         pageNumber={searchParams?.page ? + searchParams.page : 1}
         isNext={result.isNext}
+        filter={includesTitle}
       />
     </>
   );

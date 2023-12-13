@@ -1,7 +1,8 @@
-import { redirect } from "next/navigation";
+
 import { fetchUserComments } from "@/lib/actions/user.actions";
-import Post from "../cards/Post";
 import Link from "next/link";
+import CommentActivity from "./CommentActivity";
+import { getImageData } from "@/lib/s3";
 
 interface Props {
   currentUserId: string;
@@ -19,6 +20,8 @@ async function CommentsTab({ currentUserId, accountId }: Props) {
    noResults = true
   }
 
+  console.log("Result For Comments: ", result)
+
   return (
     <section className='mt-9 flex flex-col gap-8'>
         {noResults && (
@@ -26,21 +29,13 @@ async function CommentsTab({ currentUserId, accountId }: Props) {
         )}
       {
       //@ts-ignore
-      result?.map((post) => (
-        <Post
-        key={post.idpost}
-        id={post.idpost}
-        currentUserId={currentUserId}
-        parentId={post.parent_Id}
-        content={post.content}
-        createdAt={post.created_at}
-        comments={post.children}
-        image={post.author_image}
-        contentImage={post.image}
-        username={post.author_username}
-        likes = {post.likes? post.likes: ''}
-        authorId = {post.author_id}
-        title={post.title}
+      result?.map((comment) => (
+      <CommentActivity 
+        parent_Id={comment.parent_id}
+        image={comment.author_image}
+        author_username={comment.author_username}
+        created_at={comment.created_at}
+        content={comment.content}
       />
       ))}
     </section>

@@ -26,7 +26,7 @@ export const createPost = async ({text,author,path, image, title} : {text: strin
     }
 }
 
-export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
+export const fetchPosts = async (pageNumber = 1, pageSize = 20, titleFilter = '') => {
   try {
     const connection = connectDb('spark'); // Replace 'spark' with your database name
     const queryAsync = util.promisify(connection.query).bind(connection);
@@ -52,6 +52,7 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
         user AS U ON P.author_id = U.id
       WHERE
         P.parent_id IS NULL
+        AND (? = '' OR P.title = ?)  -- Check for title filter
       ORDER BY
         P.idpost DESC
       LIMIT
@@ -59,7 +60,7 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
     `;
 
     // Define query parameters
-    const selectValues = [skipAmount, pageSize];
+    const selectValues = [titleFilter, titleFilter, skipAmount, pageSize];
 
     // Execute the SQL query to fetch top-level posts
     //@ts-ignore
@@ -69,7 +70,7 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
     for (const post of results) {
       // Fetch and format post's children
       if (post.children_count > 0) {
-        const childrenIds = post.children.split(',').filter(Boolean); // Split the comma-separated string
+        const childrenIds = post.children.split(',').filter(Boolean);
         const childrenQuery = 'SELECT * FROM post WHERE idpost IN (?)';
         //@ts-ignore
         const childrenPosts: any = await queryAsync(childrenQuery, [childrenIds]);
@@ -84,27 +85,23 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20) => {
       }
     }
 
-     // Count the total number of top-level posts
-     const totalPostsCountQuery = 'SELECT COUNT(*) AS total_count FROM post WHERE parent_id IS NULL';
-     //@ts-ignore
-     
-     const totalPostsCountResults: any = await queryAsync(totalPostsCountQuery);
-     console.log("Count Results: ", totalPostsCountResults)
-
-     const totalPostsCount = totalPostsCountResults[0].total_count;
-     console.log("Count: ",totalPostsCount)
-     const isNext = totalPostsCount > skipAmount + results.length;
-     console.log("isNext: ", isNext)
+    // Count the total number of top-level posts
+    const totalPostsCountQuery = "SELECT COUNT(*) AS total_count FROM post WHERE parent_id IS NULL AND (? = '' OR title = ?)";
+    //@ts-ignore
+    const totalPostsCountResults: any = await queryAsync(totalPostsCountQuery, [titleFilter, titleFilter]);
+    const totalPostsCount = totalPostsCountResults[0].total_count;
+    const isNext = totalPostsCount > skipAmount + results.length;
 
     // Close the database connection
     connection.end();
-    //console.log("ALL POSTS: ", results)
-    return {results, isNext};
+
+    return { results, isNext };
   } catch (error) {
     console.log('Error:', error);
     throw new Error('Failed to fetch top-level posts');
   }
 };
+
 
 export const fetchPostById = async (postId :string) => {
   try {

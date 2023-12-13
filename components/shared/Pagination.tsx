@@ -3,15 +3,19 @@
 import { useRouter } from "next/navigation";
 
 import { Button } from "../ui/button";
+import { useAppContext } from "@/lib/AppContext";
 
 interface Props {
   pageNumber: number;
   isNext: boolean;
   path: string;
+  filter: boolean
 }
 
-function Pagination({ pageNumber, isNext, path }: Props) {
+function Pagination({ pageNumber, isNext, path , filter}: Props) {
   const router = useRouter();
+
+  const {title, setTitle} = useAppContext();
 
   const handleNavigation = (type: string) => {
     let nextPageNumber = pageNumber;
@@ -23,7 +27,14 @@ function Pagination({ pageNumber, isNext, path }: Props) {
     }
 
     if (nextPageNumber > 1) {
-      router.push(`/${path}?page=${nextPageNumber}`);
+
+      if(filter)
+      {
+        router.push(`/${path}?page=${nextPageNumber}&title=${title}`)
+      }else{
+        router.push(`/${path}?page=${nextPageNumber}`);
+      }
+
     } else {
       router.push(`/${path}`);
     }

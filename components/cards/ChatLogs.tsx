@@ -6,6 +6,7 @@ import { getImageData } from "@/lib/s3";
 import pusherClient from "@/lib/pusher";
 import { getChatBySenderAndReceiver, revalData } from "@/lib/actions/chat.actions";
 import { useAppContext } from "@/lib/AppContext";
+import { useRouter } from "next/navigation";
 
 
 interface Chat {
@@ -31,7 +32,8 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
    const [isMe, setIsMe] = useState(false);
    const [messages, setMessages] = useState(chatMessages);
    const [read, setRead] = useState(true)
-
+  
+   const router = useRouter();
 
    useEffect( ()=> {
         const getImage = async () => {
@@ -77,7 +79,6 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
       const channel =  pusherChannel
 
       channel.bind('message', (data: any) => {
-        revalData(path)
         // Handle new message received from Pusher
         // Update the state with the new message if the sender ID and reciever ID match
         setGlobalMessages((prevGlobalMessages: any) => [...prevGlobalMessages, data]);
@@ -136,7 +137,9 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
         <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full"></div>
       )}
     </div>
-    <div className="ml-4 flex flex-col">
+
+
+    <div className="ml-4 flex-grow flex flex-col">
 
       {/* Chat Name Logic */}
       <p className={`text-black font-bold max-md:hidden`}>
@@ -165,7 +168,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
       )}  
 
       {isHome && (
-      <div className={`ml-auto text-black text-right ${!read && !isMe ? 'font-bold' : ''}`}>
+      <div className={`mr-auto text-black text-right ${!read && !isMe ? 'font-bold' : ''}`}>
           {/* Time */}
           {getLastTime().split(' ')[1]}{' '}
           {getLastTime().split(' ')[2]} {/* AM/PM */}

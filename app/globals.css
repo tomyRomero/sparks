@@ -267,7 +267,7 @@
 
   /* MODAL */
   .dialog-container {
-    @apply fixed inset-0 z-10 overflow-y-auto bg-black bg-opacity-60;
+    @apply fixed inset-0 z-10 overflow-y-auto bg-black bg-opacity-60 mt-8;
   }
 
   .dialog-content {

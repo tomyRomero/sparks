@@ -55,7 +55,6 @@ function UserCard({ id, name, username, imgUrl, type, postId, sender}: Props) {
 
     if(sender)
     {
-
       const getChat = await getChatBySenderAndReceiver(sender, id);
 
       const timestamp = getDateTime();
@@ -74,7 +73,7 @@ function UserCard({ id, name, username, imgUrl, type, postId, sender}: Props) {
         { text: shareText, sender: sender, receiver: id, timestamp: timestamp },
       ]
 
-      const didSend = await sendMessage(shareText, id, timestamp, sender, newMessages, "/");
+      const didSend = await sendMessage(shareText, sender, timestamp, id, newMessages, "/");
 
       if(didSend)
       {
