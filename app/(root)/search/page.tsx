@@ -60,6 +60,7 @@ async function Page({
         path='search'
         pageNumber={searchParams?.page ? +searchParams.page : 1}
         isNext={result.isNext}
+        filter={false}
       />
     </section>
   );
