@@ -9,10 +9,10 @@ export default function Page() {
     <section>
       <AuthNav isLogin={false}/>
       <div className="w-full flex gap-10 mt-20 max-lg:flex-col" > 
-        <div className="flex flex-col mx-8">
+        <div className="flex flex-col mx-6 bg-black rounded-xl p-6">
             <h1 className="head_text text-center teal_gradient">Welcome to SPARKS!</h1>  
-            <p className="desc mx-auto text-center">
-            Discover New Ideas for all things creative! Like never before! By using AI to generate ideas AKA <span className="teal_gradient">SPARKS!</span> Sign up to get Started!
+            <p className="desc mx-auto text-center text-black bg-white p-4 rounded-lg shadow-primary">
+            Discover New Ideas for all things creative! Use AI to generate ideas with Sparks, chat with other users and explore other Sparks! Sign up to get Started!
             </p>
             <div className="mt-10 mx-auto max-lg:hidden lg:w-4/5 xl:w-3/5 lg:h-1/2 xl:h-1/2">
             <HeroCarousel />

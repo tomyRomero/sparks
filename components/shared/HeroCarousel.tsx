@@ -5,9 +5,12 @@ import Image from "next/image";
 
 const heroImages = [
   
-  { imgUrl: '/assets/movie.jpg', alt: 'Movie'},
-  { imgUrl: '/assets/book.jpg', alt: 'Book'},
-  { imgUrl: '/assets/poem.jpg', alt: 'Poem'},
+  { imgUrl: '/assets/sparks-post.png', alt: 'Post'},
+  { imgUrl: '/assets/sparks-studio.png', alt: 'Studio'},
+  { imgUrl: '/assets/sparks-chats.png', alt: 'Chat'},
+  { imgUrl: '/assets/sparks-search.png', alt: 'Search'},
+  { imgUrl: '/assets/sparks-profile.png', alt: 'Profile'},
+  { imgUrl: '/assets/sparks-noti.png', alt: 'Acitvity'},
 
 ]
 

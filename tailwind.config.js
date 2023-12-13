@@ -190,8 +190,7 @@ module.exports = {
         glassmorphism: "rgba(16, 16, 18, 0.60)",
       },
       boxShadow: {
-        "count-badge": "0px 0px 6px 2px rgba(219, 188, 159, 0.30)",
-        "groups-sidebar": "-30px 0px 60px 0px rgba(28, 28, 31, 0.50)",
+        primary: '0 4px 6px -1px rgba(0, 96, 212, 0.1), 0 2px 4px -1px rgba(0, 96, 212, 0.06)',
       },
       screens: {
         xs: "400px",

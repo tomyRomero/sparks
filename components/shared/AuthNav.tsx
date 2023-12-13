@@ -20,7 +20,7 @@ function AuthNav({isLogin}: Props)
              width={28}
              height={28}
              />
-            <p className="font-agbalumo text-heading3-bold text-light-1"><span className="text-blue">SPARKS</span></p>
+            <p className="font-agbalumo text-heading3-bold text-light-1"><span className="teal_gradient">SPARKS</span></p>
             </Link>
             {
                 isLogin? 
