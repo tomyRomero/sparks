@@ -75,6 +75,8 @@ This project is open source and contributors are welcomed
 Sparks still has a lot that can be worked, It is scalable and as more users grow pagination would be added to search results, activity and chats, the gathering of data can also always be imporved for faster load times and efficency and so much more! I welcome any contributors to this project. AI for generating posts cam be strengten and load times can decrease
 
 ## Acknowledgments
+Shout out to https://loading.io/ for all the icons provided
+Shout out to https://unsplash.com/ for all the pictures that were not AI generated or user submitted
 Shout out to adrianhajdin on Github for Inspiration and tutorials on Next.js
 
 ## Setup
