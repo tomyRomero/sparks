@@ -12,14 +12,14 @@ import { getChatBySenderAndReceiver, getChatsWithUsersByUserId } from "@/lib/act
 import pusherClient from "@/lib/pusher";
 import { useAppContext } from "@/lib/AppContext";
 
-function LeftSidebar({user} : any)
+function LeftSidebar()
 {
-
+    const [name, setName] = useState(null);
     const [img, setImg] = useState('/assets/profile.svg');
     const [noti, setNoti] = useState(false);
     const [activity, setActivity] = useState(false);
 
-    const { globalMessages, setGlobalMessages, readMessages, setReadMessages, pusherChannel, newComment, setNewComment, newLike, setNewLike, setReadActivity, readActivity} = useAppContext();
+    const { userId, setUserId, globalMessages, setGlobalMessages, readMessages, setReadMessages, pusherChannel, newComment, setNewComment, newLike, setNewLike, setReadActivity, readActivity} = useAppContext();
 
     const router = useRouter();
     const pathname = usePathname();
@@ -32,7 +32,7 @@ function LeftSidebar({user} : any)
     }
 
     const getNoti = async () => {
-        const userChats = await getChatsWithUsersByUserId(user.id);
+        const userChats = await getChatsWithUsersByUserId(userId);
     
         const readStatusArray = await Promise.all(
           userChats.map(async (chat) => {
@@ -71,7 +71,7 @@ function LeftSidebar({user} : any)
       };
     
     const getAcivityAtStartUp = async () => {
-      const activity = await fetchLikesAndCommentsByUser(user.id, 5);
+      const activity = await fetchLikesAndCommentsByUser(userId, 5);
 
       // Check if any Activity has read_status === 1
       const hasUnreadPost = activity.some(activity => activity.read_status === 1);
@@ -91,7 +91,7 @@ function LeftSidebar({user} : any)
           
           // Handle new comment received from Pusher
 
-          const myPost = await doesPostBelongToUser(data.postId, user.id)
+          const myPost = await doesPostBelongToUser(data.postId, userId)
           
           if(myPost)
           {
@@ -104,16 +104,16 @@ function LeftSidebar({user} : any)
         console.error(error);
       }
 
-    }, [newComment, setNewComment])
+    }, [newComment, setNewComment, userId])
 
     useEffect(()=> {
 
       //Look for Real time updates of Likes
       channel.bind('like', async (data: any) => {
           
-        // Handle new comment received from Pusher
+        // Handle new like received from Pusher
 
-        const myPost = await doesPostBelongToUser(data.postId, user.id)
+        const myPost = await doesPostBelongToUser(data.postId, userId)
         
         if(myPost)
         {
@@ -121,20 +121,24 @@ function LeftSidebar({user} : any)
         }
       });
 
-    }, [newLike, setNewLike])
+    }, [newLike, setNewLike, userId])
 
     useEffect( () => {
         const load = async () => {
           try{
-            if(user.image.startsWith('user'))
+            const userDb = await fetchUser(userId);
+            const userImage = userDb.image
+            setName(userDb.name)
+
+            if(userImage.startsWith('user'))
             {
-                const res = await getImageData(user.image);
+                const res = await getImageData(userImage);
                 if(res)
                 {
                 setImg(res);
                 }
             }else{
-                setImg(user.image)
+                setImg(userImage)
             }
           }catch(error)
           {
@@ -144,15 +148,15 @@ function LeftSidebar({user} : any)
         
         load();
   
-      }, [])
+      }, [userId])
 
       useEffect(() => {
         getNoti();
-      }, [noti]);
+      }, [noti, setUserId]);
 
       useEffect(()=> {
         getAcivityAtStartUp();
-      }, [readActivity, setReadActivity])
+      }, [readActivity, setReadActivity, userId])
 
       useEffect(()=> {
         try {
@@ -163,7 +167,7 @@ function LeftSidebar({user} : any)
             console.log(error)
         }
       
-      }, [globalMessages, setGlobalMessages, readMessages, setReadMessages])
+      }, [globalMessages, setGlobalMessages, readMessages, setReadMessages, userId])
       
 
     return(
@@ -175,7 +179,7 @@ function LeftSidebar({user} : any)
                         const isActive = (pathname.includes(link.route) && link.route.length > 1)
                          || pathname === link.route;
 
-                         if(link.route === '/profile') link.route = `${link.route}/${user.id}`
+                         if(link.route === '/profile') link.route = `${link.route}/${userId}`
 
                         return(
                         <Link 
@@ -224,13 +228,13 @@ function LeftSidebar({user} : any)
             
             <div className="flex items-center justify-center p-2 space-x-4 ">
             <Link
-            href={`${bottombarLinks[4].route}/${user.id}`}
+            href={`${bottombarLinks[4].route}/${userId}`}
             key={bottombarLinks[4].label}
             className={`leftsidebar_link hover:bg-primary-500 ${ isActive(bottombarLinks[4]) && 'bg-primary-500'}`}
             >
                 <img src={img} alt="Profile Pic" className="w-12 h-12 rounded-full dark:bg-gray-500" />
                 <div>
-                    <h2 className="text-light-1 max-lg:hidden">{user? user.name: 'Sparkify User'}</h2>
+                    <h2 className="text-light-1 max-lg:hidden">{name ? name: 'Sparkify User'}</h2>
                     <span className="flex items-center space-x-1 max-lg:hidden">
                         <Image 
                         src={bottombarLinks[4].imgURL}

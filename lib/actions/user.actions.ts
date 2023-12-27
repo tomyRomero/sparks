@@ -1,8 +1,15 @@
 "use server"
 import {connectDb} from '@/lib/sql'
 import { revalidatePath } from 'next/cache';
+import { currentUser } from '@clerk/nextjs';
 
 import util from 'util';
+
+export const getClerkUser = async ()=> {
+  const data = await currentUser()
+
+  return data?.id
+}
 
 export const getUsers = async () => {
   return new Promise(async (resolve, reject) => {

@@ -11,8 +11,6 @@ const page = async ({ params }: { params: { id: string } }) => {
    
     const dbUser = await fetchUser(params.id)
 
-    updateOnlineStatus(user.id, true);
-
     //user would then use its ID and the ID of the searchParams to get the chat that belongs to those two
     //Chat data would look a little like this. 
     let chatData = {

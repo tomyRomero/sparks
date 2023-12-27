@@ -4,18 +4,50 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import ChatLogs from "../cards/ChatLogs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAppContext } from "@/lib/AppContext";
+import { getChatsWithUsersByUserId } from "@/lib/actions/chat.actions";
 
 
-function RightBar({chats} : any)
+function RightBar()
 {
+    const [chats, setChats] =  useState<any[]>([]);
+
     const pathname = usePathname();
     const router = useRouter();
+
+    const { userId , setGlobalMessages, globalMessages, setReadMessages, readMessages} = useAppContext();
+
 
     const isActive = () => {
         return pathname.includes("/chat")
     }
+
+    useEffect(()=> {
+        const getChats = async ()=> {
+            let chats: any[] = await getChatsWithUsersByUserId(userId)
+            const sortedChats = chats.sort((chatA, chatB) => {
+              const lastMessageA = chatA.messages[chatA.messages.length - 1];
+              const lastMessageB = chatB.messages[chatB.messages.length - 1];
+            
+              const dateA = new Date(lastMessageA.timestamp);
+              const dateB = new Date(lastMessageB.timestamp);
+            
+              // Compare the dates (descending order, latest time first)
+              //@ts-ignore
+              return dateB - dateA;
+            });  
+            
+            if(sortedChats.length > 1)
+            {
+              chats = sortedChats;
+            }
+
+            setChats(chats)
+        }
+    
+        getChats();
+    }, [userId, setGlobalMessages, globalMessages, setReadMessages, readMessages])
 
     return(
         <section className={`custom-scrollbar rightsidebar ${isActive()? 'hidden': ''}`}>

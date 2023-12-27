@@ -17,8 +17,6 @@ async function page({ params }: { params: { id: string } }) {
   const user = await currentUser();
   if (!user) return null;
 
-  updateOnlineStatus(user.id, true);
-
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 

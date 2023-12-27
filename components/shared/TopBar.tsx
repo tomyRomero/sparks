@@ -9,16 +9,16 @@ import { useAppContext } from "@/lib/AppContext";
 import { getChatBySenderAndReceiver, getChatsWithUsersByUserId } from "@/lib/actions/chat.actions";
 import { fetchUser } from "@/lib/actions/user.actions";
 
-function Topbar({user}: any)
+function Topbar()
 {
     const pathname = usePathname();
 
     const [noti, setNoti] = useState(false);
 
-    const { globalMessages, setGlobalMessages, readMessages, setReadMessages} = useAppContext();
+    const { userId, setUserId, globalMessages, setGlobalMessages, readMessages, setReadMessages} = useAppContext();
 
     const getNoti = async () => {
-        const userChats = await getChatsWithUsersByUserId(user.id);
+        const userChats = await getChatsWithUsersByUserId(userId);
     
         const readStatusArray = await Promise.all(
           userChats.map(async (chat) => {
@@ -67,7 +67,7 @@ function Topbar({user}: any)
             console.log(error)
         }
 
-    }, [globalMessages, setGlobalMessages, readMessages, setReadMessages])
+    }, [globalMessages, setGlobalMessages, readMessages, setReadMessages, userId])
 
     const isActive = () => {
         return pathname.includes("/chat")

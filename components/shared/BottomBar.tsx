@@ -8,16 +8,16 @@ import { useState, useEffect } from "react";
 import { useAppContext } from "@/lib/AppContext";
 import { doesPostBelongToUser, fetchLikesAndCommentsByUser } from "@/lib/actions/user.actions";
 
-function Bottombar({user} : any)
+function Bottombar()
 {
     const pathname = usePathname();
     const [activity, setActivity] = useState(false)
 
-    const { pusherChannel, newComment, setNewComment, newLike, setNewLike, setReadActivity, readActivity} = useAppContext();
+    const { userId , setUserId, pusherChannel, newComment, setNewComment, newLike, setNewLike, setReadActivity, readActivity} = useAppContext();
     const channel =  pusherChannel
 
     const getAcivityAtStartUp = async () => {
-      const activity = await fetchLikesAndCommentsByUser(user.id, 5);
+      const activity = await fetchLikesAndCommentsByUser(userId, 5);
 
       // Check if any Activity has read_status === 1
       const hasUnreadPost = activity.some(activity => activity.read_status === 1);
@@ -32,7 +32,7 @@ function Bottombar({user} : any)
 
     useEffect(()=> {
       getAcivityAtStartUp();
-    }, [readActivity, setReadActivity])
+    }, [readActivity, setReadActivity, userId])
 
     useEffect( ()=> {
         try {
@@ -41,7 +41,7 @@ function Bottombar({user} : any)
             
             // Handle new comment received from Pusher
   
-            const myPost = await doesPostBelongToUser(data.postId, user.id)
+            const myPost = await doesPostBelongToUser(data.postId, userId)
             
             if(myPost)
             {
@@ -54,7 +54,7 @@ function Bottombar({user} : any)
           console.error(error);
         }
   
-      }, [newComment, setNewComment])
+      }, [newComment, setNewComment, userId])
   
     useEffect(()=> {
   
@@ -63,7 +63,7 @@ function Bottombar({user} : any)
             
           // Handle new comment received from Pusher
   
-          const myPost = await doesPostBelongToUser(data.postId, user.id)
+          const myPost = await doesPostBelongToUser(data.postId, userId)
           
           if(myPost)
           {
@@ -71,7 +71,7 @@ function Bottombar({user} : any)
           }
         });
   
-      }, [newLike, setNewLike])
+      }, [newLike, setNewLike, userId])
 
     return(
         <section className="bottombar">
@@ -84,7 +84,7 @@ function Bottombar({user} : any)
                     return(
                     
                     <Link 
-                    href={`${link.route === '/profile' ? `/profile/${user.id}` : `${link.route}`}`}
+                    href={`${link.route === '/profile' ? `/profile/${userId}` : `${link.route}`}`}
                     key={link.label}
                     className={`bottombar_link ${ isActive && 'bg-primary-500'}`}
                     >

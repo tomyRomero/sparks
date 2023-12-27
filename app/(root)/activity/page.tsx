@@ -13,7 +13,6 @@ async function Page() {
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
-  updateOnlineStatus(user.id, true);
   const activity = await fetchLikesAndCommentsByUser(user.id, 5);
 
   function getLastUserId(likes: string) {

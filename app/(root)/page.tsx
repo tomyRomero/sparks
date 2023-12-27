@@ -25,8 +25,6 @@ async function Home({
     searchParams.title ? searchParams.title : ""
   )  
 
-  updateOnlineStatus(user.id, true);
-
   const includesTitle = searchParams.title? true : false
 
  return (

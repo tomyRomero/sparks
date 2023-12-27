@@ -18,8 +18,6 @@ async function Page({
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
-  updateOnlineStatus(user.id, true);
-
   const result = await fetchUsers({
     userId: user.id,
     searchString: searchParams.q,

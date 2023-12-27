@@ -15,7 +15,6 @@ const page = async () => {
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
-  updateOnlineStatus(user.id, true);
 
   return (
     <section>

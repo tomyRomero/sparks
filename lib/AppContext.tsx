@@ -3,6 +3,8 @@
 // Import necessary React modules
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import pusherClient from './pusher';
+import { getClerkUser } from './actions/user.actions';
+import { updateOnlineStatus } from './actions/chat.actions';
 
 // Define the types for the context
 type AppContextProps = {
@@ -30,6 +32,9 @@ type AppContextProps = {
 
   title: any;
   setTitle: React.Dispatch<React.SetStateAction<any>>;
+
+  userId: any;
+  setUserId: React.Dispatch<React.SetStateAction<any>>;
 };
 
 // Create the AppContext with an initial value of undefined
@@ -60,6 +65,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   //For filtering Pagination
   const [title, setTitle] = useState("");
 
+  const [userId, setUserId] = useState("");
 
   //Client Pusher Instance Logic
   const pusher = pusherClient;
@@ -100,7 +106,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setNewComment,
     newLike, setNewLike,
     setReadActivity, readActivity,
-    setTitle, title
+    setTitle, title,
+    userId, setUserId
   };
 
   // Set up event listeners for user activity (adjust as needed based on your application)
@@ -114,6 +121,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     // Clear the timeout when the component unmounts
     return () => clearTimeout(timeoutId);
   }, [timeoutId]);
+
+  useEffect(()=> {
+    const getId = async ()=> {
+      const id = await getClerkUser();
+
+      if(id)
+      {
+        setUserId(id)
+        updateOnlineStatus(id, true)
+      }
+    }
+
+    getId();
+  })
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
 };

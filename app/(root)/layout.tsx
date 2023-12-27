@@ -27,36 +27,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const getDbUser = async () => {
-    const user = await currentUser();
-    if(user)
-    {
-      updateOnlineStatus(user.id, true);
-      const dbUser = await fetchUser(user.id)
-      let chats: any[] = await getChatsWithUsersByUserId(user.id)
-      const sortedChats = chats.sort((chatA, chatB) => {
-        const lastMessageA = chatA.messages[chatA.messages.length - 1];
-        const lastMessageB = chatB.messages[chatB.messages.length - 1];
-      
-        const dateA = new Date(lastMessageA.timestamp);
-        const dateB = new Date(lastMessageB.timestamp);
-      
-        // Compare the dates (descending order, latest time first)
-        //@ts-ignore
-        return dateB - dateA;
-      });  
-      
-      if(sortedChats.length > 1)
-      {
-        chats = sortedChats;
-      }
-      return {dbUser, chats};
-    }
-  }
-
-
-  
-  const data :any = await getDbUser();
   
   return (
     <ClerkProvider
@@ -67,15 +37,15 @@ export default async function RootLayout({
       <html lang='en'>
         <body className={inter.className}>
         <AppProvider>
-          <Topbar user={data.dbUser}/>
+          <Topbar />
           <main className='flex flex-row'>
-            <LeftSidebar user={data.dbUser}/>
+            <LeftSidebar />
             <section className='main-container'>
               <div className='w-full max-w-4xl'>{children}</div>
             </section>
-            <RightBar chats={data.chats}  />
+            <RightBar />
           </main>
-          <Bottombar user={data.dbUser} />
+          <Bottombar />
           </AppProvider>
         </body>
       </html>
