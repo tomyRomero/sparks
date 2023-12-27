@@ -71,7 +71,7 @@ User interface and different functionalities of Sparks.
 <img src="public/assets/sparks-post.png" alt="Screenshot of Post">
 
 ### Share
-![Alt text](sparks-share.png)
+<img src="public/assets/sparks-share.png" alt="Screenshot of Share Post">
 
 ### Chats
 <img src="public/assets/sparks-chats.png" alt="Screenshot of User Chats">
