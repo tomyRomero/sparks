@@ -211,7 +211,6 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
 
     if(name === "artwork" || name === "fashion" || name === "photography")
     {
-      console.log("gallery condtion met")
       gallery = true; 
     }
 
