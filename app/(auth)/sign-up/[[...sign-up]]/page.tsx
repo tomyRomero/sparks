@@ -13,11 +13,11 @@ export default function Page() {
       <div className="flex flex-col justify-center items-center w-full h-full">
         <div className="max-w-2xl w-full p-8 max-lg:bg-[url('/assets/hero.jpg')] bg-cover bg-no-repeat bg-center">
           <div className="flex flex-col items-center gap-4">
-            <h3 className="text-heading1-bold text-white max-md:text-primary-500">Welcome To Sparks!</h3>
+            <h3 className="text-heading1-bold text-white max-md:text-primary-500 text-center">Welcome To Sparks!</h3>
             <Image src="/assets/logo.svg" alt="logo" width={30} height={30} className="bg-white rounded-full" />
             <p className="hidden max-md:block bg-white p-4 text-subtle-semibold text-center mx-auto w-3/4 rounded-lg">Sparks is your AI Social Media hub, where creativity meets connection. Share AI-generated ideas, engage in lively chats, and enjoy a seamless experience with likes, comments, and shares all in one place. Beyond that, post regularly, upload images, and explore user profiles. Discover, connect, and express yourself effortlessly. Sign up now for a richer, more dynamic social experience!</p>
             <p className="text-white text-center max-md:hidden">Please Sign Up Here</p>
-            <div className="ml-4">
+            <div className="max-xs:m-0 ml-4">
             <SignUp />
             </div>
           </div>

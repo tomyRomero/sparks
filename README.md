@@ -55,6 +55,9 @@ We have a one-to-many relationship, as one user can have multiple chats, but eac
 
 User interface and different functionalities of Sparks.
 
+### Login
+<img src="public/assets/sparks-login.png" alt="Screenshot of login">
+
 ### Profile Set Up
 <img src="public/assets/sparks-onboard.png" alt="Screenshot of Home" >
 
