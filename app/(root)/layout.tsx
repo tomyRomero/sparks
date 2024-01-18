@@ -14,6 +14,7 @@ import RightBar from "@/components/shared/RightBar";
 import { AppProvider } from "@/lib/AppContext";
 import { getClerkUser } from "@/lib/actions/user.actions";
 import Loading from "./loading";
+import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +25,8 @@ export default async function RootLayout({
 }) {
   const userid = await getClerkUser();
   if (!userid) return null;
+
+  updateOnlineStatus(userid, true)
 
   return (
     userid?.length ? (
