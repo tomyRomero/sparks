@@ -18,7 +18,7 @@ import { messageValdiation } from "@/lib/validations/chat";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { markChatAsRead, revalData, sendMessage, updateChatForOther, updateOnlineStatus } from "@/lib/actions/chat.actions";
 import { usePathname, useRouter } from "next/navigation";
-import { getImageData } from "@/lib/s3";
+import { getImageData, getRes } from "@/lib/s3";
 import pusherClient from "@/lib/pusher";
 import { getDateTime } from "@/lib/utils";
 import { useAppContext } from "@/lib/AppContext";
@@ -50,9 +50,7 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
   const pathname = usePathname();
   const router = useRouter();
 
-  var pusher = pusherClient;
-
-  const { globalMessages, setGlobalMessages, readMessages, setReadMessages, pusherChannel} = useAppContext();
+  const { setGlobalMessages, readMessages, setReadMessages, pusherChannel} = useAppContext();
 
   useEffect(() => {
     try {
@@ -152,18 +150,11 @@ const Chat = ({chatPicture, chatName, chatMessages, userID, receiver , isRead}: 
 
     //Load Chat Image
     const loadChatImage = async ()=> {
-      let imgResult = "/assets/profile.svg"
-  
-      if (chatPicture.startsWith('user')) {
-        const res = await getImageData(chatPicture);
-        imgResult = res;
-      } else {
-        imgResult = chatPicture;
-      }
-      setImg(imgResult)
-      }
+      setImg(await getRes(chatPicture))
 
-      loadChatImage()
+    }
+
+    loadChatImage()
   }, [])
   
   const scrollTobottom = () => {

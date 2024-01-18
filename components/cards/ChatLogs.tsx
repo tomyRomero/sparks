@@ -2,7 +2,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState } from "react";
-import { getImageData } from "@/lib/s3";
+import { getImageData, getRes } from "@/lib/s3";
 import pusherClient from "@/lib/pusher";
 import { getChatBySenderAndReceiver, revalData } from "@/lib/actions/chat.actions";
 import { useAppContext } from "@/lib/AppContext";
@@ -26,7 +26,7 @@ interface Chat {
 
 const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPicture, chatName, isHome , path} : Chat) => {
 
-   const {globalMessages, setGlobalMessages, setReadMessages, readMessages, pusherChannel} =  useAppContext();
+   const {globalMessages, setGlobalMessages,  readMessages, pusherChannel} =  useAppContext();
 
    const [chatPicture, setChatPicture] = useState("/assets/imgloader.svg")
    const [isMe, setIsMe] = useState(false);
@@ -37,15 +37,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
 
    useEffect( ()=> {
         const getImage = async () => {
-        let imgResult = "/assets/profile.svg"
-    
-        if (receiverPicture.startsWith('user')) {
-          const res = await getImageData(receiverPicture);
-          imgResult = res;
-        } else {
-          imgResult = receiverPicture;
-        }
-        setChatPicture(imgResult)
+        setChatPicture(await getRes(receiverPicture))
         }
         
         getImage();
@@ -72,7 +64,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
 
     updateRead();
 
-   }, [messages , setRead, setReadMessages, readMessages])
+   }, [messages , readMessages])
 
    useEffect(() => {
     try {
@@ -105,7 +97,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
     } catch (error) {
       console.error(error);
     }
-  }, [messages, setMessages, globalMessages, setGlobalMessages]);
+  }, [messages,  globalMessages]);
 
    const getLastText = () => {
     const lastIndex = messages[messages.length - 1]

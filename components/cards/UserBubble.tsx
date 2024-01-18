@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect} from "react";
-import { getImageData } from "@/lib/s3";
+import { getImageData, getRes } from "@/lib/s3";
 
 
 interface Bubble{
@@ -18,17 +18,10 @@ const UserBubble = ({id,name,username, imgUrl}: Bubble) => {
 
     useEffect(()=> {
         const loadProfile = async ()=> {
-        let imgResult = "/assets/profile.svg"
-    
-        if (imgUrl.startsWith('user')) {
-          const res = await getImageData(imgUrl);
-          imgResult = res;
-        } else {
-          imgResult = imgUrl;
+        
+          setImg(await getRes(imgUrl))
         }
-        setImg(imgResult)
-        }
-    
+
         loadProfile()
         
       }, [])

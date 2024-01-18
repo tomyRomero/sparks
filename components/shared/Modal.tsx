@@ -28,11 +28,15 @@ const Modal = ({postId, user} : Props) => {
 
 
 useEffect(()=> {
-    const delayDebounceFn = setTimeout(() => {
-        getUsers();
-      }, 300);
+
+    if(isOpen)
+    {
+        const delayDebounceFn = setTimeout(() => {
+            getUsers();
+          }, 300);
+    }
 }
-, [search, setSearch])
+, [search, setSearch, isOpen])
 
 
  const getUsers = async () => {

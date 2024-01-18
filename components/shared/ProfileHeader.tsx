@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { getImageData } from "@/lib/s3";
+import { getImageData, getRes } from "@/lib/s3";
 
 interface Props {
   accountId: string;
@@ -28,15 +28,7 @@ function ProfileHeader({
 
   useEffect(()=> {
     const loadProfile = async () => {
-    let imgResult = "/assets/profile.svg"
-
-    if (imgUrl.startsWith('user')) {
-      const res = await getImageData(imgUrl);
-      imgResult = res;
-    } else {
-      imgResult = imgUrl;
-    }
-    setImg(imgResult)
+    setImg( await getRes(imgUrl))
     }
 
     loadProfile()
@@ -93,7 +85,7 @@ function ProfileHeader({
          </Link>
         )}
       </div>
-      <h2 className="text-primary-500 mt-4">Biography: </h2>
+      <h2 className="text-primary-500 mt-4 text-body-bold">Biography: </h2>
       <p className='mt-6 max-w-lg text-base-regular text-black'>{bio}</p>
       <div className='mt-12 h-0.5 w-full bg-dark-3' />
     </div>

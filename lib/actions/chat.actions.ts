@@ -5,6 +5,7 @@ import Pusher from "pusher";
 import { connectDb } from "../sql";
 import util from 'util';
 import { revalidatePath } from 'next/cache';
+import { fetchUser } from "./user.actions";
 
 export const getPusher = async()=> {
  return new Pusher ({
@@ -23,7 +24,7 @@ export const getPusher = async()=> {
 
   export const sendMessage = async (text: string, sender: string, timestamp: string, receiver: string,  messages: any[], pathname: string) => {
     try {
-      const connection = connectDb('spark');
+      const connection = connectDb('spark', "sendMessage");
       // Use a parameterized query to select a chat by sender and receiver IDs
       const queryAsync = util.promisify(connection.query).bind(connection);
   
@@ -75,7 +76,7 @@ export const getPusher = async()=> {
 
   export const updateChatForOther = async ( sender: string, receiver: string, messages: any[], pathname: string) => {
     try{
-     const connection = connectDb('spark');
+     const connection = connectDb('spark', "updateChatForOther");
      console.log("OTHER USER PROCESSING")
      // Use a parameterized query to select a chat by sender and receiver IDs
      const queryAsync = util.promisify(connection.query).bind(connection);
@@ -115,43 +116,45 @@ export const getPusher = async()=> {
   }
   
   //Get Chats that belong to the User who is the Sender
-  export const getChatsWithUsersByUserId = async (userId: string) => {
-    try {
-      const connection = connectDb('spark');
-      // Use a parameterized query to select chats with user information
-      const queryAsync = util.promisify(connection.query).bind(connection);
-      
-      const query = `
-        SELECT
-          chat.*,
-          user.username AS user_username,
-          user.name AS user_name,
-          user.image AS user_image
-        FROM
-          chat
-        JOIN
-          user ON chat.receiver_id = user.id
-        WHERE
-          chat.sender_id = ?
-      `;
-      
-      //@ts-ignore
-      const results: any[] = await queryAsync(query, [userId]);
-  
-      // Close the database connection
-      connection.end();
-      console.log("User Chats with Users: ", results);
-      return results;
-    } catch (error) {
-      console.log(error);
-      return [];
-    }
-  };
-  
+ export const getChatsWithUsersByUserId = async (userId: string) => {
+  try {
+    const connection = connectDb('spark', `getChatsWithUsersByUserId`);
+    // Use a parameterized query to select chats with user information
+    const queryAsync = util.promisify(connection.query).bind(connection);
+    
+    const query = `
+      SELECT
+        chat.*,
+        user.username AS user_username,
+        user.name AS user_name,
+        user.image AS user_image
+      FROM
+        chat
+      JOIN
+        user ON chat.receiver_id = user.id
+      WHERE
+        chat.sender_id = ?
+    `;
+    
+    //@ts-ignore
+    const results: any[] = await queryAsync(query, [userId]);
+
+    // Close the database connection
+    connection.end();
+    //console.log("User Chats with Users: ", results);
+    return results;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
+
+
+
   //Get Chat that fills the reciever UI chat
   export const getChatBySenderAndReceiver = async (senderId: string, receiverId: string) => {
     try {
-      const connection = connectDb('spark');
+      const connection = connectDb('spark', "getChatBySenderAndReceiver");
       // Use a parameterized query to select a chat by both sender and receiver IDs
       const queryAsync = util.promisify(connection.query).bind(connection);
   
@@ -175,8 +178,8 @@ export const getPusher = async()=> {
       // Close the database connection
       connection.end();
   
-      console.log("Chat by Sender and Receiver: ", result);
-      revalidatePath(`/chat/${receiverId}`)
+      // console.log("Chat by Sender and Receiver: ", result);
+      // revalidatePath(`/chat/${receiverId}`)
       return result[0]; // Assuming there is only one chat for the given sender and receiver
     } catch (error) {
       console.log(error);
@@ -187,7 +190,7 @@ export const getPusher = async()=> {
   export const markChatAsRead = async (sender: string, receiver: string, messages: any[], pathname: string) => {
     try {
       console.log('Updating Chat with Read...');
-      const connection = connectDb('spark');
+      const connection = connectDb('spark' , "markChatasRead");
       const queryAsync = util.promisify(connection.query).bind(connection);
 
       const updateQuery = 'UPDATE chat SET messages = ?, read_status = ? WHERE sender_id = ? AND receiver_id = ?';
@@ -200,9 +203,10 @@ export const getPusher = async()=> {
       if(updateResults)
       {
         const pusher = await getPusher();
-        const updateData = { sender, receiver, messages, pathname};
+        const updateData = { sender, receiver};
         pusher.trigger('sparks', 'updateReadStatus', updateData);
       }
+      
       // Emit an event to Pusher to notify the other user that the message has been read
       revalidatePath(pathname);
       return true;
@@ -230,5 +234,48 @@ export const updateOnlineStatus = async (userId: string, isOnline: boolean) => {
 export const revalData = (path : string)=> {
   revalidatePath(path)
 }
+
+
+export const getNoti = async (userId : string) => {
+  const userChats = await getChatsWithUsersByUserId(userId);
+
+  const readStatusArray = await Promise.all(
+    userChats.map(async (chat) => {
+      const senderID = chat.sender_id;
+      const receiverID = chat.receiver_id;
+
+      const chatfromOtherSide = await getChatBySenderAndReceiver(receiverID, senderID);
+      const user = await fetchUser(receiverID)
+
+      const lastMessage = chatfromOtherSide.messages[ chatfromOtherSide.messages.length - 1]
+
+      if(lastMessage.receiver === user.id)
+      {
+        return 1;
+      }else{
+        return chatfromOtherSide.read_status;
+      }
+    })
+  );
+
+  console.log("Read Status Array: ", readStatusArray);
+
+  // Check if readStatusArray contains 0 (unread)
+  const hasUnreadChat = readStatusArray.includes(0);
+
+  // Now you can use hasUnreadChat to determine if there is at least one unread chat
+  if (hasUnreadChat) {
+    // There is at least one unread chat
+    console.log("There is at least one unread chat");
+    return true
+  } else {
+    // All chats are read
+    console.log("All chats are read");
+    return false
+  }
+};
+
+
+
 
 

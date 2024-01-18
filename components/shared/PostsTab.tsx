@@ -2,46 +2,20 @@ import { redirect } from "next/navigation";
 
 import { fetchUserPosts } from "@/lib/actions/user.actions";
 
-import Post from "../cards/Post";
+import PostsPage from "../PostsPage";
 
 interface Props {
   currentUserId: string;
   accountId: string;
 }
 
-async function PostsTab({ currentUserId, accountId }: Props) {
+async function PostsTab({ currentUserId, accountId}: Props) {
  
 
- const result = await fetchUserPosts(accountId);
-  
-
-  if (!result) {
-    redirect("/");
-  }
+ const results = await fetchUserPosts(accountId);
 
   return (
-    <section className='mt-9 flex flex-col gap-10'>
-        
-      {
-      //@ts-ignore
-      result?.map((post) => (
-        <Post
-        key={post.idpost}
-        id={post.idpost}
-        currentUserId={currentUserId}
-        parentId={post.parent_Id}
-        content={post.content}
-        createdAt={post.created_at}
-        comments={post.children}
-        image={post.author_image}
-        contentImage={post.image}
-        username={post.author_username}
-        likes = {post.likes? post.likes: ''}
-        authorId = {post.author_id}
-        title={post.title}
-      />
-      ))}
-    </section>
+   <PostsPage posts={results} currentUserId={currentUserId} />
   );
 }
 

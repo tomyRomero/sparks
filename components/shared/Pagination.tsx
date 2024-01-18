@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 import { Button } from "../ui/button";
 import { useAppContext } from "@/lib/AppContext";
@@ -12,10 +12,13 @@ interface Props {
   filter: boolean
 }
 
-function Pagination({ pageNumber, isNext, path , filter}: Props) {
+function Pagination({ pageNumber, isNext, filter, path}: Props) {
   const router = useRouter();
 
-  const {title, setTitle} = useAppContext();
+  const {title} = useAppContext();
+
+  const currentPath = usePathname()
+  console.log(currentPath)
 
   const handleNavigation = (type: string) => {
     let nextPageNumber = pageNumber;
@@ -26,17 +29,14 @@ function Pagination({ pageNumber, isNext, path , filter}: Props) {
       nextPageNumber = pageNumber + 1;
     }
 
+    const nextPagePath = filter
+      ? `${currentPath.split("?")[0]}?page=${nextPageNumber}&title=${title}`
+      : `${currentPath.split("?")[0]}?page=${nextPageNumber}`;
+
     if (nextPageNumber > 1) {
-
-      if(filter)
-      {
-        router.push(`/${path}?page=${nextPageNumber}&title=${title}`)
-      }else{
-        router.push(`/${path}?page=${nextPageNumber}`);
-      }
-
+      router.push(nextPagePath);
     } else {
-      router.push(`/${path}`);
+      router.push(`${currentPath.split("?")[0]}`);
     }
   };
 
@@ -47,7 +47,7 @@ function Pagination({ pageNumber, isNext, path , filter}: Props) {
       <Button
         onClick={() => handleNavigation("prev")}
         disabled={pageNumber === 1}
-        className='!text-small-regular text-light-2'
+        className='!text-small-regular text-light-2 bg-primary-500'
       >
         Prev
       </Button>
@@ -55,7 +55,7 @@ function Pagination({ pageNumber, isNext, path , filter}: Props) {
       <Button
         onClick={() => handleNavigation("next")}
         disabled={!isNext}
-        className='!text-small-regular text-light-2'
+        className='!text-small-regular text-light-2 bg-primary-500'
       >
         Next
       </Button>

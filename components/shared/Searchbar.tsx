@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Input } from "../ui/input";
+import { useAppContext } from "@/lib/AppContext";
 
 interface Props {
   routeType: string;
@@ -13,6 +14,7 @@ interface Props {
 function Searchbar({ routeType }: Props) {
   const router = useRouter();
   const [search, setSearch] = useState("");
+
 
   // query after 0.3s of no input
   useEffect(() => {

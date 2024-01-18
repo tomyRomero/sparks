@@ -5,15 +5,28 @@ import { fetchPostById} from "@/lib/actions/post.actions";
 import { fetchLikesAndCommentsByUser } from "@/lib/actions/user.actions";
 import Activity from "@/components/shared/Activity";
 import { updateOnlineStatus } from "@/lib/actions/chat.actions";
+import Pagination from "@/components/shared/Pagination";
 
-async function Page() {
+async function Page({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) {
   const user = await currentUser();
   if (!user) return null;
 
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
-  const activity = await fetchLikesAndCommentsByUser(user.id, 5);
+  const results = await fetchLikesAndCommentsByUser(user.id,
+    //Limit of how much Activity I want to get
+    40, 
+    //Page Number
+    searchParams.page ? + searchParams.page : 1, 
+    //Page Size
+    8);
+
+  const activity = results.activity
 
   function getLastUserId(likes: string) {
     // Split the string using commas and filter out empty strings
@@ -77,6 +90,12 @@ async function Page() {
   ) : (
     <p className='!text-base-regular text-light-3'>No activity yet</p>
   )}
+  <Pagination
+        path="activity"
+        pageNumber={searchParams?.page ? + searchParams.page : 1}
+        isNext={results.isNext}
+        filter={false}
+      />
     </section>
     </>
   );

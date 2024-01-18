@@ -21,7 +21,7 @@ import { Button } from "../ui/button";
 
 import { CommentValdiation } from "@/lib/validations/post";
 import { addCommentToPost } from "@/lib/actions/post.actions";
-import { getImageData } from "@/lib/s3";
+import { getImageData, getRes } from "@/lib/s3";
 import { AppProvider, useAppContext } from "@/lib/AppContext";
 
 interface Props {
@@ -43,16 +43,7 @@ function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
   useEffect( () => {
     const load = async () => {
       try{
-        if(currentUserImg.startsWith('user'))
-        {
-            const res = await getImageData(currentUserImg);
-            if(res)
-            {
-            setImg(res);
-            }
-        }else{
-            setImg(currentUserImg)
-        }
+        setImg(await getRes(currentUserImg))
       }catch(error)
       {
         console.log("Error" , error)

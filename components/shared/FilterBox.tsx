@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/navigation'
@@ -22,11 +22,14 @@ const people = [
 
 
 
+
 const FilterBox = ()=> {
   const [selected, setSelected] = useState(people[0])
   const router = useRouter();
 
   const {title, setTitle} = useAppContext();
+
+  const isMounted = useRef(true);
 
   useEffect(() => {
     const handleFilterChange = () => {
@@ -81,6 +84,12 @@ const FilterBox = ()=> {
       }
     };
   
+    // Skip the effect on initial render
+      if (isMounted.current) {
+        isMounted.current = false;
+        return;
+      }
+      
     handleFilterChange();
   }, [selected]);
 

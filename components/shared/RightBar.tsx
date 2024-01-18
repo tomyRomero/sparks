@@ -7,17 +7,40 @@ import ChatLogs from "../cards/ChatLogs";
 import { useEffect, useState } from "react";
 import { useAppContext } from "@/lib/AppContext";
 import { getChatsWithUsersByUserId } from "@/lib/actions/chat.actions";
+import React from "react";
+import { Button } from "../ui/button";
 
 
-function RightBar()
+function RightBar({userid}: any)
 {
     const [chats, setChats] =  useState<any[]>([]);
 
     const pathname = usePathname();
     const router = useRouter();
 
-    const { userId , setGlobalMessages, globalMessages, setReadMessages, readMessages} = useAppContext();
+    const { setGlobalMessages, globalMessages, setReadMessages, readMessages} = useAppContext();
 
+    const [page, setPage] = useState(0);
+    const itemsPerPage = 4;
+  
+    const startIndex = page * itemsPerPage;
+    const slicedChats = chats.slice(startIndex, startIndex + itemsPerPage);
+  
+    const addNewValue = () => {
+      setPage((prevState) => prevState + 1);
+    };
+  
+    const subtractNewValue = () => {
+      setPage((prevState) => Math.max(0, prevState - 1));
+    };
+  
+    const handleNavigation = (type: string) => {
+      if (type === 'prev') {
+        subtractNewValue();
+      } else if (type === 'next') {
+        addNewValue();
+      }
+    };
 
     const isActive = () => {
         return pathname.includes("/chat")
@@ -25,7 +48,7 @@ function RightBar()
 
     useEffect(()=> {
         const getChats = async ()=> {
-            let chats: any[] = await getChatsWithUsersByUserId(userId)
+            let chats: any[] = await getChatsWithUsersByUserId(userid)
             const sortedChats = chats.sort((chatA, chatB) => {
               const lastMessageA = chatA.messages[chatA.messages.length - 1];
               const lastMessageB = chatB.messages[chatB.messages.length - 1];
@@ -47,15 +70,15 @@ function RightBar()
         }
     
         getChats();
-    }, [userId, setGlobalMessages, globalMessages, setReadMessages, readMessages])
+    }, [ setGlobalMessages, globalMessages, setReadMessages, readMessages])
 
     return(
-        <section className={`custom-scrollbar rightsidebar ${isActive()? 'hidden': ''}`}>
+        <section className={`custom-scrollbar h-screen rightsidebar ${isActive()? 'hidden': ''}`}>
             <div className="flex flex-1 flex-col justify-start w-72">
                 <Link
                 href={"/chat"}
                 >
-                <div className="flex gap-4 mx-auto w-40 hover:bg-primary-500 p-4 rounded-lg">
+                <div className="flex gap-4 mx-auto w-40 hover:bg-primary-500 px-4 py-2 rounded-lg">
                     <h3 className="text-heading4-medium text-light-1 cursor-pointer">Recent Chats..</h3>
                     <Image 
                         src={"/assets/message.svg"}
@@ -72,7 +95,7 @@ function RightBar()
                     <h3 className="text-left mt-2 text-light-1">No Recent Chats... Click Above To Get Started or Go to Messages Tab</h3>
                     ): (
                     <>
-                    {chats.map((chat: any) => (
+                    {slicedChats.map((chat: any) => (
                         <div 
                         key= {chat.receiver_id}
                         className="bg-white rounded-lg hover:bg-cyan-500  mb-4"
@@ -83,10 +106,27 @@ function RightBar()
                     </>
                 )}
                 </div>
+                <div className="pagination">
+                <Button
+                onClick={() => handleNavigation('prev')}
+                disabled={page === 0}
+                className='!text-small-regular text-light-2 bg-primary-500'
+                >
+                Prev
+                </Button>
+                <p className='text-small-semibold text-light-2'>{page + 1}</p>
+                <Button
+                onClick={() => handleNavigation('next')}
+                disabled={startIndex + itemsPerPage >= chats.length}
+                className='!text-small-regular text-light-2 bg-primary-500'
+                >
+                Next
+                </Button>
+            </div>
             </div>
             
         </section>
     )
 }
 
-export default RightBar;
+export default React.memo(RightBar);

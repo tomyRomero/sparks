@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getImageData } from '@/lib/s3';
+import { getImageData, getRes } from '@/lib/s3';
 import { fetchPostById } from '@/lib/actions/post.actions';
 
 interface Props{
@@ -23,16 +23,7 @@ const CommentActivity = ({ parent_Id, image, author_username, created_at , conte
           try {
             let loadImg = image
     
-            let imgResult = '/assets/profile.svg';
-    
-            if (loadImg.startsWith('user')) {
-              const res = await getImageData(loadImg);
-              imgResult = res;
-            } else {
-              imgResult = loadImg;
-            }
-    
-            setImg(imgResult);
+            setImg(await getRes(loadImg))
           } catch (error) {
             setImg('/assets/profile.svg');
             console.log("Error", error);

@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { getImageData } from '@/lib/s3'
-import { useEffect, useState } from 'react'
+import { getImageData, getRes } from '@/lib/s3'
+import { useEffect, useRef, useState } from 'react'
 import { fetchUser } from '@/lib/actions/user.actions'
 import { fetchPostById, updatePostReadStatus } from '@/lib/actions/post.actions'
 import { useAppContext } from '@/lib/AppContext'
@@ -93,16 +93,7 @@ const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, t
           loadImg = user.image
         }
 
-        let imgResult = '/assets/profile.svg';
-
-        if (loadImg.startsWith('user')) {
-          const res = await getImageData(loadImg);
-          imgResult = res;
-        } else {
-          imgResult = loadImg;
-        }
-
-        setImg(imgResult);
+        setImg(await getRes(loadImg))
       } catch (error) {
         setImg('/assets/profile.svg');
         console.log("Error", error);
@@ -138,9 +129,20 @@ const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, t
       alert("Something happened and the Notifaction was Deleted")
     }
   }
+
+  const isMounted = useRef(true);
+
   useEffect (()=> {
-    router.refresh()
-  },[readActivity, setReadActivity] )
+      // Skip the effect on initial render
+    if (isMounted.current) {
+      isMounted.current = false;
+      return;
+    }
+    //Code to run when the dependency array changes
+    router.refresh();
+
+  },
+  [readActivity, setReadActivity] )
 
   return (
     <>

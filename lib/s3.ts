@@ -41,3 +41,29 @@ export const getImageData = async (key: string) => {
       return false;
     }
   }
+
+  export const getRes = async (imgUrl: string)=> {
+    const cachedImage = localStorage.getItem(imgUrl)
+
+    if(cachedImage)
+    {
+      return cachedImage;
+    }else{
+      try {
+        let imgResult = '/assets/profile.svg';
+        if (imgUrl.startsWith('user')) {
+          const res = await getImageData(imgUrl);
+          imgResult = res;
+        } else {
+          imgResult = imgUrl;
+        }
+
+        localStorage.setItem(imgUrl, imgResult)
+        return imgResult
+      } catch (error) {
+        console.log("Error", error);
+        return '/assets/profile.svg'
+      }
+    }
+    
+  }

@@ -4,22 +4,19 @@ import { sidebarLinks, bottombarLinks } from "@/constants";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from 'next/navigation'
-import { SignOutButton, SignedIn, currentUser } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
+import { SignOutButton, SignedIn } from "@clerk/nextjs";
+import {  useEffect, useState } from "react";
 import { fetchUser, doesPostBelongToUser, fetchLikesAndCommentsByUser } from "@/lib/actions/user.actions";
-import { getImageData } from "@/lib/s3";
-import { getChatBySenderAndReceiver, getChatsWithUsersByUserId } from "@/lib/actions/chat.actions";
-import pusherClient from "@/lib/pusher";
+import { getRes } from "@/lib/s3";
 import { useAppContext } from "@/lib/AppContext";
+import React from "react";
 
-function LeftSidebar()
+function LeftSidebar({userid}: any)
 {
     const [name, setName] = useState(null);
     const [img, setImg] = useState('/assets/profile.svg');
-    const [noti, setNoti] = useState(false);
-    const [activity, setActivity] = useState(false);
 
-    const { userId, setUserId, globalMessages, setGlobalMessages, readMessages, setReadMessages, pusherChannel, newComment, setNewComment, newLike, setNewLike, setReadActivity, readActivity} = useAppContext();
+    const {pusherChannel, newComment, newLike, readActivity, messageNoti , activityNoti , setActivityNoti} = useAppContext();
 
     const router = useRouter();
     const pathname = usePathname();
@@ -31,56 +28,15 @@ function LeftSidebar()
 
     }
 
-    const getNoti = async () => {
-        const userChats = await getChatsWithUsersByUserId(userId);
-    
-        const readStatusArray = await Promise.all(
-          userChats.map(async (chat) => {
-            const senderID = chat.sender_id;
-            const receiverID = chat.receiver_id;
-    
-            const chatfromOtherSide = await getChatBySenderAndReceiver(receiverID, senderID);
-            const user = await fetchUser(receiverID)
-
-            const lastMessage = chatfromOtherSide.messages[ chatfromOtherSide.messages.length - 1]
-
-            if(lastMessage.receiver === user.id)
-            {
-              return 1;
-            }else{
-              return chatfromOtherSide.read_status;
-            }
-          })
-        );
-    
-        console.log("Read Status Array: ", readStatusArray);
-    
-        // Check if readStatusArray contains 0 (unread)
-        const hasUnreadChat = readStatusArray.includes(0);
-    
-        // Now you can use hasUnreadChat to determine if there is at least one unread chat
-        if (hasUnreadChat) {
-          // There is at least one unread chat
-          console.log("There is at least one unread chat");
-          setNoti(true);
-        } else {
-          // All chats are read
-          console.log("All chats are read");
-          setNoti(false);
-        }
-      };
-    
     const getAcivityAtStartUp = async () => {
-      const activity = await fetchLikesAndCommentsByUser(userId, 5);
+      const results = await fetchLikesAndCommentsByUser(userid, 40, 1, 8);
 
       // Check if any Activity has read_status === 1
-      const hasUnreadPost = activity.some(activity => activity.read_status === 1);
+      const hasUnreadPost = results.activity.some(activity => activity.read_status === 1);
       
       if(hasUnreadPost)
       {
-        setActivity(true)
-      }else{
-        setActivity(false)
+        setActivityNoti(true)
       }
     }
 
@@ -91,11 +47,11 @@ function LeftSidebar()
           
           // Handle new comment received from Pusher
 
-          const myPost = await doesPostBelongToUser(data.postId, userId)
+          const myPost = await doesPostBelongToUser(data.postId, userid)
           
           if(myPost)
           {
-            setActivity(true);
+            setActivityNoti(true);
           }
   
         });
@@ -104,7 +60,7 @@ function LeftSidebar()
         console.error(error);
       }
 
-    }, [newComment, setNewComment, userId])
+    }, [ newComment])
 
     useEffect(()=> {
 
@@ -113,62 +69,34 @@ function LeftSidebar()
           
         // Handle new like received from Pusher
 
-        const myPost = await doesPostBelongToUser(data.postId, userId)
+        const myPost = await doesPostBelongToUser(data.postId, userid)
         
         if(myPost)
         {
-          setActivity(true);
+          setActivityNoti(true);
         }
       });
 
-    }, [newLike, setNewLike, userId])
-
+    }, [newLike])
+ 
     useEffect( () => {
         const load = async () => {
           try{
-            const userDb = await fetchUser(userId);
-            const userImage = userDb.image
+            const userDb = await fetchUser(userid);
             setName(userDb.name)
-
-            if(userImage.startsWith('user'))
-            {
-                const res = await getImageData(userImage);
-                if(res)
-                {
-                setImg(res);
-                }
-            }else{
-                setImg(userImage)
-            }
+            setImg(await getRes(userDb.image))
           }catch(error)
           {
             console.log("Error" , error)
           }
         }
-        
         load();
-  
-      }, [userId])
-
-      useEffect(() => {
-        getNoti();
-      }, [noti, setUserId]);
+      }, [])
 
       useEffect(()=> {
-        getAcivityAtStartUp();
-      }, [readActivity, setReadActivity, userId])
+       getAcivityAtStartUp();
+      }, [readActivity])
 
-      useEffect(()=> {
-        try {
-            getNoti();
-
-        }catch(error)
-        {
-            console.log(error)
-        }
-      
-      }, [globalMessages, setGlobalMessages, readMessages, setReadMessages, userId])
-      
 
     return(
         <section className="custom-scrollbar leftsidebar">
@@ -179,7 +107,7 @@ function LeftSidebar()
                         const isActive = (pathname.includes(link.route) && link.route.length > 1)
                          || pathname === link.route;
 
-                         if(link.route === '/profile') link.route = `${link.route}/${userId}`
+                         if(link.route === '/profile') link.route = `${link.route}/${userid}`
 
                         return(
                         <Link 
@@ -197,7 +125,7 @@ function LeftSidebar()
                             {link.label}
                             </p>
                             {
-                            noti && link.label === "Message" && (
+                            messageNoti && link.label === "Message" && (
                             <div className="inline-block">
                             <Image 
                                 src={"/assets/alert.svg"}
@@ -209,7 +137,7 @@ function LeftSidebar()
                             )
                             }
                             {
-                            activity && link.label === "Activity" && (
+                            activityNoti && link.label === "Activity" && (
                             <div className="inline-block">
                             <Image 
                                 src={"/assets/alert.svg"}
@@ -228,7 +156,7 @@ function LeftSidebar()
             
             <div className="flex items-center justify-center p-2 space-x-4 ">
             <Link
-            href={`${bottombarLinks[4].route}/${userId}`}
+            href={`${bottombarLinks[4].route}/${userid}`}
             key={bottombarLinks[4].label}
             className={`leftsidebar_link hover:bg-primary-500 ${ isActive(bottombarLinks[4]) && 'bg-primary-500'}`}
             >
@@ -270,4 +198,4 @@ function LeftSidebar()
     )
 }
 
-export default LeftSidebar;
+export default React.memo(LeftSidebar);

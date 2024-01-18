@@ -3,12 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { getImageData } from "@/lib/s3";
+import { getImageData, getRes } from "@/lib/s3";
 import { addLikeToPost, removeLikeFromPost } from "@/lib/actions/post.actions";
 import DeletePost from "../forms/DeletePost";
-import { fetchUser } from "@/lib/actions/user.actions";
 import { useAppContext } from "@/lib/AppContext";
 import Modal from "../shared/Modal";
+import React from "react";
 
 interface Props {
   id: string;
@@ -75,20 +75,7 @@ function Post({
 
     useEffect(() => {
       const loadProfile = async () => {
-        try {
-          let imgResult = '/assets/profile.svg';
-          if (image.startsWith('user')) {
-            const res = await getImageData(image);
-            imgResult = res;
-          } else {
-            imgResult = image;
-          }
-    
-          setImg(imgResult);
-        } catch (error) {
-          setImg('/assets/profile.svg');
-          console.log("Error", error);
-        }
+       setImg(await getRes(image))
       };
     
       const loadCommentImg = async () => {
@@ -101,12 +88,7 @@ function Post({
             if (element && element.image) {
               //@ts-ignore
               const img = element.image;
-              if (img.startsWith('user')) {
-                const res = await getImageData(img);
-                imgArray.push(res ? res : '/assets/profile.svg');
-              } else {
-                imgArray.push(img);
-              }
+              imgArray.push(await getRes(img))
             }
           }
         } catch (error) {
@@ -120,7 +102,9 @@ function Post({
         try {
           let contentResult = '/assets/failed.svg';
           //@ts-ignore
+
           if (contentImage?.length > 0 && contentImage?.startsWith('user')) {
+
             const content = await getImageData(contentImage);
             contentResult = content ? content : '/assets/failed.svg';
           }else{
@@ -145,9 +129,11 @@ function Post({
           loadCommentImg(),
           loadContentImage()
         ]);
+
+       
       }
       // Execute the functions
-      load();
+        load();
     }, [comments]);
     
       const handleLikeClick = async () => {
@@ -414,7 +400,7 @@ function Post({
 
       </div>
     </article>
-  );
+  )
 }
 
-export default Post;
+export default React.memo(Post);

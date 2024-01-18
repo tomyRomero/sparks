@@ -1,4 +1,5 @@
 "use server"
+
 import {connectDb} from '@/lib/sql'
 import { revalidatePath } from 'next/cache';
 import { currentUser } from '@clerk/nextjs';
@@ -16,7 +17,7 @@ export const getUsers = async () => {
     try {
 
       // Connect to the database (parameter is name of the schema/database to connect)
-      const connection = connectDb("spark");
+      const connection = connectDb("spark", "getUser");
 
       //execute the query
       connection.query('SELECT * FROM user', (error, results, fields) => {
@@ -41,7 +42,7 @@ export const getUsers = async () => {
 
 export const fetchUser = async (userId: string): Promise<any> => {
   try {
-    const connection = connectDb('spark'); // returns a Connection
+    const connection = connectDb('spark', "fetchUser"); // returns a Connection
     // Promisify connection.query
     const queryAsync = util.promisify(connection.query).bind(connection);
     // Use a parameterized query to select a user by their ID
@@ -82,7 +83,7 @@ export const updateOrCreateUser = async (
   }: Params
 ) => {
   try{
-   const connection = connectDb('spark');
+   const connection = connectDb('spark', "updateOrcreateUser");
    // Promisify connection.query
    const queryAsync = util.promisify(connection.query).bind(connection);
    // Use a parameterized query to select a user by their ID
@@ -96,7 +97,7 @@ export const updateOrCreateUser = async (
    //If No User exists Create a new one
    if (results.length === 0) {
      console.log('No User was Found, Creating New User...');
-     const connection = connectDb('spark');
+     const connection = connectDb('spark', "updateOrcreateUser");
      const queryAsync = util.promisify(connection.query).bind(connection);
      const insertQuery = 'INSERT INTO user (id, username, name, bio, image, onboarded) VALUES (?, ?, ?, ?, ?, ?)';
      const insertValues = [userId, username, name, bio, image, onboarded]
@@ -108,7 +109,7 @@ export const updateOrCreateUser = async (
    else{
     console.log("User Found:", results[0])
     console.log("Updating....")
-    const connection = connectDb('spark');
+    const connection = connectDb('spark', "updateOrcreateUser");
     const queryAsync = util.promisify(connection.query).bind(connection);
     const updateQuery = 'UPDATE user SET username = ?, name = ?, bio = ?, image = ?, onboarded = ? WHERE id = ?';
     const updateValues = [username, name, bio, image, onboarded, userId]
@@ -129,7 +130,7 @@ export const updateOrCreateUser = async (
 //Function to fetch the posts that belong to the user that have been liked
 export const fetchLikedPosts = async (userId: string, limit: number) => {
   try {
-    const connection = connectDb('spark');
+    const connection = connectDb('spark', "fetchLikedPosts");
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     const selectQuery = `
@@ -164,7 +165,7 @@ export const fetchLikedPosts = async (userId: string, limit: number) => {
 //fetches comments on Posts created by the User
 export const fetchCommentsOnPostsByUser = async (userId: string, limit: number) => {
   try {
-    const connection = connectDb('spark');
+    const connection = connectDb('spark' , "fetchCommentsOnPostsByUser");
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     const selectQuery = `
@@ -200,15 +201,20 @@ export const fetchCommentsOnPostsByUser = async (userId: string, limit: number) 
 };
 
 //Fetches both of the functions above in a sorted array
-export const fetchLikesAndCommentsByUser = async (userId: string, limit: number) => {
+export const fetchLikesAndCommentsByUser = async (userId: string, limit: number, pageNumber: number, pageSize: number) => {
   try {
-    // Fetch liked posts
-    const likedPosts = await fetchLikedPosts(userId, limit);
+    
+    const [likedPosts, commentsOnPosts] = await Promise.all([
+      // Fetch liked posts
+      fetchLikedPosts(userId, limit),
+      // Fetch comments on posts
+      fetchCommentsOnPostsByUser(userId, limit)
+    ]);
 
-    // Fetch comments on posts
-    const commentsOnPosts = await fetchCommentsOnPostsByUser(userId, limit);
 
-    // Combine and add type property to each item
+    if(likedPosts && commentsOnPosts)
+    {
+       // Combine and add type property to each item
     const combinedResults = [
       //@ts-ignore
       ...likedPosts.map(post => ({ ...post, type: 'like' })),
@@ -223,12 +229,24 @@ export const fetchLikesAndCommentsByUser = async (userId: string, limit: number)
       return new Date(recentB).getTime() - new Date(recentA).getTime();
     });
 
-    return combinedResults;
+    // Calculate start and end indices for pagination
+    const startIndex = (pageNumber - 1) * pageSize
+    const endIndex = startIndex + pageSize;
+    // Extract the current page of results
+    const currentPageResults = combinedResults.slice(startIndex, endIndex);
+    console.log("Activity Ran")
+    return { activity: currentPageResults, isNext: combinedResults.length > endIndex };
+    }
+    else{
+      return { activity: [], isNext: false }
+    }
   } catch (error) {
     console.error('Error fetching likes and comments:', error);
     throw new Error('Failed to fetch likes and comments');
   }
 };
+
+
 
 //fetches users based on a search query using a searchbar, if search query is empty all users are returned
 export const fetchUsers = async ({
@@ -245,7 +263,7 @@ export const fetchUsers = async ({
   sortBy?: "asc" | "desc";
 }) => {
   try {
-    const connection = connectDb("spark");
+    const connection = connectDb("spark", "fetchUsersHome");
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     // Calculate the number of users to skip based on the page number and page size.
@@ -311,7 +329,7 @@ export const fetchUsers = async ({
 // Function to fetch user-specific posts
 export const fetchUserPosts = async (accountId: string) => {
   try {
-    const connection = connectDb('spark');
+    const connection = connectDb('spark', "fetchUserPosts");
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     // Define the SQL query to fetch user-specific posts
@@ -374,10 +392,15 @@ export const fetchUserPosts = async (accountId: string) => {
   }
 };
 
+
+
+
+
+
 // Function to fetch user-specific comments and their children
 export const fetchUserComments = async (accountId: string) => {
   try {
-    const connection = connectDb('spark');
+    const connection = connectDb('spark', "fetchUserComments");
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     // Define the SQL query to fetch user-specific comments and their children
@@ -433,7 +456,6 @@ export const fetchUserComments = async (accountId: string) => {
     connection.end();
 
     // Return the results
-    console.log("Comments by User results: ", results)
     return results;
   } catch (error) {
     console.log('Error:', error);
@@ -444,7 +466,7 @@ export const fetchUserComments = async (accountId: string) => {
 // Function to fetch posts liked by a specific user
 export const fetchLikedPostsByUser = async (userId: string) => {
   try {
-    const connection = connectDb('spark');
+    const connection = connectDb('spark', "fetchLikedPostsByUser");
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     // Define the SQL query to fetch posts liked by the user
@@ -510,7 +532,7 @@ export const fetchLikedPostsByUser = async (userId: string) => {
 
 export const doesPostBelongToUser = async (postId: string, userId: string) => {
   try {
-    const connection = connectDb('spark');
+    const connection = connectDb('spark', "deoesPostBelongToUser");
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     // Fetch the post by its ID

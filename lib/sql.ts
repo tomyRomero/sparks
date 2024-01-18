@@ -1,6 +1,6 @@
 import mysql  from 'mysql2';
 
-export const connectDb =  (database : string) =>
+export const connectDb =  (database : string, type: string) =>
 {
   // create a new MySQL connection
 const connection = mysql.createConnection({
@@ -17,7 +17,7 @@ connection.connect((error) => {
   if (error) {
     console.error('Error connecting to MySQL database:', error);
   } else {
-    console.log('Connected to MySQL database!');
+    console.log('Connected to MySQL database! type: ' , type);
   }
 });
 

@@ -21,7 +21,7 @@ async function Home({
 
   const result: any = await fetchPosts(
     searchParams.page ? + searchParams.page : 1,
-     10, 
+     5, 
     searchParams.title ? searchParams.title : ""
   )  
 

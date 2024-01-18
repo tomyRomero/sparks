@@ -3,14 +3,11 @@
 // Import necessary React modules
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import pusherClient from './pusher';
-import { getClerkUser } from './actions/user.actions';
-import { updateOnlineStatus } from './actions/chat.actions';
 
 // Define the types for the context
 type AppContextProps = {
   // Define your state and methods here
-  user: any;
-  setUser: React.Dispatch<React.SetStateAction<any>>;
+
   // Add additional states here
   globalMessages: any[];
   setGlobalMessages: React.Dispatch<React.SetStateAction<any>>;
@@ -33,8 +30,13 @@ type AppContextProps = {
   title: any;
   setTitle: React.Dispatch<React.SetStateAction<any>>;
 
-  userId: any;
-  setUserId: React.Dispatch<React.SetStateAction<any>>;
+  messageNoti: any;
+  setMessageNoti:  React.Dispatch<React.SetStateAction<any>>;
+
+  activityNoti: any;
+  setActivityNoti: React.Dispatch<React.SetStateAction<any>>;
+
+  
 };
 
 // Create the AppContext with an initial value of undefined
@@ -42,11 +44,7 @@ const AppContext = createContext<AppContextProps | undefined>(undefined);
 
 // Create the AppProvider component that will wrap your application
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize the user state using the useState hook
-  const [user, setUser] = useState<any>("test");
-
-  // Add additional states using the useState hook
-
+  // Initialize the state using the useState hook
   //For when there is a new text message, activate all listening components
   const [globalMessages, setGlobalMessages] = useState([]);
 
@@ -65,14 +63,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   //For filtering Pagination
   const [title, setTitle] = useState("");
 
-  const [userId, setUserId] = useState("");
+  //For global message notifcation
+  const [messageNoti, setMessageNoti] = useState(false)
+
+  //For global activity notifcation
+  const [activityNoti, setActivityNoti] = useState(false);
+
 
   //Client Pusher Instance Logic
   const pusher = pusherClient;
   const [pusherChannel, setPusherChannel] = useState(pusher.subscribe('sparks'));
 
   //If User Is inActvie for more than 15 mins, close the connection to Pusher
-
   // Set the timeout duration in milliseconds (e.g., 15 minutes)
   const timeoutDuration = 15 * 60 * 1000; // 15 minutes
 
@@ -94,8 +96,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Provide the context value to the children components, include additional states if there are any
   const contextValue: AppContextProps = {
-    user,
-    setUser,
     globalMessages,
     setGlobalMessages,
     readMessages,
@@ -107,7 +107,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     newLike, setNewLike,
     setReadActivity, readActivity,
     setTitle, title,
-    userId, setUserId
+    messageNoti, setMessageNoti,
+    activityNoti, setActivityNoti,
+   
   };
 
   // Set up event listeners for user activity (adjust as needed based on your application)
@@ -122,19 +124,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return () => clearTimeout(timeoutId);
   }, [timeoutId]);
 
-  useEffect(()=> {
-    const getId = async ()=> {
-      const id = await getClerkUser();
-
-      if(id)
-      {
-        setUserId(id)
-        updateOnlineStatus(id, true)
-      }
-    }
-
-    getId();
-  })
+ 
 
   return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
 };

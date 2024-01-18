@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { getImageData } from "@/lib/s3";
+import { getImageData, getRes } from "@/lib/s3";
 import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
 import { getChatBySenderAndReceiver, sendMessage } from "@/lib/actions/chat.actions";
@@ -28,15 +28,7 @@ function UserCard({ id, name, username, imgUrl, type, postId, sender}: Props) {
 
   useEffect(()=> {
     const loadProfile = async ()=> {
-    let imgResult = "/assets/profile.svg"
-
-    if (imgUrl.startsWith('user')) {
-      const res = await getImageData(imgUrl);
-      imgResult = res;
-    } else {
-      imgResult = imgUrl;
-    }
-    setImg(imgResult)
+    setImg(await getRes(imgUrl))
     }
 
     loadProfile()

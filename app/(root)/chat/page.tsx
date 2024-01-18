@@ -6,6 +6,9 @@ import { redirect } from "next/navigation";
 import HorizontalScroll from "@/components/shared/HorizontalScroll";
 import { getChatsWithUsersByUserId, updateOnlineStatus } from "@/lib/actions/chat.actions";
 import ChatLogs from "@/components/cards/ChatLogs";
+import Pagination from "@/components/shared/Pagination";
+import Chatbox from "@/components/Chatbox";
+
 
 async function Page({
   searchParams,
@@ -25,21 +28,15 @@ async function Page({
     pageSize: 15,
   });
 
-  let chats: any[] = await getChatsWithUsersByUserId(user.id)
+  let chats = await getChatsWithUsersByUserId(user.id)
+
 
   const sortedChats = chats.sort((chatA, chatB) => {
     const lastMessageA = chatA.messages[chatA.messages.length - 1];
     const lastMessageB = chatB.messages[chatB.messages.length - 1];
   
     const dateA = new Date(lastMessageA.timestamp);
-    const dateB = new Date(lastMessageB.timestamp);
-  
-    console.log("Timestamp A: ", lastMessageA.timestamp);
-    console.log("Date A: ", dateA);
-  
-    console.log("Timestamp B: ", lastMessageB.timestamp);
-    console.log("Date B: ", dateB);
-  
+    const dateB = new Date(lastMessageB.timestamp);  
     // Compare the dates (descending order, latest time first)
     //@ts-ignore
     return dateB - dateA;
@@ -78,17 +75,7 @@ async function Page({
 
       <br></br>
       <h2 className="text-left ml-4 text-heading3-bold text-light-1">Recent Chats..</h2>
-      <div className="p-4 flex flex-col overflow-y-auto overflow-hidden">
-        {chats.length === 0 ? (
-          <p className="text-light-1 text-center">No Recent Chats, Click on A User Bubble To Get Started, Can Also Search for Users to Message</p>
-        ): (
-          <>
-          {chats.map((chat: any) => (
-           <ChatLogs chatRead={chat.read_status} senderID={chat.sender_id} receiverID={chat.receiver_id} chatMessages={chat.messages} receiverPicture={chat.user_image} chatName={chat.user_username} isHome={false} path={'/chat'}/>
-          ))}
-        </>
-      )}
-    </div>
+     <Chatbox chats= {chats}/>
   </section>
 );
 }

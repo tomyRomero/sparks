@@ -9,7 +9,7 @@ import { getPusher } from './chat.actions';
 export const createPost = async ({text,author,path, image, title} : {text: string, author: string, path: string, image:string , title: string}) => {
     try{
     
-        const connection = connectDb('spark');
+        const connection = connectDb('spark' , "createPost");
         // Promisify connection.query
         const queryAsync = util.promisify(connection.query).bind(connection);
         const insertQuery = 'INSERT INTO post (content, image, title, author_id, created_at) VALUES (?,?, ?, ?, ?)';
@@ -28,7 +28,7 @@ export const createPost = async ({text,author,path, image, title} : {text: strin
 
 export const fetchPosts = async (pageNumber = 1, pageSize = 20, titleFilter = '') => {
   try {
-    const connection = connectDb('spark'); // Replace 'spark' with your database name
+    const connection = connectDb('spark', "fetchPosts"); // Replace 'spark' with your database name
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     // Calculate the number of posts to skip based on the page number and page size.
@@ -105,7 +105,7 @@ export const fetchPosts = async (pageNumber = 1, pageSize = 20, titleFilter = ''
 
 export const fetchPostById = async (postId :string) => {
   try {
-    const connection = connectDb('spark'); // Replace 'spark' with your database name
+    const connection = connectDb('spark', "fetchPostById"); // Replace 'spark' with your database name
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     // Fetch the post by its ID
@@ -161,7 +161,7 @@ export const fetchPostById = async (postId :string) => {
 export const addCommentToPost = async (postId: string, commentText: string, userId: string, path: any, currentUserImg: string) => {
 
   try {
-    const connection = connectDb('spark'); // Replace 'spark' with your database name
+    const connection = connectDb('spark', "addCommentToPost"); // Replace 'spark' with your database name
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     // Find the original post by its ID
@@ -220,7 +220,7 @@ export const addCommentToPost = async (postId: string, commentText: string, user
 
 export const addLikeToPost = async (postId: string, userId: string) => {
   try {
-    const connection = connectDb('spark'); 
+    const connection = connectDb('spark', "addLikeToPost"); 
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     // Fetch existing likes for the post
@@ -273,7 +273,7 @@ export const addLikeToPost = async (postId: string, userId: string) => {
 
 export const removeLikeFromPost = async (postId: string, userId: string) => {
   try {
-    const connection = connectDb('spark');
+    const connection = connectDb('spark', "removeLikeFromPost");
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     // Fetch existing likes for the post
@@ -327,7 +327,7 @@ export const removeLikeFromPost = async (postId: string, userId: string) => {
 
 export const deletePost = async (postId: string, path: string, parent_id: string|null, isComment: boolean|undefined) => {
   try {
-    const connection = connectDb('spark');
+    const connection = connectDb('spark', "deletePost");
     // Promisify connection.query
     const queryAsync = util.promisify(connection.query).bind(connection);
 
@@ -404,7 +404,7 @@ export const deletePost = async (postId: string, path: string, parent_id: string
 
 export const updatePostReadStatus = async (postId: string): Promise<boolean> => {
   try {
-    const connection = connectDb('spark'); // Replace 'spark' with your database name
+    const connection = connectDb('spark', "updatePostReadStatus"); // Replace 'spark' with your database name
     const queryAsync = util.promisify(connection.query).bind(connection);
 
     // Update post's read_status to 1
