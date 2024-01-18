@@ -219,7 +219,7 @@ function Post({
 
           <div className='flex w-full flex-col'>
             <Link href={`/profile/${authorId}`} className='w-fit'>
-              <h4 className='cursor-pointer text-base-semibold text-light-1'>
+              <h4 className={`cursor-pointer text-base-semibold text-light-1 ${isComment ? 'text-primary-500' : ''}`}>
                 {username}
               </h4>
             </Link>
@@ -250,7 +250,7 @@ function Post({
              {/* Content For Comment*/}
             {title === 'Comment' && (
               <div>
-              <p className='mt-2 text-small-regular text-light-2 ml-3 overflow-y-auto max-h-30'
+              <p className={`mt-2 text-small-regular  ml-1 overflow-y-auto max-h-30 ${isComment ? 'text-black' : 'text-light-2'}`}
               >{content}</p>
               {content.length > 200 && (
                   <div className="">

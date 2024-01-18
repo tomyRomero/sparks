@@ -121,15 +121,24 @@ function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
             </FormItem>
           )}
         />
-        <Button onClick={goBack} className="comment-form_btn">
+        <Button onClick={goBack} className="comment-form_btn max-md:hidden">
           {!backLoading? <h1>Back</h1> : <Image src={"/assets/lineloader.svg"} alt="loading" width={44} height={34}/> }
         </Button>
 
 
-        <Button type='submit' className='comment-form_btn'>
+        <Button type='submit' className='comment-form_btn max-md:hidden'>
           {!loading? <h1>Reply</h1> : <Image src={"/assets/lineloader.svg"} alt="loading" width={44} height={34}/> }
         </Button>
       </form>
+      <div className="hidden w-full mt-6 ml-auto max-sm:flex justify-end gap-4">
+      <Button onClick={goBack} className="comment-form_btn">
+          {!backLoading? <h1>Back</h1> : <Image src={"/assets/lineloader.svg"} alt="loading" width={44} height={34}/> }
+        </Button>
+
+        <Button type='submit' className='comment-form_btn'>
+          {!loading? <h1>Reply</h1> : <Image src={"/assets/lineloader.svg"} alt="loading" width={44} height={34}/> }
+        </Button>
+        </div>
     </Form>
   );
 }

@@ -22,8 +22,6 @@ async function page({ params }: { params: { id: string } }) {
 
  const post = await fetchPostById(params.id);
 
- if(post)  console.log("POST FOUND: ", post)
-
 const kids = post.children ? post.children : []
 
   return (
