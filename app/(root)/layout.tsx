@@ -15,8 +15,15 @@ import { AppProvider } from "@/lib/AppContext";
 import { getClerkUser } from "@/lib/actions/user.actions";
 import Loading from "./loading";
 import { updateOnlineStatus } from "@/lib/actions/chat.actions";
+import { Metadata } from "next/types";
 
 const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Sparks",
+  description: "With Sparks, share AI-generated ideas, engage in lively chats, and enjoy a seamless experience with likes, comments, and shares all in one place.",
+};
+
 
 export default async function RootLayout({
   children
@@ -27,6 +34,7 @@ export default async function RootLayout({
   if (!userid) return null;
 
   updateOnlineStatus(userid, true)
+
 
   return (
     userid?.length ? (
