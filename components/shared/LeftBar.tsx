@@ -160,7 +160,7 @@ function LeftSidebar({userid}: any)
             key={bottombarLinks[4].label}
             className={`leftsidebar_link hover:bg-primary-500 ${ isActive(bottombarLinks[4]) && 'bg-primary-500'}`}
             >
-                <img src={img} alt="Profile Pic" className="w-12 h-12 rounded-full dark:bg-gray-500" />
+                <Image src={img} alt="Profile Pic" className="w-12 h-12 rounded-full dark:bg-gray-500" />
                 <div>
                     <h2 className="text-light-1 max-lg:hidden">{name ? name: 'Sparkify User'}</h2>
                     <span className="flex items-center space-x-1 max-lg:hidden">
