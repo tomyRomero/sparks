@@ -139,9 +139,9 @@ This project is open source and contributors are welcomed
 ## Project Status
 
 - **Literature Studio**: Works on the deployed version.
-- **Story and Gallery Studio**: Currently functional on localhost.
+- **Story and Gallery Studio**: Currently functional only on localhost.
 
-## New Features and Contributions
+### Future Feature Idea for Contributions
 
 Future updates may be focused on these new features that I have in mind:
 
@@ -160,9 +160,9 @@ Explore the implementation of group chats, fostering community interactions and 
 ## Acknowledgments
 Shout out to https://loading.io/ for all the icons provided
 Shout out to https://unsplash.com/ for all the pictures that were not AI generated or user submitted
-Shout out to adrianhajdin on Github for Inspiration and tutorials on Next.js
 
 ## Setup
+### env.example includes template for keys 
 
 ```bash
 # Clone the repository
