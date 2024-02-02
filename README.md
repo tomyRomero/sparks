@@ -173,9 +173,9 @@ Below I tested all AI Post Categories with the same prompt , "apples in a warm s
 ## Project Status
 
 - **Literature Studio**: Works on the deployed version.
-- **Story and Gallery Studio**: Currently functional on localhost.
+- **Story and Gallery Studio**: Currently functional only on localhost.
 
-## New Features and Contributions
+### Future Feature Idea for Contributions
 
 This project is open source and contributors are welcomed
 Future updates may be focused on these new features that I have in mind:
@@ -195,10 +195,9 @@ Explore the implementation of group chats, fostering community interactions and 
 ##<a name="acknowledgments">  🙌 Acknowledgments</a>
 Shout out to https://loading.io/ for all the icons provided
 Shout out to https://unsplash.com/ for all the pictures that were not AI generated or user submitted
-Shout out to adrianhajdin on Github for Inspiration and tutorials on Next.js
+Shout out to adrianhajdin on Github for tutorials on Next.js
 
-## <a name="setup" > ⚙️ Setup </a>
-Env.example contains a temple of all keys that would be needed
+## Setup
 
 ```bash
 # Clone the repository
