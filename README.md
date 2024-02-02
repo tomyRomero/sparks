@@ -1,23 +1,58 @@
 # Sparks Portfolio Project
 
-## Overview
+## 📋 Table of Contents
+
+1. [Overview](#overview) 🌐
+2. [Technologies Used](#technologies) ⚙️
+3. [Features](#features) 🚀
+4. [Live Site](#live) 📦
+5. [Contact](#contact) 📫
+6. [Database Schema](#database-schema) 📊
+7. [Screenshots](#screenshots) 📸
+8. [Sparks - AI Post Examples](#ai-post-examples) 🤖
+9. [Acknowledgments](#acknowledgments) 🙌
+10. [Setup](#setup) ⚙️
+
+
+## <a name="overview">🌐 Overview </a>
 
 Sparks is a full stack social media web app that is designed to help users discover as well as create new ideas for all things creative with the help of AI. 
 
-## Technologies Used
+## <a name="technologies">⚙️ Technologies Used </a>
 
-- Frontend: [React](https://reactjs.org/),[tailwind](https://tailwindcss.com/), [zodforms](https://zod.dev/), [shadcn](https://ui.shadcn.com/), [HeadlessUI] (https://headlessui.com/)
-- Backend: [Node.js](https://nodejs.org/),[MySQL](https://www.mysql.com/),[Next.js](https://nextjs.org/) 
+- Frontend: [React](https://reactjs.org/), [Tailwind CSS](https://tailwindcss.com/), [Zod Forms](https://zod.dev/), [Shadcn](https://ui.shadcn.com/), [HeadlessUI](https://headlessui.com/)
+  ![React](https://img.shields.io/badge/-React-61DAFB?style=flat&logo=react&logoColor=white)
+  ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)
+  ![Zod Forms](https://img.shields.io/badge/-Zod%20Forms-FF3E00?style=flat)
+  ![Shadcn](https://img.shields.io/badge/-Shadcn-2D3748?style=flat)
+  ![HeadlessUI](https://img.shields.io/badge/-HeadlessUI-38B2AC?style=flat)
+
+- Backend: [Node.js](https://nodejs.org/), [MySQL](https://www.mysql.com/), [Next.js](https://nextjs.org/)
+  ![Node.js](https://img.shields.io/badge/-Node.js-339933?style=flat&logo=node.js&logoColor=white)
+  ![MySQL](https://img.shields.io/badge/-MySQL-4479A1?style=flat&logo=mysql&logoColor=white)
+  ![Next.js](https://img.shields.io/badge/-Next.js-000000?style=flat&logo=next.js&logoColor=white)
+
 - Image Storage: [S3-AmazonWebServices](https://aws.amazon.com/s3/)
-- DataBase Mangement: [RDS-AmazonWebServices](https://aws.amazon.com/rds/) , [MySQL-WorkBench] (https://www.mysql.com/products/workbench/)
+  ![Amazon S3](https://img.shields.io/badge/-AWS%20S3-232F3E?style=flat&logo=amazon-aws&logoColor=white)
+
+- DataBase Management: [RDS-AmazonWebServices](https://aws.amazon.com/rds/), [MySQL Workbench](https://www.mysql.com/products/workbench/)
+  ![Amazon RDS](https://img.shields.io/badge/-Amazon%20RDS-232F3E?style=flat)
+  ![MySQL Workbench](https://img.shields.io/badge/-MySQL%20Workbench-4479A1?style=flat&logo=mysql&logoColor=white)
+
 - Authentication: [Clerk](https://docs.clerk.dev/)
-- AI Integration: [OpenAI](https://https://openai.com/) , [Dall-E-3] (https://openai.com/dall-e-3) , [Gpt-3.5-turbo] (https://openai.com/blog/gpt-3-5-turbo-fine-tuning-and-api-updates)
+  ![Clerk](https://img.shields.io/badge/-Clerk-1B1F23?style=flat)
+
+- AI Integration: [OpenAI](https://https://openai.com/), [Dall-E-3](https://openai.com/dall-e-3), [Gpt-3.5-turbo](https://openai.com/blog/gpt-3-5-turbo-fine-tuning-and-api-updates)
+  ![OpenAI](https://img.shields.io/badge/-OpenAI-0082C6?style=flat)
+  ![Dall-E-3](https://img.shields.io/badge/-Dall--E--3-593695?style=flat)
+  ![Gpt-3.5-turbo](https://img.shields.io/badge/-Gpt--3.5--turbo-593695?style=flat)
+
 - WebSockets: [Pusher](https://pusher.com/)
-- ID Managment: [uuid] (https://www.npmjs.com/package/uuid)
+  ![Pusher](https://img.shields.io/badge/-Pusher-652B81?style=flat)
 
-## Features
 
-- List the main features of your application.
+## <a name="features">🚀 Features</a>
+
 - AI-powered post generation with various categories and the ability to delete ones you do not like if you are the author, AI image generation also included. 
   - Categories:
     - Movies and Novels (includes AI generated images if the User desires, optional)
@@ -38,16 +73,17 @@ Sparks is a full stack social media web app that is designed to help users disco
 - Form Validation: Uses Zod Forms to put into place form validations where as users can only submit certain inputs depending on what is allowed.
 - Liverages the latest of Next.js by using server actions and API routes, API routes include, openAIChat, openAIImage, and S3
 
-## Deployment
+## <a name="live"> 📦 Live Deployment </a>
 The webapp is live and hosted by vercel https://sparkify.vercel.app
 
-## Contact
+## <a name="contact" > 📫 Contact </a>
 tomyfletcher99@hotmail.com
+[![LinkedIn](https://img.shields.io/badge/-LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/tomy-romero-902476145/)
 
-## Data Base Schema 
+## <a name="database-schema"> 📊 Data Base Schema </a>
 <img src="public/assets/DataBaseSchema.png" alt="Screenshot of SqlSchema" >
 
-### Database Relationships
+###  📊 Database Relationships
 - User and Post Relationship:
 One-to-Many relationship: A user can create multiple posts, but each post is associated with one user.
 
@@ -60,7 +96,7 @@ Recursive relationship: A post can have multiple child posts, creating a hierarc
 - Chat and User (sender and receiver) Relationship:
 Many-to-Many relationship: A user can be both the sender and receiver in multiple chats.
 
-## Screenshots
+## <a name="screenshots"> 📸 Screenshots </a>
 
 User interface and different functionalities of Sparks.
 
@@ -96,7 +132,7 @@ User interface and different functionalities of Sparks.
 ### Profile
 <img src="public/assets/sparks-profile.png" alt="Screenshot of User Profile">
 
-# AI Post Examples
+# <a name="ai-post-examples">🤖 Sparks Examples [AI Posts] </a>
 Below I tested all AI Post Categories with the same prompt , "apples in a warm summer's glow". These are the results. 
 
 ### Movie Spark
@@ -126,10 +162,8 @@ Below I tested all AI Post Categories with the same prompt , "apples in a warm s
 ### Aphorism Spark
 <img src="public/assets/aphorismSpark.png" alt="Screenshot of AI Spark">
 
-## Contributions
-This project is open source and contributors are welcomed
 
-## Future Improvements
+## 🚀 Future Improvements
 ### Performance Optimization
 
 - Optimizing performance is my top priority. I aim to minimize unnecessary re-renders on the client and reduce function executions, both on the server and client sides. Contributions in this area will greatly enhance the overall user experience.
@@ -143,6 +177,7 @@ This project is open source and contributors are welcomed
 
 ## New Features and Contributions
 
+This project is open source and contributors are welcomed
 Future updates may be focused on these new features that I have in mind:
 
 ### 1. Post Search
@@ -157,12 +192,13 @@ Introduce a followers list and feed, providing users with a personalized stream 
 
 Explore the implementation of group chats, fostering community interactions and group discussions.
 
-## Acknowledgments
+##<a name="acknowledgments">  🙌 Acknowledgments</a>
 Shout out to https://loading.io/ for all the icons provided
 Shout out to https://unsplash.com/ for all the pictures that were not AI generated or user submitted
 Shout out to adrianhajdin on Github for Inspiration and tutorials on Next.js
 
-## Setup
+## <a name="setup" > ⚙️ Setup </a>
+Env.example contains a temple of all keys that would be needed
 
 ```bash
 # Clone the repository
