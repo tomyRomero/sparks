@@ -191,12 +191,13 @@ Introduce a followers list and feed, providing users with a personalized stream 
 
 Explore the implementation of group chats, fostering community interactions and group discussions.
 
-##<a name="acknowledgments">  🙌 Acknowledgments</a>
+## <a name="acknowledgments">  🙌 Acknowledgments</a>
 Shout out to https://loading.io/ for all the icons provided
 Shout out to https://unsplash.com/ for all the pictures that were not AI generated or user submitted
 Shout out to adrianhajdin on Github for tutorials on Next.js
 
 ## Setup
+### .env.example is provided to follow on what keys the project needs
 
 ```bash
 # Clone the repository
