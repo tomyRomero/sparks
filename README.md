@@ -13,7 +13,6 @@
 9. [Acknowledgments](#acknowledgments) 🙌
 10. [Setup](#setup) ⚙️
 
-
 ## <a name="overview">🌐 Overview </a>
 
 Sparks is a full stack social media web app that is designed to help users discover as well as create new ideas for all things creative with the help of AI. 
