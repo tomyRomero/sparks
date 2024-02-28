@@ -41,6 +41,7 @@ const kids = post.children ? post.children : []
                 authorId={post.author_id}
                 contentImage={post.image}
                 title={post.title}
+                prompt={post.prompt}
               />
       </div>
 
@@ -70,6 +71,7 @@ const kids = post.children ? post.children : []
                 isComment
                 authorId={childItem.author_id}
                 title={childItem.title}
+                prompt={childItem.prompt}
               />
             ))}
       

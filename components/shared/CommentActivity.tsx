@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getImageData, getRes } from '@/lib/s3';
+import {getRes } from '@/lib/s3';
 import { fetchPostById } from '@/lib/actions/post.actions';
 
 interface Props{

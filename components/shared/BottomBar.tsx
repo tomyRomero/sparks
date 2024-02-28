@@ -3,16 +3,15 @@
 import { bottombarLinks } from "@/constants";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from 'next/navigation'
-import React, { useState, useEffect } from "react";
+import { usePathname } from 'next/navigation'
+import React from "react";
 import { useAppContext } from "@/lib/AppContext";
-import { doesPostBelongToUser, fetchLikesAndCommentsByUser } from "@/lib/actions/user.actions";
 
 function Bottombar({userid}: any)
 {
     const pathname = usePathname();
 
-    const {activityNoti, pusherChannel, newComment, setNewComment, newLike, setNewLike, setReadActivity, readActivity} = useAppContext();
+    const {activityNoti, pusherChannel } = useAppContext();
     const channel =  pusherChannel
 
     return(

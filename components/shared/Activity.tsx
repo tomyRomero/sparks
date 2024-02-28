@@ -8,13 +8,13 @@ import { useEffect, useRef, useState } from 'react'
 import { fetchUser } from '@/lib/actions/user.actions'
 import { fetchPostById, updatePostReadStatus } from '@/lib/actions/post.actions'
 import { useAppContext } from '@/lib/AppContext'
+import { calculateTimeAgo } from '@/lib/utils'
 
 interface Props {
   parentid: string
   idpost: string;
   authorUsername: string;
   authorImage: string;
-  activityKey: string
   type: string;
   likes: string;
   time: string;
@@ -24,7 +24,7 @@ interface Props {
 }
 
 
-const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, type, likes, time, content, title, read_status} : Props) => {
+const Activity = ({idpost, authorUsername, authorImage, parentid, type, likes, time, content, title, read_status} : Props) => {
   const [img, setImg] = useState("/assets/imgloader.svg");
   const [parentContent, setParentContent] = useState('')
   const [loading, setLoading] = useState(false);
@@ -72,6 +72,11 @@ const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, t
     //@ts-ignore
     const reformattedDate = originalDate.toLocaleString('en-US', options);
     return reformattedDate;
+  }
+
+  function getTime(time: string) {
+    const currentDate = new Date(); 
+    return calculateTimeAgo(currentDate, time)
   }
 
   function containsSpark(inputString: string): boolean{
@@ -146,14 +151,14 @@ const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, t
 
   return (
     <>
-    <Link key={activityKey} href={`/post/${parentid? parentid: idpost}`} onClick= {goToActivity}>
+    <Link href={`/post/${parentid? parentid: idpost}`} onClick= {goToActivity}>
         <article className={`activity-card hover:bg-cyan-500 ${ loading ? "hidden" : ""}`}>
             <Image
                 src={img}
                 alt='user_logo'
                 width={20}
                 height={20}
-                className='rounded-full object-cover'
+                className='rounded-full object-cover aspect-[1/1]'
             />
         <p className='!text-small-regular text-light-1'>
         <span className='mr-1 text-primary-500'>
@@ -182,7 +187,7 @@ const Activity = ({idpost, authorUsername, authorImage, activityKey, parentid, t
             <span className='mr-1 text-primary-500'>{` ${truncateWords(parentContent, 4)}`}</span>
             </>
           )}
-    <span>{` at ${reformatDateString(time)}`}</span>
+    <span>{`${getTime(time)}, ${time}`}</span>
     </p>
     { read_status && (
              <Image 

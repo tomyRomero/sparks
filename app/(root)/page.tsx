@@ -4,7 +4,6 @@ import { currentUser } from "@clerk/nextjs";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { redirect } from "next/navigation";
 import Pagination from "@/components/shared/Pagination";
-import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 import FilterBox from "@/components/shared/FilterBox";
 
 
@@ -52,6 +51,7 @@ async function Home({
                 likes = {post.likes? post.likes: ''}
                 authorId = {post.author_id}
                 title={post.title}
+                prompt={post.prompt}
               />
             ))}
 

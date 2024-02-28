@@ -12,7 +12,7 @@ import {
     FormLabel,
     FormMessage,
   } from "@/components/ui/form";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Textarea } from "@/components/ui/textarea";
 import { PostValdiation } from "@/lib/validations/post"
@@ -188,6 +188,7 @@ const router = useRouter();
           content: "",
           image: "",
           accountId: userId,
+          prompt: "",
         },
       });   
     
@@ -214,14 +215,12 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
       gallery = true; 
     }
 
-    console.log("Gallery: ", gallery)
-
     try{
     //If it is not a regular post make a call to the API 
     if(name !== 'Regular')
     {
         incrementProgress(0)
-       
+        values.prompt = values.content
         //Make API Call to Chat Model (Turbo 3.5) to Generate Content
         const getResponse = await fetch(`/api/openAIChat?prompt=${values.content}&type=${name}`, 
         {
@@ -230,7 +229,8 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
         if(getResponse.ok)
         {
           values.content =  await getResponse.text();
-      
+          
+
           if(includeImg || gallery)
           {
           console.log("Fetching Image")
@@ -343,6 +343,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
         path: pathname,
         image: values.image,
         title: postTitle(name),
+        prompt: values.prompt
       });
       
       if(post)
@@ -360,7 +361,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
     console.log(`An Error Occured in Submit Function: ${error}`)
   }
 
-    };
+};
 
 
   const handleImage = (
@@ -450,7 +451,6 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
             <FormItem className={`${includeImg && name === "Regular" ? 'flex items-center gap-2' : 'hidden' }`}>
               <FormLabel className='account-form_image-label cursor-pointer'>
                    <Image
-                   //@ts-ignore
                    src={img}
                    alt='profile_icon'
                    width={96}

@@ -56,6 +56,7 @@ const LikedPage = ({ posts, currentUserId }: any) => {
           likes={post.likes ? post.likes : ''}
           authorId={post.author_id}
           title={post.title}
+          prompt={post.prompt}
         />
       ))}
       <div className='pagination'>

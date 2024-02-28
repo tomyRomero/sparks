@@ -9,6 +9,7 @@ import DeletePost from "../forms/DeletePost";
 import { useAppContext } from "@/lib/AppContext";
 import Modal from "../shared/Modal";
 import React from "react";
+import Prompt from "../shared/Prompt";
 
 interface Props {
   id: string;
@@ -28,6 +29,7 @@ interface Props {
   authorId: string;
   contentImage?: string
   title: string;
+  prompt : string
 }
 
 function Post({
@@ -43,7 +45,7 @@ function Post({
   likes,
   authorId,
   contentImage,
-  title
+  title, prompt
 }: Props) {
 
 
@@ -190,9 +192,10 @@ function Post({
     }
     
     function extractSynopsis(inputString: string): string {
-      const synopsisMatch = inputString.match(/Synopsis:([\s\S]*)/i);
+      const synopsisMatch = inputString.match(/(?:I'm|Synopsis:)([\s\S]*)/i);
       return synopsisMatch ? synopsisMatch[1].trim() : '';
     }
+    
     
 
   return (
@@ -315,20 +318,17 @@ function Post({
                   />
                 </Link>
 
+                {/* Share Button Modal With Option To Share With Users */}
                 <Modal postId={id} user={currentUserId} />
-                {/* <Image
-                  src='/assets/share.svg'
-                  alt='share'
-                  width={24}
-                  height={24}
-                  className='cursor-pointer object-contain'
-                /> */}
-                  {/* Title */}
-                <div className={`${title !=="Regular" && title !== "Comment" ? '' : 'hidden'} `}>
-                    <h1 className="text-base-semibold teal_gradient cursor-pointer hover:text-light-1 ml-2  max-sm:hidden">{title}</h1>
+                
+                  {/* Sparks Title Modal With Prompt */}
+                  <div className="max-sm:hidden">
+                <Prompt title ={title} prompt={prompt}/>
                 </div>
               </div>
-              <h1 className={`${title !=="Regular" && title !== "Comment" ? '' : 'hidden'} text-base-semibold teal_gradient cursor-pointer hover:text-light-1 sm:hidden`}>{title}</h1>
+              <div className="sm:hidden">
+              <Prompt title ={title} prompt={prompt} />
+              </div>
               <p className="text-subtle-medium text-white">{createdAt}</p>
 
                {/* If there is likes render this for the comments*/}

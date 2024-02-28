@@ -115,6 +115,7 @@ function LeftSidebar({userid}: any)
                         key={link.label}
                         className={`leftsidebar_link hover:bg-primary-500 ${isActive && 'bg-primary-500'}`}
                         >
+                      
                             <Image 
                             src={link.imgURL}
                             alt={link.label}
@@ -126,7 +127,7 @@ function LeftSidebar({userid}: any)
                             </p>
                             {
                             messageNoti && link.label === "Message" && (
-                            <div className="inline-block">
+                            <div className="pt-0.5">
                             <Image 
                                 src={"/assets/alert.svg"}
                                 alt={"alert"}
@@ -138,7 +139,7 @@ function LeftSidebar({userid}: any)
                             }
                             {
                             activityNoti && link.label === "Activity" && (
-                            <div className="inline-block">
+                            <div className="pt-0.5">
                             <Image 
                                 src={"/assets/alert.svg"}
                                 alt={"alert"}
@@ -148,7 +149,6 @@ function LeftSidebar({userid}: any)
                             </div>
                             )
                             }
-                            
                         </Link>
                         )}
                     )}    
@@ -160,7 +160,10 @@ function LeftSidebar({userid}: any)
             key={bottombarLinks[4].label}
             className={`leftsidebar_link hover:bg-primary-500 ${ isActive(bottombarLinks[4]) && 'bg-primary-500'}`}
             >
-                <Image src={img} alt="Profile Pic" className="w-12 h-12 rounded-full dark:bg-gray-500" />
+                <Image src={img} alt="Profile Pic"
+                width={20}
+                height={20}
+                className="w-12 h-12 rounded-full aspect-[1/1]" />
                 <div>
                     <h2 className="text-light-1 max-lg:hidden">{name ? name: 'Sparkify User'}</h2>
                     <span className="flex items-center space-x-1 max-lg:hidden">

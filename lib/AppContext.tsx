@@ -36,7 +36,6 @@ type AppContextProps = {
   activityNoti: any;
   setActivityNoti: React.Dispatch<React.SetStateAction<any>>;
 
-  
 };
 
 // Create the AppContext with an initial value of undefined
@@ -68,7 +67,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   //For global activity notifcation
   const [activityNoti, setActivityNoti] = useState(false);
-
 
   //Client Pusher Instance Logic
   const pusher = pusherClient;
@@ -109,7 +107,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setTitle, title,
     messageNoti, setMessageNoti,
     activityNoti, setActivityNoti,
-   
+
   };
 
   // Set up event listeners for user activity (adjust as needed based on your application)

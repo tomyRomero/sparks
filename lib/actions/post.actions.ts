@@ -6,14 +6,14 @@ import util from 'util';
 import { getPusher } from './chat.actions';
 
 
-export const createPost = async ({text,author,path, image, title} : {text: string, author: string, path: string, image:string , title: string}) => {
+export const createPost = async ({text,author,path, image, title, prompt} : {text: string, author: string, path: string, image:string , title: string, prompt: string}) => {
     try{
     
         const connection = connectDb('spark' , "createPost");
         // Promisify connection.query
         const queryAsync = util.promisify(connection.query).bind(connection);
-        const insertQuery = 'INSERT INTO post (content, image, title, author_id, created_at) VALUES (?,?, ?, ?, ?)';
-        const insertValues = [text,image, title, author, getDateTime()]
+        const insertQuery = 'INSERT INTO post (content, image, title, author_id, created_at, prompt) VALUES (?,?, ?, ?, ?, ?)';
+        const insertValues = [text,image, title, author, getDateTime(), prompt]
         //@ts-ignore
         const insertResults: any[] = await queryAsync(insertQuery, insertValues);
         console.log("Successfully Created Post: " , insertResults)

@@ -4,7 +4,6 @@ import { useState, Fragment, FormEvent, useEffect } from "react"
 import { Dialog, Transition} from '@headlessui/react'
 import Image from "next/image"
 import { fetchUsers } from "@/lib/actions/user.actions"
-import Searchbar from "./Searchbar"
 import { Input } from "../ui/input";
 import UserCard from "../cards/UserCard"
 

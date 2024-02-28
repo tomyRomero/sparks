@@ -1,11 +1,10 @@
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { fetchUser } from "@/lib/actions/user.actions";
-import { fetchPostById} from "@/lib/actions/post.actions";
 import { fetchLikesAndCommentsByUser } from "@/lib/actions/user.actions";
 import Activity from "@/components/shared/Activity";
-import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 import Pagination from "@/components/shared/Pagination";
+import { v4 as uuidv4 } from 'uuid';
 
 async function Page({
   searchParams,
@@ -20,7 +19,7 @@ async function Page({
 
   const results = await fetchLikesAndCommentsByUser(user.id,
     //Limit of how much Activity I want to get
-    40, 
+    30, 
     //Page Number
     searchParams.page ? + searchParams.page : 1, 
     //Page Size
@@ -50,6 +49,7 @@ async function Page({
     }
   }
 
+
   return (
     <>
   <h1 className='head-text text-black'>Notifications</h1>
@@ -58,6 +58,7 @@ async function Page({
     <>
       {activity.map((activity) => (
         <Activity 
+          key={uuidv4()}
           idpost={activity.idpost}
           authorUsername={
             activity.type === "like" ? 
@@ -71,7 +72,6 @@ async function Page({
             :
             activity.author_image
           }
-          activityKey={activity._id}
           parentid={activity.parent_id}
           type={activity.type}
           likes={activity.likes}

@@ -122,8 +122,7 @@ const ChatLogs = ({ chatRead, senderID, receiverID, chatMessages, receiverPictur
         alt={`Chat with ${chatName}`}
         width={isHome ? 40 : 65}
         height={isHome ? 40 : 65}
-        className="rounded-full object-contain"
-        style={{ aspectRatio: '1/1', width: '40px', height: '40px' }}
+        className="rounded-full object-cover aspect-[1/1]"
       />
       {!chatRead && (
         <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full"></div>
