@@ -6,9 +6,7 @@ import pusherClient from './pusher';
 
 // Define the types for the context
 type AppContextProps = {
-  // Define your state and methods here
-
-  // Add additional states here
+  // Define state and methods here
   globalMessages: any[];
   setGlobalMessages: React.Dispatch<React.SetStateAction<any>>;
 

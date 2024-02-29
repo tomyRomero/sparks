@@ -4,6 +4,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 
 import { deletePost} from "@/lib/actions/post.actions";
+import { toast } from "../ui/use-toast";
 
 interface Props {
   postId: string;
@@ -34,16 +35,25 @@ const handleDelete = async () => {
     // Perform the delete operation
     try{
       await deletePost(postId, pathname, parentId, isComment);
+      toast({
+        title: "Post Deleted",
+      })
         if (!parentId || !isComment) {
           router.push("/")
         }
     }catch(error)
     {
-      alert("Error Deleting Content, Please Try Again Later")
+      toast({
+        title: "Something went wrong!",
+        description: `${error}`, 
+        variant: "destructive",
+      })
     }
   } else {
     // User clicked "Cancel" in the confirmation dialog
-    alert("Deletion canceled.");
+    toast({
+      title: "Deletion canceled!",
+    })
   }
 };
 

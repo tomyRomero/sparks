@@ -245,6 +245,15 @@ async function photographyImage(title: string, prompt: string): Promise<string |
           title: Golden Serenity 
           synopsis: In the magical embrace of golden hour, 'Golden Serenity' unfolds as a captivating photograph that transcends time. This masterful composition, captured by a skilled photographer, invites viewers to immerse themselves in a serene landscape bathed in the warm hues of sunset. The play of light and shadow creates a canvas where nature's beauty takes center stage. At the heart of the photograph stands a tranquil scene—a reflection of a majestic tree mirrored in a still pond, surrounded by a carpet of vibrant wildflowers. The artist's lens captures the essence of the fleeting moment, freezing time to preserve the golden glow that bathes the landscape. Every detail, from the delicate ripples on the water to the whispering leaves of the tree, contributes to the narrative of serenity and tranquility. 'Golden Serenity' is a visual journey into the soul of nature, an ode to the artistry of photography that transforms fleeting moments into eternal beauty.
           image description: An image of a photograph based on this: In the magical embrace of golden hour, 'Golden Serenity' captures the essence of nature's beauty. The tranquil scene unfolds with a majestic tree reflected in a still pond, surrounded by vibrant wildflowers. The warm hues of sunset create a captivating play of light and shadow, freezing the fleeting moment in time. The details, from delicate ripples to whispering leaves, tell a story of serenity and tranquility. This image is an ode to the artistry of photography, preserving the eternal beauty of nature.`
+        },
+        {
+          role: "user",
+          content: `Give a short description of an image of a photograph. The description should be rich in visual detail but contain no names.
+          ###
+          title: ${title}
+          synopsis: ${prompt}
+          image description: 
+          `
         }
       ],
       model: "gpt-3.5-turbo",
@@ -306,7 +315,7 @@ async function generateQuoteLiterature(prompt: string): Promise<string | null> {
         { role: "system", content: "You are a helpful assistant that generates a quote based on a sentence prompt." },
         {
           role: "user",
-          content: "Generate an engaging and good quality quote that already exisits based on a prompt. The literature work should have a Title in the beginning, keep it simple only include the quote and its author. Here is an example prompt: Oursleves and our limits"
+          content: "Generate an engaging and good quality quote that already exisits based on a prompt. The literature work should have a Title in the beginning, and the word synopsis: before quote, the keep it simple only include the quote and its author. Here is an example prompt: Oursleves and our limits"
         },
         {
           role: "assistant",

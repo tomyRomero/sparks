@@ -70,14 +70,14 @@ const Prompt = ({title, prompt}: {title: string, prompt: string}) => {
                                 height={35}
                                 />
                             </div>
-                            <h4 className="text-heading3-bold">
+                            <h4 className="text-heading2-bold">
                                 Prompt That Was Used:
                             </h4>
                         </div>  
                     </div>
-                    <div className='min-h-[200px] pt-10'>
+                    <div className='text-heading3-bold pt-10'>
                     {prompt &&  <p className='text-center'>{prompt}</p>}
-                    {!prompt && <p className='text-center'>This post was made when prompt saving was not a feature, sorry for the inconvenience and please check out the newer posts.</p>}
+                    {!prompt && <p className='text-center'>This post was made when prompt saving was not a feature, sorry for the inconvenience and please check out newer posts.</p>}
                     
                     </div>
                 </div>

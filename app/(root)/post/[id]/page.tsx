@@ -6,7 +6,9 @@ import Post from "@/components/cards/Post";
 
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchPostById } from "@/lib/actions/post.actions";
-import { updateOnlineStatus } from "@/lib/actions/chat.actions";
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const revalidate = 0;
 
@@ -22,8 +24,31 @@ async function page({ params }: { params: { id: string } }) {
 
  const post = await fetchPostById(params.id);
 
-const kids = post.children ? post.children : []
 
+
+  if(!post)
+  {
+    return(
+      <section className="pt-16 flex flex-col justify-center items-center">
+      <div className="mb-8">
+        <Image src={"/assets/error.jpg"} alt="Error" width={300} height={300} className="rounded-xl"/>
+      </div>
+      <h1 className="text-heading3-bold mb-4">Post Not Found</h1>
+      <p className="text-body-bold text-gray-600 mb-8">The post you are looking for does not exist or was deleted.</p>
+      <Link href={"/"}>
+        <Button className="bg-primary-500 hover:bg-cyan-400 hover:text-black">
+          Home
+        </Button>
+      </Link>
+    </section>
+    
+    )
+  }
+
+  if(post)
+  {
+  const kids = post.children ? post.children : []
+  
   return (
     <section className='relative'>
       <div>
@@ -78,6 +103,7 @@ const kids = post.children ? post.children : []
       </div>
     </section>
   );
+}
 }
 
 export default page;

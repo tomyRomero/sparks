@@ -5,6 +5,8 @@ import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/navigation'
 import { useAppContext } from '@/lib/AppContext'
+import { Button } from '../ui/button'
+import Image from 'next/image'
 
 const people = [
   { name: 'Home: Click to Filter Posts' },

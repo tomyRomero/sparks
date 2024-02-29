@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Input } from "../ui/input";
-import { useAppContext } from "@/lib/AppContext";
 
 interface Props {
   routeType: string;
@@ -43,7 +42,7 @@ function Searchbar({ routeType }: Props) {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder={`${
-          routeType !== "/search" ? "Search Users" : "Search Posts"
+          routeType === "search" ? "Search Users" : "Search for Posts by Keywords!"
         }`}
         className='no-focus searchbar_input'
       />

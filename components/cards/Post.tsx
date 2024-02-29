@@ -10,6 +10,7 @@ import { useAppContext } from "@/lib/AppContext";
 import Modal from "../shared/Modal";
 import React from "react";
 import Prompt from "../shared/Prompt";
+import { useRouter } from "next/navigation";
 
 interface Props {
   id: string;
@@ -74,6 +75,8 @@ function Post({
     const [contentImg, setContentImg] = useState('/assets/postloader.svg')
 
     const {setNewLike, newLike} = useAppContext();
+
+    const router = useRouter();
 
     useEffect(() => {
       const loadProfile = async () => {
@@ -351,7 +354,20 @@ function Post({
             </div>
           </div>
         </div>
-      
+        <div className="flex gap-2">
+        <button className={`${currentUserId !== authorId ? "hidden" : "cursor-pointer"}`}
+        onClick={()=> {
+          router.push(`/post/edit/${id}`)
+        }}
+        >
+          <Image 
+          src="/assets/edit.png"
+          alt="edit icon"
+          width={22}
+          height={22}
+          />
+          </button>     
+        
         <DeletePost
           postId={id}
           currentUserId={currentUserId}
@@ -359,6 +375,7 @@ function Post({
           parentId={parentId}
           isComment={isComment}
         />
+        </div>
         
       </div>
 

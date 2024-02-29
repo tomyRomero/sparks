@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { v4 as uuidv4 } from 'uuid';
  
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -45,3 +46,7 @@ export const calculateTimeAgo = (currentDate: Date, eventTimestamp: string): str
     return `${days} day${days > 1 ? 's' : ''} ago`;
   }
 };
+
+export function generateUniqueImageID() {
+  return uuidv4();
+}

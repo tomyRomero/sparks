@@ -9,7 +9,7 @@ interface Props {
   pageNumber: number;
   isNext: boolean;
   path: string;
-  filter: boolean
+  filter: boolean;
 }
 
 function Pagination({ pageNumber, isNext, filter, path}: Props) {
@@ -32,6 +32,8 @@ function Pagination({ pageNumber, isNext, filter, path}: Props) {
     const nextPagePath = filter
       ? `${currentPath.split("?")[0]}?page=${nextPageNumber}&title=${title}`
       : `${currentPath.split("?")[0]}?page=${nextPageNumber}`;
+
+    
 
     if (nextPageNumber > 1) {
       router.push(nextPagePath);

@@ -203,9 +203,6 @@ const AccountProfile = ({ user, btnTitle , edit}: Props) => {
     }
   };
 
-  const handleBack = () => {
-    router.push(`/profile/${user.id}`)
-  }
 
   return (
     <Form {...form}>

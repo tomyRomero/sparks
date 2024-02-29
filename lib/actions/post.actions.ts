@@ -6,25 +6,147 @@ import util from 'util';
 import { getPusher } from './chat.actions';
 
 
-export const createPost = async ({text,author,path, image, title, prompt} : {text: string, author: string, path: string, image:string , title: string, prompt: string}) => {
-    try{
-    
-        const connection = connectDb('spark' , "createPost");
-        // Promisify connection.query
-        const queryAsync = util.promisify(connection.query).bind(connection);
-        const insertQuery = 'INSERT INTO post (content, image, title, author_id, created_at, prompt) VALUES (?,?, ?, ?, ?, ?)';
-        const insertValues = [text,image, title, author, getDateTime(), prompt]
+export const createPost = async ({ text, author, path, image, title, prompt }: { text: string, author: string, path: string, image: string, title: string, prompt: string }): Promise<number | null> => {
+  try {
+      const connection = connectDb('spark', "createPost");
+      // Promisify connection.query
+      const queryAsync = util.promisify(connection.query).bind(connection);
+      const insertQuery = 'INSERT INTO post (content, image, title, author_id, created_at, prompt) VALUES (?, ?, ?, ?, ?, ?)';
+      const insertValues = [text, image, title, author, getDateTime(), prompt];
+      //@ts-ignore
+      const insertResults: any = await queryAsync(insertQuery, insertValues);
+      console.log("Successfully Created Post: ", insertResults);
+      revalidatePath(path);
+      return insertResults.insertId || null; // Assuming insertId is the ID of the newly inserted post
+  } catch (error) {
+      console.log("Error: ", error);
+      throw new Error(`Error Occurred: ${error}`);
+  }
+};
+
+
+export const updatePost = async ({
+  postId,
+  text,
+  image,
+  path
+}: {
+  postId: string;
+  text: string;
+  image: string;
+  path: string
+}) => {
+  try {
+    const connection = connectDb('spark', 'updatePost');
+    // Promisify connection.query
+    const queryAsync = util.promisify(connection.query).bind(connection);
+    const updateQuery =
+      'UPDATE post SET content = ?, image = ? WHERE idpost = ?';
+    const updateValues = [text, image, postId];
+    //@ts-ignore
+    const updateResults: any[] = await queryAsync(updateQuery, updateValues);
+    console.log('Successfully Updated Post: ', updateResults);
+    revalidatePath(path);
+    return true;
+  } catch (error) {
+    console.log('Error: ', error);
+    throw new Error(`Error Occurred: ${error}`);
+  }
+};
+
+export const searchPosts = async ({
+  pageNumber = 1,
+  pageSize = 20,
+  searchQuery = '',
+}: {
+  pageNumber?: number;
+  pageSize?: number;
+  searchQuery?: string;
+}) => {
+  try {
+    const connection = connectDb('spark', 'fetchPosts');
+    const queryAsync = util.promisify(connection.query).bind(connection);
+
+    // Calculate the number of posts to skip based on the page number and page size.
+    const skipAmount = (pageNumber - 1) * pageSize;
+
+    // Define the SQL query to fetch top-level posts with related data, ordered by idpost in descending order
+    const selectQuery = `
+      SELECT
+        P.*,
+        U.username AS author_username,
+        U.image AS author_image,
+        (
+          SELECT COUNT(*)
+          FROM post AS C
+          WHERE C.parent_id = P.idpost
+        ) AS children_count,
+        P.likes
+      FROM
+        post AS P
+      LEFT JOIN
+        user AS U ON P.author_id = U.id
+      WHERE
+        P.parent_id IS NULL
+        AND (
+          P.title LIKE ? OR
+          P.content LIKE ? OR
+          U.username LIKE ?
+        )
+      ORDER BY
+        P.idpost DESC
+      LIMIT
+        ?, ?;
+    `;
+
+    // Define query parameters
+    const searchParam = `%${searchQuery}%`;
+    const selectValues = [searchParam, searchParam, searchParam, skipAmount, pageSize];
+
+    // Execute the SQL query to fetch top-level posts
+
+    //@ts-ignore
+    const results: any = await queryAsync(selectQuery, selectValues);
+
+    // Format children for each post
+    for (const post of results) {
+      // Fetch and format post's children
+      if (post.children_count > 0) {
+        const childrenIds = post.children.split(',').filter(Boolean);
+        const childrenQuery = 'SELECT * FROM post WHERE idpost IN (?)';
         //@ts-ignore
-        const insertResults: any[] = await queryAsync(insertQuery, insertValues);
-        console.log("Successfully Created Post: " , insertResults)
-        revalidatePath(path);
-        return true;
-    }catch(error)
-    {
-        console.log("Error: " , error)
-        throw new Error(`Error Occured: ${error}`)
+        const childrenPosts: any = await queryAsync(childrenQuery, [childrenIds]);
+
+        if (childrenPosts.length > 0) {
+          post.children = childrenPosts;
+        } else {
+          post.children = [];
+        }
+      } else {
+        post.children = [];
+      }
     }
-}
+
+    // Count the total number of top-level posts
+    const totalPostsCountQuery =
+      'SELECT COUNT(*) AS total_count FROM post WHERE parent_id IS NULL AND (title LIKE ? OR content LIKE ? OR author_id IN (SELECT id FROM user WHERE username LIKE ?))';
+    
+      //@ts-ignore
+    const totalPostsCountResults: any = await queryAsync(totalPostsCountQuery, [searchParam, searchParam, searchParam]);
+    const totalPostsCount = totalPostsCountResults[0].total_count;
+    const isNext = totalPostsCount > skipAmount + results.length;
+
+    // Close the database connection
+    connection.end();
+
+    return { results, isNext };
+  } catch (error) {
+    console.error('Error:', error);
+    throw new Error('Failed to fetch top-level posts');
+  }
+};
+
+
 
 export const fetchPosts = async (pageNumber = 1, pageSize = 20, titleFilter = '') => {
   try {

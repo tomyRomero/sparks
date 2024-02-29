@@ -128,11 +128,7 @@
   }
 }
 
-
 /* Login/Signup Styles */
-
-
-
 
 /* Like button styles */
 
@@ -227,6 +223,11 @@
 .account-form_image-input {
   @apply cursor-pointer border-black hover:border-white bg-transparent outline-none file:text-black !important;
 }
+
+.edit-form_image-input {
+  @apply cursor-pointer border-primary-500 hover:border-white bg-transparent outline-none file:text-primary-500 !important;
+}
+
 .account-form_input {
   @apply border border-dark-4 focus:border-white bg-dark-3 text-light-1 rounded-xl !important;
 }

@@ -5,6 +5,7 @@ import { fetchUser } from "@/lib/actions/user.actions";
 import { redirect } from "next/navigation";
 import Pagination from "@/components/shared/Pagination";
 import FilterBox from "@/components/shared/FilterBox";
+import SearchButton from "@/components/shared/SearchButton";
 
 
 async function Home({
@@ -30,6 +31,8 @@ async function Home({
     <>
       <h1 className='head-text text-left text-black mb-4'>Recent Sparks...</h1>
       <FilterBox />
+      <br/>
+      <SearchButton />
       <section className='mt-9 flex flex-col gap-10'>
         {result?.length === 0 ? (
           <p className='no-result'>No posts found</p>

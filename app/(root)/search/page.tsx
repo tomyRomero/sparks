@@ -6,7 +6,7 @@ import Searchbar from "@/components/shared/Searchbar";
 import Pagination from "@/components/shared/Pagination";
 
 import { fetchUser, fetchUsers } from "@/lib/actions/user.actions";
-import { updateOnlineStatus } from "@/lib/actions/chat.actions";
+import SearchButton from "@/components/shared/SearchButton";
 
 async function Page({
   searchParams,
@@ -30,11 +30,13 @@ async function Page({
 
   return (
     <section>
-      <h1 className='head-text mb-10 text-black'>Search for Users</h1>
-
+      <h1 className='head-text mb-6 text-black'>Search for Users</h1>
       <Searchbar routeType='search' />
-
-      <div className='mt-14 flex flex-col gap-9'>
+      <div className="py-4">
+      <SearchButton />
+      </div>
+      
+      <div className='mt-8 flex flex-col gap-9'>
         {result.users.length === 0 ? (
           <p className='no-result'>No Result</p>
         ) : (
@@ -47,7 +49,7 @@ async function Page({
                 username={person.username}
                 imgUrl={person.image}
                 type="search"
-                postId={null}
+                postId={``}
                 sender = {null}
               />
             ))}

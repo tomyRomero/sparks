@@ -7,6 +7,7 @@ import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
 import { getChatBySenderAndReceiver, sendMessage } from "@/lib/actions/chat.actions";
 import { getDateTime } from "@/lib/utils";
+import { fetchPostById } from "@/lib/actions/post.actions";
 
 interface Props {
   id: string;
@@ -14,10 +15,9 @@ interface Props {
   username: string;
   imgUrl: string;
   type: string;
-  postId: string | null
+  postId: string
   sender: string | null
 }
-
 
 
 function UserCard({ id, name, username, imgUrl, type, postId, sender}: Props) {
@@ -25,6 +25,11 @@ function UserCard({ id, name, username, imgUrl, type, postId, sender}: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [send, setSend] = useState(false);
+
+  function extractTitle(inputString: string): string {
+    const titleMatch = inputString.match(/Title:([\s\S]*?)(Synopsis:|$)/i);
+    return titleMatch ? titleMatch[1].trim() : '';
+  }
 
   useEffect(()=> {
     const loadProfile = async ()=> {
@@ -58,7 +63,17 @@ function UserCard({ id, name, username, imgUrl, type, postId, sender}: Props) {
          chatMessages = getChat.messages
       }
 
-      const shareText = `Check Out This Post! https://sparkify.vercel.app/post/${postId}`
+      const url = process.env.NEXT_PUBLIC_LINK
+
+
+      const post = await fetchPostById(postId)
+      
+      let shareText = `Check Out This Post! ${url}post/${postId}`
+
+      if(post.title !== "Regular" && post.title !== "Comment")
+      {
+        shareText = `Check Out This Post! ${url}post/${postId} -> ${extractTitle(post.content)} , ${post.title}`;
+      }
 
       const newMessages = [
         ...chatMessages,

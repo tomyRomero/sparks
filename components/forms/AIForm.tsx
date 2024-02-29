@@ -21,9 +21,8 @@ import * as z from "zod";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, ChangeEvent} from "react"
 import Image from "next/image"
-import { isBase64Image } from "@/lib/utils"
+import { generateUniqueImageID, isBase64Image } from "@/lib/utils"
 import { getImageData, postImage } from "@/lib/s3"
-import { v4 as uuidv4 } from 'uuid';
 import LoadingBar from "../shared/LoadingBar"
 
 
@@ -128,9 +127,7 @@ const getImageLabel = (name: string) => {
   }
 }
 
-function generateUniqueImageID() {
-  return uuidv4();
-}
+
 
 async function blobToBase64(blob: any) {
   return new Promise((resolve, _) => {
@@ -192,16 +189,7 @@ const router = useRouter();
         },
       });   
     
-      const incrementProgress = (currentProgress: number) => {
-        setTimeout(() => {
-          const newProgress = currentProgress + 10;
-          setProgress(newProgress);
-      
-          if (newProgress < 70) {
-            incrementProgress(newProgress);
-          }
-        }, 8000); // 7 seconds interval
-      };
+    
        
 const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
     setLoading(true);
@@ -209,6 +197,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
     // const prompt = values.content
     let submit = true;    
     let gallery = false;
+    let aiPost = false;
 
     if(name === "artwork" || name === "fashion" || name === "photography")
     {
@@ -219,7 +208,9 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
     //If it is not a regular post make a call to the API 
     if(name !== 'Regular')
     {
-        incrementProgress(0)
+        //set marker so if its an AI generated post users will be directed to an edit page to make adjustments to their liking! 
+        aiPost=true;
+        setProgress(30)
         values.prompt = values.content
         //Make API Call to Chat Model (Turbo 3.5) to Generate Content
         const getResponse = await fetch(`/api/openAIChat?prompt=${values.content}&type=${name}`, 
@@ -229,22 +220,23 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
         if(getResponse.ok)
         {
           values.content =  await getResponse.text();
-          
+          setProgress(50)
 
           if(includeImg || gallery)
           {
-          console.log("Fetching Image")
+         
           const title = extractTitle(values.content)
+          
           const imgDesResponse = await fetch(`/api/openAIChat?prompt=${values.content}&type=${getImageLabel(name)}&title=${title}`, {
             method: 'GET'
           });
 
           if(imgDesResponse)
           {
-            console.log("imgDes Response")
+            setProgress(60)
             //Extract title and Synopsis from result to use as a prompt for the image Gen
             const imgPrompt = await imgDesResponse.text()
-            console.log("Image Prompt: ", imgPrompt)
+            
             if(includeImg || gallery){
             //Make API Call to DALL-E model to Generate Image
             const imgResponse = await fetch(`/api/openAIImage?prompt=${imgPrompt}`, 
@@ -255,10 +247,10 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
             {
               //Get DAll-E Image Blob From Server 
               const blob = await imgResponse.blob();
-              console.log("BLOB: " , blob)
+              
               //Convert Blob to Base 64
               const base64: any = await blobToBase64(blob)
-              console.log("base64: ", base64)
+              
 
               //If base64 send image to s3 bucket and also test if you can retrieve it 
               setProgress(80)
@@ -282,13 +274,13 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
               }else{
                 submit = false;
                 setLoading(false);
-                alert("There was an error getting a correct Image from AI")
+                alert("There was an error getting a correct Image from AI, Please Try Again: Prompt might have been against community guidelines, try a different one")
               }
             }
             else{
               submit = false;
               setLoading(false);
-              alert('There Was An Error with Image AI Generation, Please Try Again')
+              alert(`There Was An Error with Image AI Generation, Please Try Again: Prompt might have been against community guidelines, try a different one`);
             }
           }
           setProgress(100);
@@ -348,7 +340,14 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
       
       if(post)
       {
-        router.push("/");
+        if(aiPost)
+        {
+
+          router.push(`/post/edit/${post}`);
+        }else{
+          router.push("/");
+        }
+        
       }
     }else{
       setLoading(false);

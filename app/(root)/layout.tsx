@@ -16,6 +16,7 @@ import { getClerkUser } from "@/lib/actions/user.actions";
 import Loading from "./loading";
 import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 import { Metadata } from "next/types";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -55,6 +56,7 @@ export default async function RootLayout({
             <RightBar userid={userid}/>
           </main>
             <Bottombar userid={userid}/>
+            <Toaster />
           </AppProvider>
         </body>
       </html>
