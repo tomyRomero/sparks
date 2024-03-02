@@ -121,7 +121,7 @@ function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
             </FormItem>
           )}
         />
-        <Button onClick={goBack} className="comment-form_btn max-md:hidden">
+        <Button type="button" onClick={goBack} className="comment-form_btn max-md:hidden">
           {!backLoading? <h1>Back</h1> : <Image src={"/assets/lineloader.svg"} alt="loading" width={44} height={34}/> }
         </Button>
 
@@ -131,7 +131,7 @@ function Comment({ postId, currentUserImg, currentUserId, parentId }: Props) {
         </Button>
       </form>
       <div className="hidden w-full mt-6 ml-auto max-sm:flex justify-end gap-4">
-      <Button onClick={goBack} className="comment-form_btn">
+      <Button type="button" onClick={goBack} className="comment-form_btn">
           {!backLoading? <h1>Back</h1> : <Image src={"/assets/lineloader.svg"} alt="loading" width={44} height={34}/> }
         </Button>
 
