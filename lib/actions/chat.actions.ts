@@ -20,8 +20,6 @@ export const getPusher = async()=> {
   });
 } 
 
-
-
   export const sendMessage = async (text: string, sender: string, timestamp: string, receiver: string,  messages: any[], pathname: string) => {
     try {
       const connection = connectDb('spark', "sendMessage");
@@ -150,8 +148,7 @@ export const getPusher = async()=> {
 };
 
 
-
-  //Get Chat that fills the reciever UI chat
+  //Get Chat that fills the receiver UI chat
   export const getChatBySenderAndReceiver = async (senderId: string, receiverId: string) => {
     try {
       const connection = connectDb('spark', "getChatBySenderAndReceiver");
@@ -237,7 +234,7 @@ export const revalData = (path : string)=> {
 
 
 export const getNoti = async (userId : string) => {
-  const userChats = await getChatsWithUsersByUserId(userId);
+  const userChats = await getChatsWithUsersByUserIdSender(userId);
 
   const readStatusArray = await Promise.all(
     userChats.map(async (chat) => {
@@ -249,11 +246,16 @@ export const getNoti = async (userId : string) => {
 
       const lastMessage = chatfromOtherSide.messages[ chatfromOtherSide.messages.length - 1]
 
-      if(lastMessage.receiver === user.id)
+      if(lastMessage.sender === userId)
       {
         return 1;
       }else{
-        return chatfromOtherSide.read_status;
+        if(!chatfromOtherSide.read_status)
+        {
+          console.log(user)
+        }
+       
+        return chatfromOtherSide.read_status
       }
     })
   );
@@ -276,6 +278,38 @@ export const getNoti = async (userId : string) => {
 };
 
 
+export const getChatsWithUsersByUserIdSender = async (userId: string) => {
+  try {
+    const connection = connectDb('spark', `getChatsWithUsersByUserId`);
+    // Use a parameterized query to select chats with user information
+    const queryAsync = util.promisify(connection.query).bind(connection);
+    
+    const query = `
+      SELECT
+        chat.*,
+        user.username AS user_username,
+        user.name AS user_name,
+        user.image AS user_image
+      FROM
+        chat
+      JOIN
+        user ON chat.sender_id = user.id
+      WHERE
+        chat.sender_id = ?
+    `;
+    
+    //@ts-ignore
+    const results: any[] = await queryAsync(query, [userId]);
+
+    // Close the database connection
+    connection.end();
+    //console.log("User Chats with Users: ", results);
+    return results;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
 
 
 

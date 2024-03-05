@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 
 const Chatbox = ({ chats }: any) => {
   const [page, setPage] = useState(0);
-  const itemsPerPage = 3;
+  const itemsPerPage = 2;
 
   // Calculate the starting index for slicing the array
   const startIndex = page * itemsPerPage;

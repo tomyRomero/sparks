@@ -2,8 +2,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useEffect, useState } from "react";
-import { getImageData, getRes } from "@/lib/s3";
-import pusherClient from "@/lib/pusher";
+import { getRes } from "@/lib/s3";
 import { getChatBySenderAndReceiver, revalData } from "@/lib/actions/chat.actions";
 import { useAppContext } from "@/lib/AppContext";
 import { useRouter } from "next/navigation";

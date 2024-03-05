@@ -48,7 +48,7 @@ async function Page({
   }
   
   return (
-    <section className='w-full h-screen flex flex-col bg-black rounded-xl'>
+    <section className='w-full flex flex-1 flex-col bg-black rounded-xl h-max-screen'>
       <div className="flex">
         <h1 className='text-heading1-bold text-light-1 ml-4 mt-2'>Chat</h1>
         <Image 

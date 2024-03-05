@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getImageData, getRes } from "@/lib/s3";
 import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
-import { getChatBySenderAndReceiver, sendMessage } from "@/lib/actions/chat.actions";
+import { getChatBySenderAndReceiver, sendMessage, updateChatForOther } from "@/lib/actions/chat.actions";
 import { getDateTime } from "@/lib/utils";
 import { fetchPostById } from "@/lib/actions/post.actions";
 
@@ -81,6 +81,7 @@ function UserCard({ id, name, username, imgUrl, type, postId, sender}: Props) {
       ]
 
       const didSend = await sendMessage(shareText, sender, timestamp, id, newMessages, "/");
+      const didUpdate = await updateChatForOther(id, sender, newMessages, "/");
 
       if(didSend)
       {
