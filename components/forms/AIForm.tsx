@@ -210,7 +210,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
     {
         //set marker so if its an AI generated post users will be directed to an edit page to make adjustments to their liking! 
         aiPost=true;
-        setProgress(30)
+        setProgress(10)
         values.prompt = values.content
         //Make API Call to Chat Model (Turbo 3.5) to Generate Content
         const getResponse = await fetch(`/api/openAIChat?prompt=${values.content}&type=${name}`, 
@@ -220,7 +220,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
         if(getResponse.ok)
         {
           values.content =  await getResponse.text();
-          setProgress(50)
+          setProgress(30)
 
           if(includeImg || gallery)
           {
@@ -233,7 +233,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
 
           if(imgDesResponse)
           {
-            setProgress(60)
+            setProgress(50)
             //Extract title and Synopsis from result to use as a prompt for the image Gen
             const imgPrompt = await imgDesResponse.text()
             
@@ -253,7 +253,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
               
 
               //If base64 send image to s3 bucket and also test if you can retrieve it 
-              setProgress(80)
+              setProgress(60)
               if(isBase64Image(base64)){
                 const uniqueId = generateUniqueImageID();
 
@@ -263,7 +263,7 @@ const onSubmit = async (values: z.infer<typeof PostValdiation>) => {
                 }
                 const imgRes = await postImage(data);
                 const imgGetRes = await getImageData(imgRes);
-                setProgress(90)
+                setProgress(80)
                if (imgRes && imgGetRes) {
                 values.image = imgRes;
               }else{

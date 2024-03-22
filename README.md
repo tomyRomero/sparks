@@ -141,34 +141,30 @@ User interface and different functionalities of Sparks.
 
 
 # <a name="ai-post-examples">🤖 Sparks Examples [AI Posts] </a>
-Below I tested all AI Post Categories with the same prompt , "apples in a warm summer's glow". These are the results. 
+Below are some examples of generated Sparks
 
-### Movie Spark
+<img src="public/assets/exampleSpark.png" alt="Screenshot of AI Spark">
+
+<img src="public/assets/example2Spark.png" alt="Screenshot of AI Spark">
+
 <img src="public/assets/movieSpark.png" alt="Screenshot of AI Spark">
 
-### Novel Spark
+
 <img src="public/assets/novelSpark.png" alt="Screenshot of AI Spark">
 
-### Artwork Spark
+
 <img src="public/assets/artworkSpark.png" alt="Screenshot of AI Spark">
 
-### Fashion Spark
+
 <img src="public/assets/fashionSpark.png" alt="Screenshot of AI Spark">
 
-### Photography Spark
+
 <img src="public/assets/photoSpark.png" alt="Screenshot of AI Spark">
 
-### Haikus Spark
-<img src="public/assets/haikusSpark.png" alt="Screenshot of AI Spark">
 
-### Quote Spark
+
 <img src="public/assets/quoteSpark.png" alt="Screenshot of AI Spark">
 
-### Joke Spark
-<img src="public/assets/jokeSpark.png" alt="Screenshot of AI Spark">
-
-### Aphorism Spark
-<img src="public/assets/aphorismSpark.png" alt="Screenshot of AI Spark">
 
 
 ## 🚀 Future Improvements
@@ -180,8 +176,7 @@ Below I tested all AI Post Categories with the same prompt , "apples in a warm s
 
 ## Project Status
 
-- **Literature Studio**: Works on the deployed version.
-- **Story and Gallery Studio**: Currently functional only on localhost, sometimes on deployed if resources allow.
+All features should be fully funtional, please if you have any concerns or encounter any bugs, feel free to raise an issue or contact me.
 
 ### Future Feature Idea for Contributions
 
