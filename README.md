@@ -59,9 +59,9 @@ Sparks is a full stack social media web app that is designed to help users disco
     - Artworks, Fashion , Photography , (These are all AI generated images)
     - Haikus , Quote, Joke , Aphorism
   prompts used are saved and can be viewed when the sparks logo of the post is clicked!
+- User-to-user Messaging system: powered by Pusher(Web Sockets) for realtime updates, ability to leave messages on read, ability to see when a user is online in chat. 
 - Image Storage System: Cloud image storage powered by the cloud , allows all profile images, as well as profile posts and even AI generated images to be saved for future usage in a secure S3 bucket privately where only the developer can access them. Cache system included with local storage so images do not have to be fetched every single time.
 - User profile management: Onboarding, Profile Edit 
-- User-to-user Messaging system: powered by Pusher(Web Sockets) for realtime updates, ability to leave messages on read, ability to see when a user is online in chat. 
 - Activity feed - showing recent activity from other users to keep you engaged! Comes with pagination
 - Home Page Feed Filtering - Allow users to filter out the type of posts they would like to see. 
 - Like comment and share functionality: Allows the liking of posts, no user can like a post more than once, users can unlike posts as well, everything is reflected in database, posts can have children posts (comments, which can be liked as well, authors can delete their comments as well) and they are all recursively structured where every comment has a parent ID, therefore comments can have comments of their own, providing a twitter-like comment structure, all powered by a SQL dynamic structure, users can share posts directly to other users in their inboxes by clicking the share button which will send a message with the posts' link. When a parent post is deleted all children post is recursively deleted as well!
@@ -143,9 +143,9 @@ User interface and different functionalities of Sparks.
 # <a name="ai-post-examples">🤖 Sparks Examples [AI Posts] </a>
 Below are some examples of generated Sparks
 
-<img src="public/assets/exampleSpark.png" alt="Screenshot of AI Spark">
+<img src="public/assets/examplespark.png" alt="Screenshot of AI Spark">
 
-<img src="public/assets/example2Spark.png" alt="Screenshot of AI Spark">
+<img src="public/assets/example2spark.png" alt="Screenshot of AI Spark">
 
 <img src="public/assets/movieSpark.png" alt="Screenshot of AI Spark">
 
