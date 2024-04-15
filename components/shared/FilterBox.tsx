@@ -5,8 +5,6 @@ import { Listbox, Transition } from '@headlessui/react'
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/navigation'
 import { useAppContext } from '@/lib/AppContext'
-import { Button } from '../ui/button'
-import Image from 'next/image'
 
 const people = [
   { name: 'Home: Click to Filter Posts' },
@@ -22,9 +20,6 @@ const people = [
   { name: 'Aphorism Sparks' },
 ]
 
-
-
-
 const FilterBox = ()=> {
   const [selected, setSelected] = useState(people[0])
   const router = useRouter();
@@ -37,51 +32,41 @@ const FilterBox = ()=> {
     const handleFilterChange = () => {
       switch (selected.name) {
         case 'Home: Click to Filter Posts':
-          router.push('/');
+          setTitle('')
           break;
         case 'Regular Posts':
           setTitle('Regular')
-          router.push('/?title=Regular');
           break;
         case 'Movie Sparks':
           setTitle("Movie Spark")
-          router.push('/?title=Movie Spark');
           break;
         case 'Novel Sparks':
           setTitle("Novel Spark")
-          router.push('/?title=Novel Spark');
           break;
         case 'Artwork Sparks':
           setTitle("Artwork Spark")
-          router.push('/?title=Artwork Spark');
           break;
         case 'Fashion Sparks':
           setTitle("Fashion Spark")
-          router.push('/?title=Fashion Spark');
           break;
         case 'Photography Sparks':
           setTitle("Photography Spark")
-          router.push('/?title=Photography Spark');
           break;
         case 'Haikus Sparks':
           setTitle("Haikus Spark")
-          router.push('/?title=Haikus Spark');
           break;
         case 'Quote Sparks':
           setTitle("Quote Spark")
-          router.push('/?title=Quote Spark');
           break;
         case 'Joke Sparks':
           setTitle("Joke Spark")
-          router.push('/?title=Joke Spark');
           break;
         case 'Aphorism Sparks':
           setTitle("Aphorism Spark")
-          router.push('/?title=Aphorism Spark');
           break;
         default:
           // Default case, redirect to home
-          router.push('/');
+          setTitle('')
           break;
       }
     };

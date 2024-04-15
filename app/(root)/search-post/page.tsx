@@ -1,5 +1,4 @@
 import Post from '@/components/cards/Post';
-import Pagination from '@/components/shared/Pagination';
 import Searchbar from '@/components/shared/Searchbar';
 import { searchPosts } from '@/lib/actions/post.actions';
 import { fetchUser } from '@/lib/actions/user.actions';
@@ -23,10 +22,14 @@ const page = async (
     if (!userInfo?.onboarded) redirect("/onboarding");
   
     const searchQuery = searchParams.q;
-    const pageNumber = searchParams?.page ? +searchParams.page : 1;
-    const pageSize = 6;
+    const pageNumber = searchParams?.page ? + searchParams.page : 1;
+    const pageSize = 20;
 
     const result = await searchPosts({ searchQuery, pageNumber, pageSize });
+
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
   return (
     <>
@@ -60,7 +63,6 @@ const page = async (
           </>
         )}
       </section>
-
     </>
   )
 }
