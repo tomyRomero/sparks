@@ -21,10 +21,39 @@ const people = [
 ]
 
 const FilterBox = ()=> {
-  const [selected, setSelected] = useState(people[0])
-  const router = useRouter();
+
+  const determinecase = ( title: string ) => {
+    switch(title) {
+      case "":
+        return 0;
+      case "Regular":
+        return 1;
+      case "Movie Spark":
+        return 2;
+      case "Novel Spark":
+        return 3;
+      case "Artwork Spark":
+        return 4;
+      case "Fashion Spark":
+        return 5;
+      case "Photography Spark":
+        return 6;
+      case "Haikus Spark":
+        return 7;
+      case "Quote Spark":
+        return 8;
+      case "Joke Spark":
+        return 9;
+      case "Aphorism Spark":
+        return 10
+      default:
+        return 0;
+    }
+  }
 
   const {title, setTitle} = useAppContext();
+
+  const [selected, setSelected] = useState(people[determinecase(title)])
 
   const isMounted = useRef(true);
 
