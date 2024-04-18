@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 
 const InfiniteFeed = ({user}: {user: string}) => {
 
-    const {title} = useAppContext();
+    const {title, scrollPosition, setScrollPosition} = useAppContext();
     const [posts, setPosts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState(1);
@@ -46,6 +46,7 @@ const InfiniteFeed = ({user}: {user: string}) => {
         ) {
           setPage((prevPage) => prevPage + 1);
         }
+
       };
       window.addEventListener('scroll', handleScroll);
       return () => {
@@ -57,6 +58,26 @@ const InfiniteFeed = ({user}: {user: string}) => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    useEffect(() => {
+      const storedScrollY = localStorage.getItem('infiniteFeedScrollPosition');
+      if (storedScrollY) {
+        window.scrollTo(0, parseInt(storedScrollY, 10));
+      }
+    }, []);
+
+    useEffect(() => {
+      const handleBeforeUnload = () => {
+        localStorage.setItem('infiniteFeedScrollPosition', window.scrollY.toString());
+      };
+  
+      window.addEventListener('beforeunload', handleBeforeUnload);
+  
+      // Cleanup function
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }, []);
+    
   return (
       <>
         <section ref={containerRef} className='mt-9 flex flex-col gap-10'>
@@ -66,7 +87,7 @@ const InfiniteFeed = ({user}: {user: string}) => {
             <>
               {posts.map((post: any) => (
                 <Post
-                  key={post.idpost}
+                  key={post.idpost * Math.random()}
                   id={post.idpost}
                   currentUserId={user}
                   parentId={post.parent_Id}

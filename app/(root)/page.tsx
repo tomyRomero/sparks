@@ -18,7 +18,7 @@ async function Home()
 
  return (
     <>
-      <h1 className='head-text text-left text-black mb-4'>Recent Sparks...</h1>
+      <h1 className='head-text text-left text-black mb-6'>Recent Sparks...</h1>
       <FilterBox />
       <br/>
       <SearchButton />

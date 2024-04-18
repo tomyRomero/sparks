@@ -103,10 +103,10 @@
 
   /* Shared */
   .topbar {
-    @apply fixed top-0 z-30 flex w-full items-center justify-between bg-black px-6 py-3;
+    @apply fixed top-0 z-30 flex w-full items-center justify-between bg-black px-6 py-5 rounded-b-xl;
   }
   .bottombar {
-    @apply fixed bottom-0 z-10 w-full p-4 backdrop-blur-lg xs:px-7 md:hidden bg-black
+    @apply fixed bottom-0 z-10 w-full p-4 backdrop-blur-lg xs:px-7 md:hidden bg-black rounded-t-xl
   }
   .bottombar_container {
     @apply flex items-center justify-between gap-3 xs:gap-5 ;

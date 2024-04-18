@@ -34,6 +34,8 @@ type AppContextProps = {
   activityNoti: any;
   setActivityNoti: React.Dispatch<React.SetStateAction<any>>;
 
+  scrollPosition: any;
+  setScrollPosition: React.Dispatch<React.SetStateAction<any>>;
 };
 
 // Create the AppContext with an initial value of undefined
@@ -65,6 +67,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   //For global activity notifcation
   const [activityNoti, setActivityNoti] = useState(false);
+
+  //For scroll position
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   //Client Pusher Instance Logic
   const pusher = pusherClient;
@@ -105,7 +110,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setTitle, title,
     messageNoti, setMessageNoti,
     activityNoti, setActivityNoti,
-
+    scrollPosition, setScrollPosition
   };
 
   // Set up event listeners for user activity (adjust as needed based on your application)
