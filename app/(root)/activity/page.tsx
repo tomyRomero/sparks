@@ -23,7 +23,7 @@ async function Page({
     //Page Number
     searchParams.page ? + searchParams.page : 1, 
     //Page Size
-    8);
+    7);
 
   const activity = results.activity
 

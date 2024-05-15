@@ -27,10 +27,6 @@ const page = async (
 
     const result = await searchPosts({ searchQuery, pageNumber, pageSize });
 
-    const scrollToTop = () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
   return (
     <>
     <h1 className='head-text text-left text-black mb-4'>Search for Posts...</h1>

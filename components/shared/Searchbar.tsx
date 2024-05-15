@@ -31,10 +31,10 @@ function Searchbar({ routeType }: Props) {
   return (
     <div className='searchbar'>
       <Image
-        src='/assets/search.svg'
+        src='/assets/search.png'
         alt='search'
-        width={24}
-        height={24}
+        width={40}
+        height={40}
         className='object-contain'
       />
       <Input
@@ -42,7 +42,7 @@ function Searchbar({ routeType }: Props) {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder={`Start Typing To Begin Searching`}
-        className='no-focus searchbar_input'
+        className='searchbar_input'
       />
     </div>
   );

@@ -51,7 +51,7 @@ export default async function RootLayout({
           <main className='flex flex-row'>
             <LeftSidebar userid={userid} /> 
             <section className='main-container'>
-              <div className='w-full max-w-4xl'>{children}</div>
+              <div className='w-full max-w-4xl mt-6'>{children}</div>
             </section>
             <RightBar userid={userid}/>
           </main>

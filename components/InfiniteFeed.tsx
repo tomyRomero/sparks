@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 
 const InfiniteFeed = ({user}: {user: string}) => {
 
-    const {title, scrollPosition, setScrollPosition} = useAppContext();
+    const {title} = useAppContext();
     const [posts, setPosts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState(1);
@@ -64,7 +64,7 @@ const InfiniteFeed = ({user}: {user: string}) => {
         window.scrollTo(0, parseInt(storedScrollY, 10));
       }
     }, []);
-
+ 
     useEffect(() => {
       const handleBeforeUnload = () => {
         localStorage.setItem('infiniteFeedScrollPosition', window.scrollY.toString());
@@ -81,13 +81,13 @@ const InfiniteFeed = ({user}: {user: string}) => {
   return (
       <>
         <section ref={containerRef} className='mt-9 flex flex-col gap-10'>
-          {posts.length === 0 && !isLoading ? (
+          {!isLoading && posts.length === 0 ? (
             <p className='no-result'>No posts found</p>
           ) : (
             <>
               {posts.map((post: any) => (
                 <Post
-                  key={post.idpost * Math.random()}
+                  key={post.idpost}
                   id={post.idpost}
                   currentUserId={user}
                   parentId={post.parent_Id}
@@ -135,4 +135,4 @@ const InfiniteFeed = ({user}: {user: string}) => {
     );
 }
 
-export default InfiniteFeed;
+export default React.memo(InfiniteFeed);

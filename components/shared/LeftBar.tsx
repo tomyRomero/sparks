@@ -100,7 +100,7 @@ function LeftSidebar({userid}: any)
 
     return(
         <section className="custom-scrollbar leftsidebar">
-            <div className="flex w-full flex-1 flex-col gap-6 px-9">
+            <div className="mt-3 flex w-full flex-1 flex-col gap-6 px-14">
                 {
                     
                     sidebarLinks.map(( link)=> {
@@ -119,15 +119,15 @@ function LeftSidebar({userid}: any)
                             <Image 
                             src={link.imgURL}
                             alt={link.label}
-                            width={25}
-                            height={25}
+                            width={35}
+                            height={35}
                             />
-                            <p className="text-light-1 max-lg:hidden">
+                            <p className="self-center text-light-1 max-lg:hidden">
                             {link.label}
                             </p>
                             {
                             messageNoti && link.label === "Message" && (
-                            <div className="pt-0.5">
+                            <div className="self-center">
                             <Image 
                                 src={"/assets/alert.svg"}
                                 alt={"alert"}
@@ -139,7 +139,7 @@ function LeftSidebar({userid}: any)
                             }
                             {
                             activityNoti && link.label === "Activity" && (
-                            <div className="pt-0.5">
+                            <div className="self-center">
                             <Image 
                                 src={"/assets/alert.svg"}
                                 alt={"alert"}

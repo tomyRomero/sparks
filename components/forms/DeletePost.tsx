@@ -62,9 +62,9 @@ const handleDelete = async () => {
     <Image
       src='/assets/delete.svg'
       alt='delete'
-      width={24}
-      height={24}
-      className='cursor-pointer object-contain'
+      width={32}
+      height={32}
+      className='cursor-pointer object-contain transition-transform duration-300 transform hover:scale-110'
       onClick={handleDelete}
     />
   );

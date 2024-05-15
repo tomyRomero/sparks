@@ -363,8 +363,9 @@ function Post({
           <Image 
           src="/assets/edit.png"
           alt="edit icon"
-          width={22}
-          height={22}
+          width={30}
+          height={30}
+          className="transition-transform duration-300 transform hover:scale-110"
           />
           </button>     
         

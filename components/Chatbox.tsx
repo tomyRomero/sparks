@@ -59,7 +59,7 @@ const Chatbox = ({ chats }: any) => {
           ))}
         </>
       )}
-      <div className="pagination">
+      <div className="pagination max-sm:mt-2.5">
         <Button
           onClick={() => handleNavigation('prev')}
           disabled={page === 0}

@@ -48,7 +48,7 @@ async function Page({
   }
   
   return (
-    <section className='w-full flex flex-1 flex-col bg-black rounded-xl h-max-screen'>
+    <section className='max-sm:-mt-6 w-full flex flex-1 flex-col bg-black rounded-xl h-max-screen'>
       <div className="flex">
         <h1 className='text-heading1-bold text-light-1 ml-4 mt-2'>Chat</h1>
         <Image 
@@ -61,7 +61,7 @@ async function Page({
       </div>
       <div className="w-11/12 mx-auto m-1 p-1 border-b-2 border-white" />
 
-      <div className="p-4">
+      <div className="p-2 max-sm:p-0.5">
         <Searchbar routeType='chat' />
       </div>
 
@@ -74,7 +74,7 @@ async function Page({
       </div>
 
       <br></br>
-      <h2 className="text-left ml-4 text-heading3-bold text-light-1">Recent Chats..</h2>
+      <h2 className="text-left ml-4 text-heading3-bold max-sm:text-heading4-medium text-light-1">Recent Chats..</h2>
      <Chatbox chats= {chats}/>
   </section>
 );
