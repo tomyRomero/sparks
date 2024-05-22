@@ -4,9 +4,7 @@ import { fetchUser, fetchUsers } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import HorizontalScroll from "@/components/shared/HorizontalScroll";
-import { getChatsWithUsersByUserId, updateOnlineStatus } from "@/lib/actions/chat.actions";
-import ChatLogs from "@/components/cards/ChatLogs";
-import Pagination from "@/components/shared/Pagination";
+import { getChatsWithUsersByUserId} from "@/lib/actions/chat.actions";
 import Chatbox from "@/components/Chatbox";
 
 
@@ -16,7 +14,7 @@ async function Page({
   searchParams: { [key: string]: string | undefined };
 }) {
   const user = await currentUser();
-  if (!user) return null;
+  if (!user) redirect('/');
 
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");

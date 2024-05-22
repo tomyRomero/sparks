@@ -12,13 +12,10 @@ import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 
 async function Page({ params }: { params: { id: string } }) {
   const user = await currentUser();
-  if (!user) return null;
+  if (!user) redirect('/');
 
   const userInfo = await fetchUser(params.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
-
-
-  
 
   return (
     <section>

@@ -1,7 +1,6 @@
 import React from 'react'
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs";
-
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchPostById } from "@/lib/actions/post.actions";
 import Image from "next/image";
@@ -13,7 +12,7 @@ const page = async ({ params }: { params: { id: string } }) => {
     if (!params.id) return null;
 
     const user = await currentUser();
-    if (!user) return null;
+    if (!user) redirect('/');
   
     const userInfo = await fetchUser(user.id);
     if (!userInfo?.onboarded) redirect("/onboarding");

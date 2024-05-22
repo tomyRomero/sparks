@@ -14,10 +14,10 @@ export const revalidate = 0;
 
 async function page({ params }: { params: { id: string } }) {
   if (!params.id) return null;
-
+  
 
   const user = await currentUser();
-  if (!user) return null;
+  if (!user) redirect('/');
 
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");

@@ -31,9 +31,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const userid = await getClerkUser();
-  if (!userid) return null;
+  let userid = await getClerkUser();
+  if (!userid) userid = "null"
 
+  if(userid)
   updateOnlineStatus(userid, true)
 
 

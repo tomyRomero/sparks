@@ -43,12 +43,9 @@ export const getImageData = async (key: string) => {
   }
 
   export const getRes = async (imgUrl: string)=> {
-    const cachedImage = localStorage.getItem(imgUrl)
+    
+    console.log("imgUrl", imgUrl )
 
-    if(cachedImage)
-    {
-      return cachedImage;
-    }else{
       try {
         let imgResult = '/assets/profile.svg';
         if (imgUrl.startsWith('user')) {
@@ -58,7 +55,6 @@ export const getImageData = async (key: string) => {
           imgResult = imgUrl;
         }
 
-        localStorage.setItem(imgUrl, imgResult)
         return imgResult
       } catch (error) {
         console.log("Error", error);
@@ -66,4 +62,4 @@ export const getImageData = async (key: string) => {
       }
     }
     
-  }
+  

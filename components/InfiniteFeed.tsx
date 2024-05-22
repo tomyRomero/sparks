@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { useAppContext } from '@/lib/AppContext';
 import { Button } from './ui/button';
 
-const InfiniteFeed = ({user}: {user: string}) => {
+const InfiniteFeed = ({user}: {user: string|null}) => {
 
     const {title} = useAppContext();
     const [posts, setPosts] = useState<any[]>([]);
@@ -27,6 +27,7 @@ const InfiniteFeed = ({user}: {user: string}) => {
       const loadPosts = async () => {
         setIsLoading(true);
         const result: any = await fetchPosts(page, 5, title ? title : "");
+        console.log("posts: " , result)
         setIsLoading(false);
         if (result) {
           setPosts((prevPosts) => [...prevPosts, ...result.results]);
@@ -34,6 +35,7 @@ const InfiniteFeed = ({user}: {user: string}) => {
         }
       };
       loadPosts();
+     
     }, [page, title]);
   
     useEffect(() => {
@@ -78,16 +80,18 @@ const InfiniteFeed = ({user}: {user: string}) => {
       };
     }, []);
     
+
+   
   return (
       <>
         <section ref={containerRef} className='mt-9 flex flex-col gap-10'>
-          {!isLoading && posts.length === 0 ? (
+          {!isLoading && posts[0] === null ? (
             <p className='no-result'>No posts found</p>
           ) : (
             <>
-              {posts.map((post: any) => (
+              {posts.map((post: any, index: number) => (
                 <Post
-                  key={post.idpost}
+                  key={index}
                   id={post.idpost}
                   currentUserId={user}
                   parentId={post.parent_Id}

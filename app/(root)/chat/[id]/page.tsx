@@ -1,13 +1,14 @@
 import Chat from "@/components/forms/Chat";
-import { AppProvider } from "@/lib/AppContext";
-import { getChatBySenderAndReceiver, updateOnlineStatus } from "@/lib/actions/chat.actions";
+import { getChatBySenderAndReceiver } from "@/lib/actions/chat.actions";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
+
 
 const page = async ({ params }: { params: { id: string } }) => {
 
     const user = await currentUser();
-    if (!user) return null;
+    if (!user) redirect('/');
    
     const dbUser = await fetchUser(params.id)
 

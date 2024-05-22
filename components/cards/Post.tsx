@@ -11,10 +11,13 @@ import Modal from "../shared/Modal";
 import React from "react";
 import Prompt from "../shared/Prompt";
 import { useRouter } from "next/navigation";
+import Loginmodal from "../shared/Loginmodal";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Button } from "../ui/button";
 
 interface Props {
   id: string;
-  currentUserId: string;
+  currentUserId: string | null;
   parentId: string | null;
   content: string;
   createdAt: string;
@@ -51,8 +54,14 @@ function Post({
 
 
     const isInsideLikes = () => {
-        // Split the comma-separated string into an array
+      // Split the comma-separated string into an array
       const userIdsArray = likes.split(',');
+
+      if(!currentUserId)
+      {
+        return false;
+      }
+
       // Check if the userIdToCheck is in the array
       return userIdsArray.includes(currentUserId);
     }
@@ -142,12 +151,17 @@ function Post({
     }, [comments]);
     
       const handleLikeClick = async () => {
+        try{
+
+        //If logged in
+        if(currentUserId)
+          {
+
         // Like logic here
         setLike(!like);
 
         setFloatingHearts(true)
 
-        try{
         // Toggle the like status in the database
           if (like) {
             await removeLikeFromPost(id, currentUserId);
@@ -162,6 +176,7 @@ function Post({
 
         // After a short delay (e.g., 500ms)
         setTimeout(() => setFloatingHearts(false), 500);
+        }
         
         }catch (error) {
           console.log("Error in Liking Post", error);
@@ -203,6 +218,7 @@ function Post({
 
   return (
     <article className={`${isComment? '' : 'bg-black border-solid border-2 border-primary-500 rounded-xl'}`}>
+      <Dialog >
     <div
       className={`flex w-full flex-col ${
         isComment ? "px-0 xs:px-7" : "p-5"
@@ -211,7 +227,8 @@ function Post({
       <div className='flex items-start justify-between'>
         <div className='flex w-full flex-1 flex-row gap-4'>
           <div className='flex flex-col items-center'>
-            <Link href={`/profile/${authorId}`} className='relative h-11 w-11'>
+            {currentUserId ? (
+              <Link href={`/profile/${authorId}`} className='relative h-11 w-11'>
               <Image
                 src={img}
                 alt='user_image'
@@ -219,16 +236,75 @@ function Post({
                 className='cursor-pointer rounded-full'
               />
             </Link>
+            ) : (<>
+            
+            <DialogTrigger asChild>
+            <div  className='relative h-11 w-11'>
+            <Image
+                src={img}
+                alt='user_image'
+                fill
+                className='cursor-pointer rounded-full'
+              />
+              </div>
+            </DialogTrigger>
+            <DialogContent className="rounded-xl xs:max-w-[400px] sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle className="text-heading3-bold">Welcome to Sparks!</DialogTitle>
+                    <DialogDescription>Please login or create an account to continue.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="flex gap-4">
+                    <Link href="/sign-in" className="flex-grow">
+                    <Button variant="outline" className="w-full flex items-center justify-center">
+                      <Image 
+                        src={"/assets/login.png"}
+                        alt="login icon"
+                        width={24}
+                        height={24}
+                        className="object-contain mr-2"
+                                  />
+                          Login
+                      </Button>
+                      </Link>
+                      <Link href="/sign-up">
+                      <Button className="w-full flex items-center justify-center">
+                      <Image 
+                        src={"/assets/plus.png"}
+                        alt="login icon"
+                        width={24}
+                        height={24}
+                        className="object-contain mr-2"
+                        onClick={()=> {router.push('/sign-up')}}
+                                  />
+                        Create Account
+                      </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </DialogContent>
+
+            </>)}
+          
 
             <div className='card_bar' />
           </div>
 
           <div className='flex w-full flex-col'>
-            <Link href={`/profile/${authorId}`} className='w-fit'>
+            {currentUserId ? (<Link href={`/profile/${authorId}`} className='w-fit'>
               <h4 className={`cursor-pointer text-base-semibold text-light-1 ${isComment ? 'text-primary-500' : ''}`}>
                 {username}
               </h4>
-            </Link>
+            </Link>): (<>
+              <div className="w-fit">
+              <DialogTrigger asChild>
+                <h4 className={`cursor-pointer text-base-semibold text-light-1 ${isComment ? 'text-primary-500' : ''}`}>
+                  {username}
+                </h4>
+                </DialogTrigger >
+              </div>
+            </>)}
+           
 
             {/* Content For Regular*/}
             {title === 'Regular' && (
@@ -303,15 +379,20 @@ function Post({
 
             <div className={`${isComment && "mb-10"} mt-5 flex flex-col gap-3`}>
               <div className='flex gap-3.5'>
-                <Image
+                {currentUserId ? ( <Image
                   src={`${like? '/assets/like.svg' : '/assets/unlike.svg'  }`}
                   alt='heart'
                   width={24}
                   height={24}
                   className={`cursor-pointer object-contain ${like ? 'pop-animation active' : 'pop-animation'}`}
                   onClick={() => {handleLikeClick()}}
-                />
-                <Link href={`/post/${id}`}>
+                />) 
+                :
+                 (
+                  (<Loginmodal image={'/assets/unlike.svg'}/>)
+                )}
+                {currentUserId ? (
+                  <Link href={`/post/${id}`}>
                   <Image
                     src='/assets/uncomment.svg'
                     alt='comment'
@@ -320,10 +401,28 @@ function Post({
                     className='cursor-pointer object-contain'
                   />
                 </Link>
+                )
+                :
+                 (
+                  <DialogTrigger asChild>
+                  <Image
+                  src='/assets/uncomment.svg'
+                  alt='comment'
+                  width={24}
+                  height={24}
+                  className='cursor-pointer object-contain'
+                />
+                </DialogTrigger>
+                  )}
+                
 
                 {/* Share Button Modal With Option To Share With Users */}
-                <Modal postId={id} user={currentUserId} />
-                
+                {currentUserId ? 
+                (<Modal postId={id} user={currentUserId} />)
+                : 
+                (<Loginmodal image={'/assets/share.svg'}/>)
+                }
+               
                   {/* Sparks Title Modal With Prompt */}
                   <div className="max-sm:hidden">
                 <Prompt title ={title} prompt={prompt}/>
@@ -369,13 +468,19 @@ function Post({
           />
           </button>     
         
-        <DeletePost
+        
+        {currentUserId?
+        (<DeletePost
           postId={id}
           currentUserId={currentUserId}
           authorId={authorId}
           parentId={parentId}
           isComment={isComment}
-        />
+        />)
+        : 
+        (<>
+        </>)
+        }
         </div>
         
       </div>
@@ -393,11 +498,18 @@ function Post({
               className={`${index !== 0 && "-ml-5"} rounded-full object-cover`}
             />
           ))} 
-          <Link href={`/post/${id}`}>
+          {currentUserId ? ( <Link href={`/post/${id}`}>
             <p className='mt-1 text-subtle-medium text-white'>
               {comments.length} repl{comments.length > 1 ? "ies" : "y"}
             </p>
-          </Link>
+          </Link>) : (<>
+          <DialogTrigger asChild>
+            <p className='mt-1 text-subtle-medium text-white cursor-pointer'>
+              {comments.length} repl{comments.length > 1 ? "ies" : "y"}
+            </p>
+            </DialogTrigger>
+          </>)}
+         
         </div>
       )}
 
@@ -417,6 +529,7 @@ function Post({
       </div>
 
       </div>
+      </Dialog>
     </article>
   )
 }

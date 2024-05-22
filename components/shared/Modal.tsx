@@ -30,7 +30,7 @@ useEffect(()=> {
 
     if(isOpen)
     {
-        const delayDebounceFn = setTimeout(() => {
+         setTimeout(() => {
             getUsers();
           }, 300);
     }

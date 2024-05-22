@@ -14,7 +14,7 @@ async function Page({
   searchParams: { [key: string]: string | undefined };
 }) {
   const user = await currentUser();
-  if (!user) return null;
+  if (!user) redirect('/');
 
 
   const userInfo = await fetchUser(user.id);
@@ -33,7 +33,7 @@ async function Page({
       <h1 className='head-text mb-6 text-black'>Search for Users</h1>
       <Searchbar routeType='search' />
       <div className="py-4">
-      <SearchButton />
+      <SearchButton user={true}/>
       </div>
       
       <div className='mt-8 flex flex-col gap-9'>
