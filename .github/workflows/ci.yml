@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, upgrade]
+  pull_request:
+
+# A newer push to the same branch cancels the run in progress.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Typecheck, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      # Some clients are created when their module loads, so the build needs
+      # values in these variables. These are dummies, not credentials.
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          OPENAI_API_KEY: ci-placeholder
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
+          CLERK_SECRET_KEY: sk_test_ci-placeholder
+          NEXT_PUBLIC_PUSHER_APP_KEY: ci-placeholder
+          NEXT_PUBLIC_PUSHER_CLUSTER: us2
