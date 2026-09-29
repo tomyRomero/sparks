@@ -1,7 +1,7 @@
 "use client"
 
 // Import necessary React modules
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect, useRef } from 'react';
 import pusherClient from './pusher';
 
 // Define the types for the context
@@ -35,6 +35,8 @@ type AppContextProps = {
   setActivityNoti: React.Dispatch<React.SetStateAction<any>>;
 
 };
+
+const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
 
 // Create the AppContext with an initial value of undefined
 const AppContext = createContext<AppContextProps | undefined>(undefined);
@@ -70,25 +72,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const pusher = pusherClient;
   const [pusherChannel, setPusherChannel] = useState(pusher.subscribe('sparks'));
 
-  //If User Is inActvie for more than 15 mins, close the connection to Pusher
-  // Set the timeout duration in milliseconds (e.g., 15 minutes)
-  const timeoutDuration = 15 * 60 * 1000; // 15 minutes
-
-  // Create a variable to hold the timeout ID
-  let timeoutId: NodeJS.Timeout | undefined;
-
-  // Function to handle user activity
-  const handleUserActivity = () => {
-    // Clear the existing timeout (if any)
-    clearTimeout(timeoutId);
-
-    // Reset the timeout
-    timeoutId = setTimeout(() => {
-      // Unsubscribe from the Pusher channel after the timeout
-      pusherChannel.unsubscribe();
-      console.log('Pusher channel unsubscribed due to inactivity.');
-    }, timeoutDuration);
-  };
+  //If User Is inActvie for more than 15 mins, close the connection to Pusher.
+  // A ref keeps the timer across renders; a plain variable was reset on every render.
+  const timeoutId = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Provide the context value to the children components, include additional states if there are any
   const contextValue: AppContextProps = {
@@ -107,17 +93,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     activityNoti, setActivityNoti,
   };
 
-  // Set up event listeners for user activity (adjust as needed based on your application)
+  // Any mouse or keyboard activity restarts the inactivity timer.
   useEffect(() => {
-    // Example: Listen for mouse move events
-    window.addEventListener('mousemove', handleUserActivity);
+    const handleUserActivity = () => {
+      clearTimeout(timeoutId.current);
+      timeoutId.current = setTimeout(() => {
+        pusherChannel.unsubscribe();
+        console.log('Pusher channel unsubscribed due to inactivity.');
+      }, INACTIVITY_TIMEOUT_MS);
+    };
 
-    // Example: Listen for keyboard events
+    window.addEventListener('mousemove', handleUserActivity);
     window.addEventListener('keydown', handleUserActivity);
 
-    // Clear the timeout when the component unmounts
-    return () => clearTimeout(timeoutId);
-  }, [timeoutId]);
+    // Remove the listeners too, so they don't pile up.
+    return () => {
+      window.removeEventListener('mousemove', handleUserActivity);
+      window.removeEventListener('keydown', handleUserActivity);
+      clearTimeout(timeoutId.current);
+    };
+  }, [pusherChannel]);
 
  
 
