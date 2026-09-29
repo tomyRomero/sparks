@@ -189,7 +189,7 @@ const Chat = ({ chatPicture, chatName, chatMessages, userID, receiver, isRead }:
              
             {messages.map((message, index) => {
               //Conditonally render messages based on whether they are regular text messages or links that are being shared from users
-                let match = linkRegex.exec(message.text);
+                const match = linkRegex.exec(message.text);
                 if (match) {
                     const link = match[1];
                     console.log("link: ", link);

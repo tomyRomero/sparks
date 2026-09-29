@@ -26,6 +26,18 @@ const Modal = ({postId, user} : Props) => {
  const closeModal = () => setIsOpen(false);
 
 
+ const getUsers = async () => {
+    const result = await fetchUsers({
+        userId: user,
+        searchString: search,
+        pageNumber: 1,
+        pageSize: 5,
+      });
+
+    setResult(result)
+ }
+
+
 useEffect(()=> {
 
     if(isOpen)
@@ -38,16 +50,6 @@ useEffect(()=> {
 , [search, setSearch, isOpen])
 
 
- const getUsers = async () => {
-    const result = await fetchUsers({
-        userId: user,
-        searchString: search,
-        pageNumber: 1,
-        pageSize: 5,
-      });
-
-    setResult(result)
- }
 
   return (
   <>

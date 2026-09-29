@@ -73,7 +73,7 @@ function Bottombar({userid}: any)
                         if(link.label === "Home")
                         {
                             return(
-                            <Link href="/" className={`bottombar_link ${ isActive && 'bg-primary-500'} cursor-pointer hover:bg-primary-500`}>
+                            <Link key={link.label} href="/" className={`bottombar_link ${ isActive && 'bg-primary-500'} cursor-pointer hover:bg-primary-500`}>
                             <div>
                             <Image 
                             src={link.imgURL}
@@ -90,7 +90,7 @@ function Bottombar({userid}: any)
                             )
                         }else{
                         return(
-                        <Dialog >
+                        <Dialog key={link.label}>
                         <DialogTrigger asChild>
                         <div 
                         key={link.label}

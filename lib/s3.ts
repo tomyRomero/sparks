@@ -13,7 +13,7 @@ export const getImageData = async (key: string) => {
       const match = key.match(/[^.]+$/);
       const result = match ? match[0] : 'jpg';
       
-      let base64 = `data:image/${result};base64,` + getResponseData;
+      const base64 = `data:image/${result};base64,` + getResponseData;
       return base64;
       
     } else {

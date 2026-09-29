@@ -21,7 +21,7 @@ const CommentActivity = ({ parent_Id, image, author_username, created_at , conte
     useEffect(() => { 
         const loadProfile = async () => {
           try {
-            let loadImg = image
+            const loadImg = image
     
             setImg(await getRes(loadImg))
           } catch (error) {

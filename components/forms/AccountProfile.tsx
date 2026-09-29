@@ -44,6 +44,32 @@ const AccountProfile = ({ user, btnTitle , edit}: Props) => {
   const [img, setImg] = useState(user.image);
   const [dataFetched, setDataFetched] = useState(false);
 
+  const getImage = async (key: any) => {
+   
+    const encodedKey = encodeURIComponent(key);
+    const getResponse = await fetch(`/api/S3?key=${encodedKey}`, {
+      method: 'GET'
+    });
+
+    if (getResponse.ok) {
+      // Request was successful, handle the response
+      const getResponseData = await getResponse.json();
+      const match = key.match(/[^.]+$/);
+      const result = match ? match[0] : 'jpg';
+      console.log("RESULT IMAGE TYPE:", result)
+      const base64 = `data:image/${result};base64,` + getResponseData;
+      console.log('Success in Getting Image from server! Server response:', base64);
+      setImg(base64)
+      return true;
+    } else {
+      // Request failed, handle the error
+      console.error('Error:', getResponse.statusText);
+      setLoading(false)
+      alert(`There Was An Error Finishing Your Profile, Please Try Again, Error: ${getResponse.statusText}`);
+      return false;
+    }
+  }  
+
   useEffect(()=> {
     const inside = async  () => {
       if(user.image?.startsWith("user"))
@@ -94,31 +120,6 @@ const AccountProfile = ({ user, btnTitle , edit}: Props) => {
     }
   }
 
-  const getImage = async (key: any) => {
-   
-    const encodedKey = encodeURIComponent(key);
-    const getResponse = await fetch(`/api/S3?key=${encodedKey}`, {
-      method: 'GET'
-    });
-
-    if (getResponse.ok) {
-      // Request was successful, handle the response
-      const getResponseData = await getResponse.json();
-      const match = key.match(/[^.]+$/);
-      const result = match ? match[0] : 'jpg';
-      console.log("RESULT IMAGE TYPE:", result)
-      let base64 = `data:image/${result};base64,` + getResponseData;
-      console.log('Success in Getting Image from server! Server response:', base64);
-      setImg(base64)
-      return true;
-    } else {
-      // Request failed, handle the error
-      console.error('Error:', getResponse.statusText);
-      setLoading(false)
-      alert(`There Was An Error Finishing Your Profile, Please Try Again, Error: ${getResponse.statusText}`);
-      return false;
-    }
-  }  
 
   const onSubmit = async (values: z.infer<typeof UserValidation>) => {
     setLoading(true);

@@ -211,6 +211,7 @@ function LeftSidebar({userid}: any)
   
                           return(
                           <div
+                          key={link.label}
                           className={`relative flex justify-start gap-4 rounded-xl p-2.5 max-lg:gap-1 max-lg:justify-center hover:bg-primary-500 ${isActive && 'bg-primary-500'}`}
                           >
                             <NavLoginmodal image={link.imgURL} label={link.label} />
