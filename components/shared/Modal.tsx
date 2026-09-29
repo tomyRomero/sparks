@@ -73,7 +73,7 @@ useEffect(()=> {
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <Dialog.Overlay className="fixed inset-0" />
+                    <div className="fixed inset-0" aria-hidden="true" />
                 </Transition.Child>
                 
                 {/* Trick for headless UI to center img */}
@@ -91,7 +91,7 @@ useEffect(()=> {
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                 >
-                <div className="dialog-content">
+                <Dialog.Panel className="dialog-content">
                     <div className="flex flex-col">
                         <Image
                             src="/assets/close.svg"
@@ -156,7 +156,7 @@ useEffect(()=> {
                         </div>
                        
                     </div>
-                </div>
+                </Dialog.Panel>
                 </Transition.Child>
             </div>
         </Dialog>

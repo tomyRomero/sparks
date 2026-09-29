@@ -32,7 +32,7 @@ const Prompt = ({title, prompt}: {title: string, prompt: string}) => {
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <Dialog.Overlay className="fixed inset-0" />
+                    <div className="fixed inset-0" aria-hidden="true" />
                 </Transition.Child>
                 
                 {/* Trick for headless UI to center img */}
@@ -50,7 +50,7 @@ const Prompt = ({title, prompt}: {title: string, prompt: string}) => {
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                 >
-                <div className="dialog-content">
+                <Dialog.Panel className="dialog-content">
                 <div className="flex flex-col">
                         <Image
                             src="/assets/close.svg"
@@ -80,7 +80,7 @@ const Prompt = ({title, prompt}: {title: string, prompt: string}) => {
                     {!prompt && <p className='text-center'>This post was made when prompt saving was not a feature, sorry for the inconvenience and please check out newer posts.</p>}
                     
                     </div>
-                </div>
+                </Dialog.Panel>
                 </Transition.Child>
             </div>
         </Dialog>
