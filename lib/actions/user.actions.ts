@@ -2,7 +2,7 @@
 
 import {connectDb} from '@/lib/sql'
 import { revalidatePath } from 'next/cache';
-import { currentUser } from '@clerk/nextjs';
+import { currentUser } from '@clerk/nextjs/server';
 
 import util from 'util';
 

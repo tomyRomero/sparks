@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { SignOutButton, SignedIn} from "@clerk/nextjs";
+import { Show, SignOutButton } from "@clerk/nextjs";
 import { useRouter, usePathname } from 'next/navigation'
 import {  useEffect, useState } from "react";
 import { useAppContext } from "@/lib/AppContext";
@@ -78,10 +78,8 @@ function Topbar({ userId } : any)
             </div>
 
             <div className="md:hidden">
-                <SignedIn>
-                    <SignOutButton signOutCallback={
-                        ()=> router.push('/')
-                    }>
+                <Show when="signed-in">
+                    <SignOutButton redirectUrl="/">
                     <div className= "flex cursor-pointer gap-2 p-1 rounded-lg hover:bg-primary-500">
                         <Image 
                             src="/assets/logout.svg"
@@ -90,7 +88,7 @@ function Topbar({ userId } : any)
                             height={34}/>
                         </div>
                    </SignOutButton>
-                </SignedIn>
+                </Show>
             </div>
         </nav>
     )

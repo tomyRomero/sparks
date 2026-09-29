@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchLikesAndCommentsByUser } from "@/lib/actions/user.actions";
@@ -6,11 +6,10 @@ import Activity from "@/components/shared/Activity";
 import Pagination from "@/components/shared/Pagination";
 import { v4 as uuidv4 } from 'uuid';
 
-async function Page({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | undefined };
+async function Page(props: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
+  const searchParams = await props.searchParams;
   const user = await currentUser();
   if (!user) redirect('/');
 

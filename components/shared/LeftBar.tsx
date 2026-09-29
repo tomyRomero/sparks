@@ -4,7 +4,7 @@ import { sidebarLinks, bottombarLinks } from "@/constants";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from 'next/navigation'
-import { SignOutButton, SignedIn } from "@clerk/nextjs";
+import { Show, SignOutButton } from "@clerk/nextjs";
 import {  SVGProps, useEffect, useState } from "react";
 import { fetchUser, doesPostBelongToUser, fetchLikesAndCommentsByUser } from "@/lib/actions/user.actions";
 import { getRes } from "@/lib/s3";
@@ -185,10 +185,8 @@ function LeftSidebar({userid}: any)
               </div>
               
               <div className="mt-4 p-4 mx-auto max-lg:justify-center max-lg:p-2 max-lg:mx-auto">
-                  <SignedIn>
-                      <SignOutButton signOutCallback={
-                          ()=> router.push('/')
-                      }>
+                  <Show when="signed-in">
+                      <SignOutButton redirectUrl="/">
                       <div className= "flex cursor-pointer gap-4 p-4 rounded-lg hover:bg-primary-500">
                           <Image 
                               src="/assets/logout.svg"
@@ -198,7 +196,7 @@ function LeftSidebar({userid}: any)
                               <p className="text-light-2 max-lg:hidden">Logout</p>
                           </div>
                      </SignOutButton>
-                  </SignedIn>
+                  </Show>
               </div>
           </section>
       )

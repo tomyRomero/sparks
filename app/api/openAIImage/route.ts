@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import OpenAI from "openai";
 
 const openai = new OpenAI();
@@ -37,9 +38,12 @@ async function getImage(getPrompt: string) {
   }
 }
 
-export const GET = async (req: any, res: any) => {
+export const GET = async (req: NextRequest) => {
   try {
     const prompt = req.nextUrl.searchParams.get("prompt");
+    if (!prompt) {
+      return new Response("Missing prompt", { status: 400 });
+    }
     let bodyContents = null;
     let contentImageType = "image/jpeg"; // Default image type
 

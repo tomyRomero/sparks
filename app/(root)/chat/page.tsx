@@ -1,18 +1,17 @@
 import Image from "next/image"
 import Searchbar from "@/components/shared/Searchbar"
 import { fetchUser, fetchUsers } from "@/lib/actions/user.actions";
-import { currentUser } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import HorizontalScroll from "@/components/shared/HorizontalScroll";
 import { getChatsWithUsersByUserId} from "@/lib/actions/chat.actions";
 import Chatbox from "@/components/Chatbox";
 
 
-async function Page({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | undefined };
+async function Page(props: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
+  const searchParams = await props.searchParams;
   const user = await currentUser();
   if (!user) redirect('/');
 

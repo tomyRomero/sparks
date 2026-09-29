@@ -2,7 +2,7 @@
 import React from "react";
 import { Inter } from "next/font/google";
 import { ClerkProvider} from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
+import { dark } from "@clerk/ui/themes";
 
 import "../globals.css";
 import Topbar from "@/components/shared/TopBar";
@@ -42,7 +42,7 @@ export default async function RootLayout({
     userid?.length ? (
     <ClerkProvider
       appearance={{
-        baseTheme: dark,
+        theme: dark,
       }}
     >
       <html lang='en'>

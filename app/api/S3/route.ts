@@ -1,12 +1,15 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest } from 'next/server';
 import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 
 const client = new S3Client({ region: 'us-east-1' });
 
-export const GET = async (req: any, res: NextApiResponse) => {
+export const GET = async (req: NextRequest) => {
     try {
       // Extract the value of the "name" parameter from QUERY
       const key = req.nextUrl.searchParams.get("key");
+      if (!key) {
+        return new Response("Missing key", { status: 400 });
+      }
       console.log("Encoded Key:", key)
       const decodedKey = decodeURIComponent(key);
       console.log("Server Side KEY:" , decodedKey);
@@ -41,7 +44,7 @@ export const GET = async (req: any, res: NextApiResponse) => {
     }
   };
 
-export const POST = async (req: any, res: NextApiResponse) => {
+export const POST = async (req: NextRequest) => {
   const { image , name} = await req.json();
 
   // Determine the image format based on the content type

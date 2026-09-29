@@ -228,7 +228,7 @@ export const updateOnlineStatus = async (userId: string, isOnline: boolean) => {
   }
 };
 
-export const revalData = (path : string)=> {
+export const revalData = async (path : string)=> {
   revalidatePath(path)
 }
 

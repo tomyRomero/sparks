@@ -1,13 +1,14 @@
 import React from 'react'
 import { redirect } from "next/navigation";
-import { currentUser } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchPostById } from "@/lib/actions/post.actions";
 import Image from "next/image";
 import Link from "next/link";
 import EditPost from '@/components/cards/EditPost';
 
-const page = async ({ params }: { params: { id: string } }) => {
+const page = async (props: { params: Promise<{ id: string }> }) => {
+    const params = await props.params;
 
     if (!params.id) return null;
 

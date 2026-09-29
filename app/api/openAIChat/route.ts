@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import OpenAI from "openai";
 
 const openai = new OpenAI();
@@ -483,11 +484,14 @@ async function bookImage(title: string, prompt: string) {
 
 
 
-export const GET = async (req: any, res: any) => { 
+export const GET = async (req: NextRequest) => {
     try{
       const type = req.nextUrl.searchParams.get("type")
       const prompt = req.nextUrl.searchParams.get("prompt");
-      const title = req.nextUrl.searchParams.get("title")
+      const title = req.nextUrl.searchParams.get("title") ?? "";
+      if (!prompt) {
+        return new Response("Missing prompt", { status: 400 });
+      }
       let bodyContents = null;
       switch (type){
         case "movie":
@@ -554,8 +558,3 @@ export const GET = async (req: any, res: any) => {
         return new Response(`Error in GET endpoint: ${error}`, { status: 500 })
     }
 }
-
-export const POST = async (req: any, res: any) => {
-
-}
-

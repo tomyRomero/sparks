@@ -2,17 +2,14 @@ import Post from '@/components/cards/Post';
 import Searchbar from '@/components/shared/Searchbar';
 import { searchPosts } from '@/lib/actions/post.actions';
 import { fetchUser } from '@/lib/actions/user.actions';
-import { currentUser } from '@clerk/nextjs';
+import { currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import React from 'react'
 
-const page = async (
-    {
-    searchParams,
-  }: {
-    searchParams: { [key: string]: string | undefined };
-  }
-  ) => {
+const page = async (props: {
+    searchParams: Promise<{ [key: string]: string | undefined }>;
+  }) => {
+    const searchParams = await props.searchParams;
 
     const user = await currentUser();
     if (!user) redirect('/');

@@ -1,11 +1,12 @@
 import Chat from "@/components/forms/Chat";
 import { getChatBySenderAndReceiver } from "@/lib/actions/chat.actions";
 import { fetchUser } from "@/lib/actions/user.actions";
-import { currentUser } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 
-const page = async ({ params }: { params: { id: string } }) => {
+const page = async (props: { params: Promise<{ id: string }> }) => {
+    const params = await props.params;
 
     const user = await currentUser();
     if (!user) redirect('/');

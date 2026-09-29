@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { currentUser } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { profileTabs } from "@/constants";
 import ProfileHeader from "@/components/shared/ProfileHeader";
@@ -10,7 +10,8 @@ import { fetchUser } from "@/lib/actions/user.actions";
 import LikedTab from "@/components/shared/LikedTab";
 import { updateOnlineStatus } from "@/lib/actions/chat.actions";
 
-async function Page({ params }: { params: { id: string } }) {
+async function Page(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await currentUser();
   if (!user) redirect('/');
 
