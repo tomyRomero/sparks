@@ -1,5 +1,6 @@
 "use client";
 
+import { LoaderCircle } from "lucide-react";
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -42,7 +43,8 @@ export function ForgotPasswordForm() {
       <Field id="email" label="Email">
         <Input id="email" name="email" type="email" autoComplete="email" required maxLength={limits.emailMax} />
       </Field>
-      <Button type="submit" size="lg" disabled={pending}>
+      <Button type="submit" size="lg" disabled={pending} aria-busy={pending}>
+        {pending && <LoaderCircle className="animate-spin" aria-hidden />}
         {pending ? "Sending…" : "Send reset link"}
       </Button>
     </form>

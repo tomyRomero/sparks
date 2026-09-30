@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import { api } from "@/lib/api/client";
 import { ApiError, errorMessage } from "@/lib/api/problem";
 import { limits } from "@/lib/limits";
 
-type State = { error?: string; passwordError?: string; linkExpired?: boolean };
+type State = { error?: string; passwordError?: string; linkExpired?: boolean; done?: boolean };
 
 export function ResetPasswordForm({ token }: { token: string }) {
   const router = useRouter();
@@ -29,9 +30,10 @@ export function ResetPasswordForm({ token }: { token: string }) {
     }
 
     router.replace("/sign-in?reset=1");
-    return {};
+    return { done: true };
   }, {});
 
+  const busy = pending || state.done === true;
   return (
     <form action={reset} className="mt-8 grid gap-5">
       {state.error && <FormMessage tone="error">{state.error}</FormMessage>}
@@ -51,8 +53,9 @@ export function ResetPasswordForm({ token }: { token: string }) {
           {...fieldDescription("password", state.passwordError, "hint")}
         />
       </Field>
-      <Button type="submit" size="lg" disabled={pending}>
-        {pending ? "Saving…" : "Set new password"}
+      <Button type="submit" size="lg" disabled={busy} aria-busy={busy}>
+        {busy && <LoaderCircle className="animate-spin" aria-hidden />}
+        {busy ? "Saving…" : "Set new password"}
       </Button>
     </form>
   );

@@ -1,30 +1,17 @@
 "use client";
 
 import * as Menu from "@radix-ui/react-dropdown-menu";
-import { Ellipsis, LogOut, Settings, UserRound } from "lucide-react";
+import { Ellipsis, LoaderCircle, LogOut, Settings, UserRound } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { Avatar } from "@/components/ui/avatar";
 import { menuContentStyle, menuItemStyle } from "@/components/ui/menu";
-import { api } from "@/lib/api/client";
 import type { CurrentUser } from "@/lib/api/types";
+import { useSignOut } from "@/lib/auth/use-sign-out";
 import { cn } from "@/lib/utils";
 
 /** The signed-in member, with their profile, settings and sign-out. */
 export function ViewerMenu({ viewer }: { viewer: CurrentUser }) {
-  const router = useRouter();
-
-  async function signOut() {
-    try {
-      await api("/auth/logout", { method: "POST" });
-    } catch {
-      toast.error("Couldn't sign out. Try again.");
-      return;
-    }
-    router.replace("/");
-    router.refresh();
-  }
+  const { signingOut, signOut } = useSignOut();
 
   return (
     <Menu.Root>
@@ -49,8 +36,21 @@ export function ViewerMenu({ viewer }: { viewer: CurrentUser }) {
             </Link>
           </Menu.Item>
           <Menu.Separator className="my-1 h-px bg-line" />
-          <Menu.Item className={menuItemStyle} onSelect={signOut}>
-            <LogOut className="size-4" aria-hidden /> Sign out
+          <Menu.Item
+            className={menuItemStyle}
+            aria-busy={signingOut || undefined}
+            // The menu stays open, so "Signing out…" shows until the next page does.
+            onSelect={(event) => {
+              event.preventDefault();
+              void signOut();
+            }}
+          >
+            {signingOut ? (
+              <LoaderCircle className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <LogOut className="size-4" aria-hidden />
+            )}
+            {signingOut ? "Signing out…" : "Sign out"}
           </Menu.Item>
         </Menu.Content>
       </Menu.Portal>

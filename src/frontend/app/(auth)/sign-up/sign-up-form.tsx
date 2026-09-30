@@ -1,5 +1,7 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
+import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,12 +13,18 @@ import { ApiError, errorMessage } from "@/lib/api/problem";
 import { limits } from "@/lib/limits";
 
 type Values = { email: string; username: string; displayName: string };
-type State = { values: Values; fieldErrors: Partial<Record<keyof Values | "password", string>>; error?: string };
+type State = {
+  values: Values;
+  fieldErrors: Partial<Record<keyof Values | "password", string>>;
+  error?: string;
+  signedIn?: boolean;
+};
 
 const empty: State = { values: { email: "", username: "", displayName: "" }, fieldErrors: {} };
 
 export function SignUpForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [state, signUp, pending] = useActionState<State, FormData>(async (_, form) => {
     const values: Values = {
       email: String(form.get("email")).trim(),
@@ -46,12 +54,14 @@ export function SignUpForm() {
       return { values, fieldErrors: {}, error: errorMessage(error) };
     }
 
+    queryClient.clear();
     router.replace("/");
     router.refresh();
-    return { values, fieldErrors: {} };
+    return { values, fieldErrors: {}, signedIn: true };
   }, empty);
 
   const { values, fieldErrors } = state;
+  const busy = pending || state.signedIn === true;
   return (
     <form action={signUp} className="mt-8 grid gap-5">
       {state.error && <FormMessage tone="error">{state.error}</FormMessage>}
@@ -105,8 +115,9 @@ export function SignUpForm() {
           {...fieldDescription("password", fieldErrors.password, "hint")}
         />
       </Field>
-      <Button type="submit" size="lg" disabled={pending}>
-        {pending ? "Creating your account…" : "Create account"}
+      <Button type="submit" size="lg" disabled={busy} aria-busy={busy}>
+        {busy && <LoaderCircle className="animate-spin" aria-hidden />}
+        {busy ? "Creating your account…" : "Create account"}
       </Button>
     </form>
   );

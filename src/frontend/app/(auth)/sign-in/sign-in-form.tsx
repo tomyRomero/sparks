@@ -1,7 +1,9 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { LoaderCircle } from "lucide-react";
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, fieldDescription } from "@/components/ui/field";
@@ -11,10 +13,11 @@ import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/problem";
 import { limits } from "@/lib/limits";
 
-type State = { error?: string; identifier: string };
+type State = { error?: string; identifier: string; signedIn?: boolean };
 
 export function SignInForm({ returnTo, passwordReset }: { returnTo: string; passwordReset: boolean }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [state, signIn, pending] = useActionState<State, FormData>(
     async (_, form) => {
       const identifier = String(form.get("identifier"));
@@ -25,13 +28,16 @@ export function SignInForm({ returnTo, passwordReset }: { returnTo: string; pass
         return { identifier, error: errorMessage(error) };
       }
 
+      // A new member starts from an empty cache, never the last one's likes and counts.
+      queryClient.clear();
       router.replace(returnTo);
       router.refresh();
-      return { identifier };
+      return { identifier, signedIn: true };
     },
     { identifier: "" },
   );
 
+  const busy = pending || state.signedIn === true;
   return (
     <form action={signIn} className="mt-8 grid gap-5">
       {passwordReset && !state.error && (
@@ -57,8 +63,10 @@ export function SignInForm({ returnTo, passwordReset }: { returnTo: string; pass
           Forgot your password?
         </Link>
       </div>
-      <Button type="submit" size="lg" disabled={pending}>
-        {pending ? "Signing in…" : "Sign in"}
+      {/* Still busy after the answer, until the next page replaces this one. */}
+      <Button type="submit" size="lg" disabled={busy} aria-busy={busy}>
+        {busy && <LoaderCircle className="animate-spin" aria-hidden />}
+        {busy ? "Signing in…" : "Sign in"}
       </Button>
     </form>
   );
