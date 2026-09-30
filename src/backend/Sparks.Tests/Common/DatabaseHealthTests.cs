@@ -30,7 +30,7 @@ public sealed class DatabaseHealthTests(SparksApiFactory factory)
         const string unreachableHost = "127.0.0.1,1";
         using var api = factory.WithWebHostBuilder(builder => builder.UseSetting(
             $"ConnectionStrings:{DatabaseServiceCollectionExtensions.ConnectionStringName}",
-            $"Server={unreachableHost};Database=Sparks;User Id=sa;Password=unused;Connect Timeout=2;TrustServerCertificate=True"));
+            $"Server={unreachableHost};Database=Sparks;Connect Timeout=2;TrustServerCertificate=True"));
 
         var response = await api.CreateClient().GetAsync("/health/ready", Ct);
 
