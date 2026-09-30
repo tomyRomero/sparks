@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -94,6 +95,33 @@ public sealed class PipelineTests(SparksApiFactory factory)
         body.Should().NotContain(ThrowingController.SecretMessage);
         body.Should().NotContain(nameof(ThrowingController));
         JsonDocument.Parse(body).RootElement.GetProperty("traceId").GetString().Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public async Task A_request_the_client_abandons_ends_as_a_499_without_logging_an_error()
+    {
+        var probe = new RequestProbe();
+        var logs = new CapturingLogSink();
+        using var throwingApi = factory.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services =>
+            {
+                services.AddControllers().AddApplicationPart(typeof(ThrowingController).Assembly);
+                services.AddSingleton(probe);
+                services.AddSingleton<IStartupFilter>(probe);
+                services.AddSingleton<ILogEventSink>(logs);
+            }));
+        using var leave = CancellationTokenSource.CreateLinkedTokenSource(Ct);
+
+        var request = throwingApi.CreateClient().GetAsync(ThrowingController.AfterAbortPath, leave.Token);
+        await probe.Started.Task.WaitAsync(Ct);
+        await leave.CancelAsync();
+        var status = await probe.Finished.Task.WaitAsync(TimeSpan.FromSeconds(30), Ct);
+
+        await FluentActions.Awaiting(() => request).Should().ThrowAsync<OperationCanceledException>();
+        status.Should().Be(StatusCodes.Status499ClientClosedRequest);
+        logs.Events.Should().Contain(
+            log => IsRequestLog(log, "/" + ThrowingController.AfterAbortPath), "the request itself is still logged");
+        logs.Events.Should().NotContain(log => log.Level >= LogEventLevel.Error);
     }
 
     [Fact]

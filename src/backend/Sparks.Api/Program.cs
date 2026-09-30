@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Cors.Infrastructure;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
@@ -47,6 +48,7 @@ try
     // exceptions (a generic 500, never a stack trace) and bare status codes
     // such as 404 and 405.
     builder.Services.AddProblemDetails();
+    builder.Services.AddExceptionHandler<AbortedRequestHandler>();
     builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
     // ── Database ─────────────────────────────────────────────────────────────
@@ -133,9 +135,11 @@ try
     app.UseSerilogRequestLogging(options => options.Logger = app.Services.GetRequiredService<Serilog.ILogger>());
     app.UseExceptionHandler(new ExceptionHandlerOptions
     {
-        // An ApiException is an expected outcome (404, 403), answered by
-        // ApiExceptionHandler; only unexpected exceptions are logged as errors.
-        SuppressDiagnosticsCallback = context => context.Exception is ApiException,
+        // What a handler claims is an expected outcome: an ApiException (404,
+        // 403) or a request the client abandoned. Only the rest are logged as
+        // errors.
+        SuppressDiagnosticsCallback = context =>
+            context.ExceptionHandledBy == ExceptionHandledType.ExceptionHandlerService,
     });
     app.UseStatusCodePages();
     app.UseMiddleware<SecurityHeadersMiddleware>();
