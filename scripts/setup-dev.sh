@@ -2,7 +2,8 @@
 # One-time local setup. Generates local secrets and keeps them out of the repo:
 #   .env                .NET user-secrets (Sparks.Api)
 #   └ SA_PASSWORD       ├ ConnectionStrings:SparksDb
-#                       └ Jwt:Secret
+#                       ├ Jwt:Secret
+#                       └ Seed:Password (the demo accounts' password)
 #
 # Safe to re-run: an existing .env and JWT key are kept, and the connection
 # string is rebuilt from .env. Never prints a secret.
@@ -35,5 +36,13 @@ if ! dotnet user-secrets list --project "$api_project" | grep -q '^Jwt:Secret = 
   echo "Stored a new JWT signing key in .NET user-secrets."
 fi
 
+# The password every demo account gets from `dotnet run -- seed`. Read it
+# with `dotnet user-secrets list --project src/backend/Sparks.Api`.
+if ! dotnet user-secrets list --project "$api_project" | grep -q '^Seed:Password = '; then
+  dotnet user-secrets set "Seed:Password" "demo-$(openssl rand -hex 6)" --project "$api_project" > /dev/null
+  echo "Stored a demo account password in .NET user-secrets."
+fi
+
 echo
 echo "Next: docker compose up -d --wait, then dotnet run --project $api_project"
+echo "Demo data (optional): dotnet run --project $api_project -- seed"

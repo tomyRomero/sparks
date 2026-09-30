@@ -17,6 +17,7 @@ using Sparks.Api.Common.Health;
 using Sparks.Api.Common.Security;
 using Sparks.Api.Posts.Services;
 using Sparks.Api.Realtime;
+using Sparks.Api.Seeding;
 using Sparks.Api.Storage;
 using Sparks.Api.Users.Services;
 
@@ -111,6 +112,12 @@ try
     if (app.Environment.IsDevelopment())
     {
         await app.MigrateDatabaseAsync();
+    }
+
+    // `dotnet run -- seed` fills a development database with demo data and exits.
+    if (args is ["seed"])
+    {
+        return await app.SeedDemoDataAsync();
     }
 
     // ── Pipeline ─────────────────────────────────────────────────────────────
