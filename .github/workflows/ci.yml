@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   frontend:
-    name: Frontend (lint, typecheck, test, build)
+    name: Frontend (lint, format, typecheck, test, build)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -35,23 +35,20 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Format
+        run: npm run format:check
+
       - name: Typecheck
         run: npm run typecheck
 
       - name: Unit tests
         run: npm test
 
-      # Some clients are created when their module loads, so the build needs
-      # values in these variables. These are dummies, not credentials.
+      # Pages that need data render per request, so the build never calls the API.
       - name: Build
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
-          OPENAI_API_KEY: ci-placeholder
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
-          CLERK_SECRET_KEY: sk_test_ci-placeholder
-          NEXT_PUBLIC_PUSHER_APP_KEY: ci-placeholder
-          NEXT_PUBLIC_PUSHER_CLUSTER: us2
 
   backend:
     name: Backend (build, format, test)
