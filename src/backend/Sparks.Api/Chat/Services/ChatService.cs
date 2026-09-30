@@ -105,6 +105,18 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
         return (await GetAsync(conversationId!.Value, userId, ct), created);
     }
 
+    /// <summary>
+    /// One conversation from a participant's side. Anyone else gets the same
+    /// 404 as for a conversation that doesn't exist.
+    /// </summary>
+    public async Task<ConversationResponse> GetAsync(long conversationId, long userId, CancellationToken ct) =>
+        await db.Conversations.AsNoTracking()
+            .Where(conversation => conversation.Id == conversationId
+                && (conversation.UserAId == userId || conversation.UserBId == userId))
+            .Select(ToConversationResponse(userId))
+            .SingleOrDefaultAsync(ct)
+        ?? throw ConversationNotFound();
+
     /// <summary>A conversation's messages, newest first, for one of its participants.</summary>
     public async Task<CursorPage<MessageResponse>> GetMessagesAsync(
         long conversationId, long userId, PageRequest page, CancellationToken ct)
@@ -179,12 +191,6 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
                 && (message.Conversation.UserAId == userId || message.Conversation.UserBId == userId),
             ct);
 
-    private async Task<ConversationResponse> GetAsync(long conversationId, long userId, CancellationToken ct) =>
-        await db.Conversations.AsNoTracking()
-            .Where(conversation => conversation.Id == conversationId)
-            .Select(ToConversationResponse(userId))
-            .SingleOrDefaultAsync(ct)
-        ?? throw ConversationNotFound();
 
     private Task<long?> FindPairAsync(long userAId, long userBId, CancellationToken ct) =>
         db.Conversations

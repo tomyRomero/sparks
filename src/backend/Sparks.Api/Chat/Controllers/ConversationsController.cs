@@ -36,6 +36,11 @@ public sealed class ConversationsController(ChatService chat) : ControllerBase
     public async Task<UnreadMessages> GetUnreadCount(CancellationToken ct) =>
         new(await chat.CountUnreadAsync(User.GetUserId(), ct));
 
+    /// <summary>One conversation: who it's with, its last message and what's unread.</summary>
+    [HttpGet("{id:long}")]
+    public Task<ConversationResponse> Get(long id, CancellationToken ct) =>
+        chat.GetAsync(id, User.GetUserId(), ct);
+
     /// <summary>A conversation's messages, newest first.</summary>
     [HttpGet("{id:long}/messages")]
     public Task<CursorPage<MessageResponse>> GetMessages(long id, [FromQuery] PageRequest page, CancellationToken ct) =>

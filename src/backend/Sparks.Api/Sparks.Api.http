@@ -148,6 +148,9 @@ Content-Type: application/json
   "username": "someone_else"
 }
 
+### One conversation, from your side
+GET {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}
+
 ### Send a message
 # @name message
 POST {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}/messages

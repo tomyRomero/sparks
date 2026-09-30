@@ -88,18 +88,40 @@ public sealed class ChatTests(SparksApiFactory factory)
     }
 
     [Fact]
+    public async Task Each_participant_gets_the_conversation_from_their_side()
+    {
+        var (alice, aliceUser) = await factory.SignedInClientAsync(Ct);
+        var (bob, conversationId) = await OpenWithNewMemberAsync(alice);
+        var sent = await SendAsync(alice, conversationId, "Hello Bob");
+
+        var bobsView = await bob.GetJsonAsync<ConversationResponse>($"{ConversationsPath}/{conversationId}", Ct);
+        var alicesView = await alice.GetJsonAsync<ConversationResponse>($"{ConversationsPath}/{conversationId}", Ct);
+
+        bobsView.Should().BeEquivalentTo(new
+        {
+            Id = conversationId,
+            With = new { aliceUser.Id, aliceUser.Username },
+            LastMessage = new { sent.Id, sent.Body },
+            UnreadCount = 1,
+        });
+        alicesView.With.Id.Should().NotBe(aliceUser.Id);
+        alicesView.UnreadCount.Should().Be(0, "her own messages are never unread for her");
+    }
+
+    [Fact]
     public async Task Outsiders_cant_see_that_a_conversation_exists()
     {
         var (alice, _, conversationId) = await ConversationAsync();
         await SendAsync(alice, conversationId, "Just between us");
         var (outsider, _) = await factory.SignedInClientAsync(Ct);
 
+        var open = await outsider.GetAsync($"{ConversationsPath}/{conversationId}", Ct);
         var read = await outsider.GetAsync(MessagesPath(conversationId), Ct);
         var write = await outsider.PostJsonAsync(MessagesPath(conversationId), new SendMessageRequest { Body = "Hi" }, Ct);
         var markRead = await outsider.PostJsonAsync(
             $"{ConversationsPath}/{conversationId}/read", new MarkMessagesReadRequest { UpToMessageId = long.MaxValue }, Ct);
 
-        foreach (var response in new[] { read, write, markRead })
+        foreach (var response in new[] { open, read, write, markRead })
         {
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
             (await response.ProblemCodeAsync(Ct)).Should().Be("CONVERSATION_NOT_FOUND");
