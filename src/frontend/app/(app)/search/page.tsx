@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Feed } from "@/components/posts/feed";
+import { FeedSkeleton } from "@/components/posts/post-skeletons";
 import { MemberList } from "@/components/profile/member-list";
+import { MemberListSkeleton } from "@/components/profile/profile-skeletons";
 import { SearchForm } from "@/components/search/search-form";
 import { PageHeader } from "@/components/shell/page-header";
 import { TabNav } from "@/components/ui/tab-nav";
@@ -42,7 +45,13 @@ export default async function SearchPage({ searchParams }: SearchProps) {
               { href: `/search?q=${encoded}&type=members`, label: "Members", current: tab === "members" },
             ]}
           />
-          {tab === "sparks" ? <SparkResults q={q} /> : <MemberResults q={q} />}
+          {/* A new search or tab keys a new boundary, so its results show a skeleton while they load. */}
+          <Suspense
+            key={`${tab}:${q}`}
+            fallback={tab === "sparks" ? <FeedSkeleton count={3} /> : <MemberListSkeleton />}
+          >
+            {tab === "sparks" ? <SparkResults q={q} /> : <MemberResults q={q} />}
+          </Suspense>
         </>
       ) : (
         <Suggestions />

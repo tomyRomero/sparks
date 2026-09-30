@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { PendingIcon } from "@/components/ui/pending-icon";
 import type { SparkKind } from "@/lib/api/types";
 import { kinds } from "@/lib/kinds";
 import { cn } from "@/lib/utils";
@@ -50,7 +51,7 @@ export function KindFilter({ active }: { active: SparkKind | undefined }) {
               className={cn(chip, active === kind ? current : idle)}
               aria-current={active === kind ? "page" : undefined}
             >
-              <Icon className="size-3.5 shrink-0" aria-hidden />
+              <PendingIcon icon={Icon} className="size-3.5" />
               {label}
             </Link>
           </li>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
+import { PendingIcon } from "@/components/ui/pending-icon";
 import type { CurrentUser } from "@/lib/api/types";
 import { useUnreadActivity, useUnreadMessages } from "@/lib/queries/unread";
 import { cn } from "@/lib/utils";
@@ -37,7 +38,7 @@ export function Sidebar({ viewer }: { viewer: CurrentUser | null }) {
                   active && "bg-brand-soft text-brand hover:bg-brand-soft hover:text-brand",
                 )}
               >
-                <item.icon className="size-5" aria-hidden />
+                <PendingIcon icon={item.icon} className="size-5" />
                 <span className="flex-1">{item.label}</span>
                 {item.badge && <UnreadBadge count={counts[item.badge]} />}
               </Link>

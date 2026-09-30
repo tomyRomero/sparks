@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { PendingIcon } from "@/components/ui/pending-icon";
 import type { CurrentUser } from "@/lib/api/types";
 import { useUnreadActivity, useUnreadMessages } from "@/lib/queries/unread";
 import { cn } from "@/lib/utils";
@@ -32,7 +33,7 @@ export function MobileNav({ viewer }: { viewer: CurrentUser | null }) {
                 aria-label={item.label}
                 className={cn("relative flex size-14 items-center justify-center text-muted", active && "text-brand")}
               >
-                <item.icon className="size-6" aria-hidden />
+                <PendingIcon icon={item.icon} className="size-6" />
                 {item.badge && <UnreadBadge count={counts[item.badge]} className="absolute top-2 right-2" />}
               </Link>
             </li>

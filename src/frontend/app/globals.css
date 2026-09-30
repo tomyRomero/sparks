@@ -84,6 +84,9 @@
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
+
+  --animate-shimmer: shimmer 1.4s linear infinite;
+  --animate-progress: progress 1.2s ease-in-out infinite;
 }
 
 @layer base {
@@ -119,6 +122,31 @@
   }
   to {
     background-position: -150% 0;
+  }
+}
+
+/* The sweep across a skeleton block while its content loads. */
+@utility skeleton-fill {
+  background: linear-gradient(90deg, var(--line) 20%, var(--raised) 50%, var(--line) 80%);
+  background-size: 250% 100%;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+/* The bar that runs along the top of the window while a page loads. */
+@keyframes progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
   }
 }
 
