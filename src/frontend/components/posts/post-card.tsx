@@ -61,7 +61,12 @@ export function PostCard({ post, signedIn, eagerImage = false }: PostCardProps) 
             </Link>
           )}
           <footer className="-ml-2 mt-3 flex items-center gap-2">
-            <LikeButton target={`/posts/${post.id}`} liked={post.likedByMe} count={post.likeCount} signedIn={signedIn} />
+            <LikeButton
+              target={{ kind: "post", id: post.id }}
+              liked={post.likedByMe}
+              count={post.likeCount}
+              signedIn={signedIn}
+            />
             <Link
               href={href}
               className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-xs text-muted hover:bg-brand/10 hover:text-brand"

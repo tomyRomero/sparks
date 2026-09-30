@@ -8,6 +8,7 @@ import { Field, fieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/problem";
+import { limits } from "@/lib/limits";
 import { FormMessage } from "../form-message";
 
 type State = { error?: string; identifier: string };
@@ -41,7 +42,7 @@ export function SignInForm({ returnTo, passwordReset }: { returnTo: string; pass
           autoComplete="username"
           defaultValue={state.identifier}
           required
-          maxLength={254}
+          maxLength={limits.emailMax}
           {...fieldDescription("identifier")}
         />
       </Field>

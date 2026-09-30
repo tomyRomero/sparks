@@ -8,6 +8,7 @@ import { Field, fieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import { ApiError, errorMessage } from "@/lib/api/problem";
+import { limits } from "@/lib/limits";
 import { FormMessage } from "../form-message";
 
 type State = { error?: string; passwordError?: string; linkExpired?: boolean };
@@ -46,7 +47,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
           type="password"
           autoComplete="new-password"
           required
-          minLength={8}
+          minLength={limits.passwordMin}
           {...fieldDescription("password", state.passwordError, "hint")}
         />
       </Field>

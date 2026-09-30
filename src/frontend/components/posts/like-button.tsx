@@ -1,17 +1,18 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/problem";
 import type { LikeState } from "@/lib/api/types";
+import { updateCachedComment, updateCachedPost } from "@/lib/queries/cache";
 import { cn } from "@/lib/utils";
 
 type LikeButtonProps = {
-  /** The API path of the thing to like: "/posts/12" or "/comments/40". */
-  target: string;
+  target: { kind: "post" | "comment"; id: number };
   liked: boolean;
   count: number;
   signedIn: boolean;
@@ -20,13 +21,17 @@ type LikeButtonProps = {
 
 /**
  * Likes and unlikes straight away, then settles on the count the API
- * returns; a failure puts it back. Guests are sent to sign in.
+ * returns, which every cached list showing the item picks up too. A failure
+ * puts it back. Guests are sent to sign in.
  */
 export function LikeButton({ target, liked: initialLiked, count: initialCount, signedIn, size = "md" }: LikeButtonProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [state, setState] = useState<LikeState>({ liked: initialLiked, likeCount: initialCount });
   const [, startTransition] = useTransition();
+  // Quick double taps send overlapping requests; only the latest answer counts.
+  const latest = useRef(0);
 
   function toggle() {
     if (!signedIn) {
@@ -36,11 +41,21 @@ export function LikeButton({ target, liked: initialLiked, count: initialCount, s
 
     const previous = state;
     const liked = !previous.liked;
+    const request = ++latest.current;
     setState({ liked, likeCount: previous.likeCount + (liked ? 1 : -1) });
     startTransition(async () => {
       try {
-        setState(await api<LikeState>(`${target}/like`, { method: liked ? "PUT" : "DELETE" }));
+        const settled = await api<LikeState>(`/${target.kind}s/${target.id}/like`, { method: liked ? "PUT" : "DELETE" });
+        if (request !== latest.current) return;
+        setState(settled);
+        const update = { likedByMe: settled.liked, likeCount: settled.likeCount };
+        if (target.kind === "post") {
+          updateCachedPost(queryClient, target.id, (post) => ({ ...post, ...update }));
+        } else {
+          updateCachedComment(queryClient, target.id, (comment) => ({ ...comment, ...update }));
+        }
       } catch (error) {
+        if (request !== latest.current) return;
         setState(previous);
         toast.error(errorMessage(error));
       }

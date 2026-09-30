@@ -6,6 +6,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/problem";
+import { limits } from "@/lib/limits";
 import { FormMessage } from "../form-message";
 
 type State = { sent: boolean; error?: string };
@@ -36,7 +37,7 @@ export function ForgotPasswordForm() {
     <form action={requestLink} className="mt-8 grid gap-5">
       {state.error && <FormMessage tone="error">{state.error}</FormMessage>}
       <Field id="email" label="Email">
-        <Input id="email" name="email" type="email" autoComplete="email" required maxLength={254} />
+        <Input id="email" name="email" type="email" autoComplete="email" required maxLength={limits.emailMax} />
       </Field>
       <Button type="submit" size="lg" disabled={pending}>
         {pending ? "Sending…" : "Send reset link"}

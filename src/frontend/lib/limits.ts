@@ -1,0 +1,15 @@
+/**
+ * The API's input limits (InputLimits.cs), so forms stop at the same place
+ * the server would. The server still checks; these only save a round trip.
+ */
+export const limits = {
+  usernameMax: 30,
+  displayNameMax: 50,
+  bioMax: 1000,
+  emailMax: 254,
+  passwordMin: 8,
+  postBodyMax: 10_000,
+  aiPromptMax: 1000,
+  commentBodyMax: 2000,
+  messageBodyMax: 2000,
+} as const;

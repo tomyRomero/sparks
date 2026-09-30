@@ -6,11 +6,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Avatar } from "@/components/ui/avatar";
+import { menuContentStyle, menuItemStyle } from "@/components/ui/menu";
 import { api } from "@/lib/api/client";
 import type { CurrentUser } from "@/lib/api/types";
-
-const itemStyle =
-  "flex cursor-pointer items-center gap-2.5 rounded-sm px-3 py-2 text-sm text-ink-soft outline-none data-highlighted:bg-raised data-highlighted:text-ink";
+import { cn } from "@/lib/utils";
 
 /** The signed-in member, with their profile, settings and sign-out. */
 export function ViewerMenu({ viewer }: { viewer: CurrentUser }) {
@@ -42,20 +41,20 @@ export function ViewerMenu({ viewer }: { viewer: CurrentUser }) {
           side="top"
           align="start"
           sideOffset={8}
-          className="z-50 min-w-52 rounded-md border border-line bg-surface p-1 shadow-lg"
+          className={cn(menuContentStyle, "min-w-52")}
         >
-          <Menu.Item asChild className={itemStyle}>
+          <Menu.Item asChild className={menuItemStyle}>
             <Link href={`/u/${viewer.username}`}>
               <UserRound className="size-4" aria-hidden /> Your profile
             </Link>
           </Menu.Item>
-          <Menu.Item asChild className={itemStyle}>
+          <Menu.Item asChild className={menuItemStyle}>
             <Link href="/settings/profile">
               <Settings className="size-4" aria-hidden /> Edit profile
             </Link>
           </Menu.Item>
           <Menu.Separator className="my-1 h-px bg-line" />
-          <Menu.Item className={itemStyle} onSelect={signOut}>
+          <Menu.Item className={menuItemStyle} onSelect={signOut}>
             <LogOut className="size-4" aria-hidden /> Sign out
           </Menu.Item>
         </Menu.Content>

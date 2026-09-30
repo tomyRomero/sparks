@@ -7,6 +7,7 @@ import { Field, fieldDescription } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import { ApiError, errorMessage } from "@/lib/api/problem";
+import { limits } from "@/lib/limits";
 import { FormMessage } from "../form-message";
 
 type Values = { email: string; username: string; displayName: string };
@@ -61,7 +62,7 @@ export function SignUpForm() {
           autoComplete="name"
           defaultValue={values.displayName}
           required
-          maxLength={50}
+          maxLength={limits.displayNameMax}
           {...fieldDescription("displayName", fieldErrors.displayName)}
         />
       </Field>
@@ -89,7 +90,7 @@ export function SignUpForm() {
           autoComplete="email"
           defaultValue={values.email}
           required
-          maxLength={254}
+          maxLength={limits.emailMax}
           {...fieldDescription("email", fieldErrors.email)}
         />
       </Field>
@@ -100,7 +101,7 @@ export function SignUpForm() {
           type="password"
           autoComplete="new-password"
           required
-          minLength={8}
+          minLength={limits.passwordMin}
           {...fieldDescription("password", fieldErrors.password, "hint")}
         />
       </Field>
