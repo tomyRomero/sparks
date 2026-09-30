@@ -173,3 +173,25 @@ GET {{api}}/api/v1/conversations
 
 ### Unread messages, for a badge
 GET {{api}}/api/v1/conversations/unread-count
+
+# AI: drafts and pictures (needs sign-in; limited per member per hour).
+# Sample providers answer by default; set Ai:TextProvider=Gemini and
+# Ai:ImageProvider=Cloudflare, with their keys in user secrets, for real ones.
+
+### Draft a spark from an idea
+# @name draft
+POST {{api}}/api/v1/ai/drafts
+Content-Type: application/json
+
+{
+  "kind": "movieScript",
+  "prompt": "A lighthouse keeper keeps hearing a radio station that went off air in 1962"
+}
+
+### Paint the draft's picture (returns a key to attach to a post)
+POST {{api}}/api/v1/ai/images
+Content-Type: application/json
+
+{
+  "prompt": "{{draft.response.body.$.imagePrompt}}"
+}

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Sparks.Api.Activity.Services;
+using Sparks.Api.Ai;
 using Sparks.Api.Auth;
 using Sparks.Api.Chat.Services;
 using Sparks.Api.Common;
@@ -97,6 +98,9 @@ try
     builder.Services.AddScoped<ActivityService>();
     builder.Services.AddScoped<ChatService>();
     builder.Services.AddSparksHealthChecks();
+
+    // ── AI ───────────────────────────────────────────────────────────────────
+    builder.Services.AddSparksAi(builder.Configuration);
 
     // ── Realtime ─────────────────────────────────────────────────────────────
     builder.Services.AddSignalR();
