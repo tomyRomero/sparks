@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Serilog;
+using Sparks.Api.Activity.Services;
 using Sparks.Api.Auth;
 using Sparks.Api.Common;
 using Sparks.Api.Common.Data;
@@ -75,6 +76,7 @@ try
     builder.Services.AddScoped<PostService>();
     builder.Services.AddScoped<CommentService>();
     builder.Services.AddScoped<UserService>();
+    builder.Services.AddScoped<ActivityService>();
     builder.Services.AddSparksHealthChecks();
 
     var app = builder.Build();

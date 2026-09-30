@@ -118,3 +118,20 @@ Content-Type: application/json
   "displayName": "Demo User",
   "bio": "Writes haiku between builds."
 }
+
+# Activity: what others did to your posts and comments (needs sign-in).
+
+### Newest first (optional: cursor, limit)
+# @name activity
+GET {{api}}/api/v1/activity
+
+### Unread count, for a badge
+GET {{api}}/api/v1/activity/unread-count
+
+### Mark read up to the newest item seen
+POST {{api}}/api/v1/activity/read
+Content-Type: application/json
+
+{
+  "upTo": "{{activity.response.body.$.items[0].at}}"
+}
