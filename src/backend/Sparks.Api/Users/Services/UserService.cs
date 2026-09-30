@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Sparks.Api.Common.Data;
-using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Users.Data;
 using Sparks.Api.Users.Models;
@@ -17,7 +16,7 @@ public sealed class UserService(SparksDbContext db)
             .Where(user => user.Username == username)
             .Select(ToProfile())
             .SingleOrDefaultAsync(ct)
-        ?? throw UserNotFound();
+        ?? throw UserErrors.UserNotFound();
 
     /// <summary>The id behind a username, for the lists on a profile page.</summary>
     public async Task<long> GetIdAsync(string username, CancellationToken ct) =>
@@ -25,7 +24,7 @@ public sealed class UserService(SparksDbContext db)
             .Where(user => user.Username == username)
             .Select(user => (long?)user.Id)
             .SingleOrDefaultAsync(ct)
-        ?? throw UserNotFound();
+        ?? throw UserErrors.UserNotFound();
 
     public async Task<ProfileResponse> UpdateProfileAsync(long userId, UpdateProfileRequest request, CancellationToken ct)
     {
@@ -41,7 +40,7 @@ public sealed class UserService(SparksDbContext db)
             .Where(user => user.Id == userId)
             .Select(ToProfile())
             .SingleOrDefaultAsync(ct)
-            ?? throw UserNotFound();
+            ?? throw UserErrors.UserNotFound();
     }
 
     /// <summary>
@@ -78,7 +77,4 @@ public sealed class UserService(SparksDbContext db)
         user.CreatedAt,
         db.Posts.Count(post => post.AuthorId == user.Id),
         db.PostLikes.Count(like => like.Post.AuthorId == user.Id));
-
-    private static ApiException UserNotFound() =>
-        ApiException.NotFound("USER_NOT_FOUND", "There's no member with that username.");
 }

@@ -1,7 +1,7 @@
 using System.Net;
 using FluentAssertions;
 using Sparks.Api.Activity.Models;
-using Sparks.Api.Posts.Models;
+using Sparks.Api.Common.Models;
 using Sparks.Tests.Infrastructure;
 
 namespace Sparks.Tests.Activity;
@@ -31,7 +31,7 @@ public sealed class ActivityTests(SparksApiFactory factory)
         await LikePostAsync(me, myPost.Id);
         await me.CommentAsync(myPost.Id, "Talking to myself", Ct);
 
-        var activity = await me.GetJsonAsync<ActivityPage>(ActivityPath, Ct);
+        var activity = await me.GetJsonAsync<OpaqueCursorPage<ActivityItem>>(ActivityPath, Ct);
 
         activity.Items.Should().SatisfyRespectively(
             item => item.Should().BeEquivalentTo(new
@@ -86,9 +86,9 @@ public sealed class ActivityTests(SparksApiFactory factory)
         }
 
         var before = await UnreadCountAsync(me);
-        var seen = await me.GetJsonAsync<ActivityPage>(ActivityPath, Ct);
+        var seen = await me.GetJsonAsync<OpaqueCursorPage<ActivityItem>>(ActivityPath, Ct);
         await MarkReadAsync(me, seen.Items[1].At);
-        var afterMarking = await me.GetJsonAsync<ActivityPage>(ActivityPath, Ct);
+        var afterMarking = await me.GetJsonAsync<OpaqueCursorPage<ActivityItem>>(ActivityPath, Ct);
         await MarkReadAsync(me, seen.Items[2].At);
 
         before.Should().Be(3);
@@ -120,8 +120,8 @@ public sealed class ActivityTests(SparksApiFactory factory)
             await LikePostAsync(fan, post.Id);
         }
 
-        var first = await me.GetJsonAsync<ActivityPage>($"{ActivityPath}?limit=2", Ct);
-        var second = await me.GetJsonAsync<ActivityPage>(
+        var first = await me.GetJsonAsync<OpaqueCursorPage<ActivityItem>>($"{ActivityPath}?limit=2", Ct);
+        var second = await me.GetJsonAsync<OpaqueCursorPage<ActivityItem>>(
             $"{ActivityPath}?limit=2&cursor={Uri.EscapeDataString(first.NextCursor!)}", Ct);
         var forged = await me.GetAsync($"{ActivityPath}?cursor=not-a-cursor", Ct);
 
@@ -142,7 +142,7 @@ public sealed class ActivityTests(SparksApiFactory factory)
         await LikePostAsync(fan, post.Id);
         await fan.DeleteAsync($"/api/v1/posts/{post.Id}/like", Ct);
 
-        (await me.GetJsonAsync<ActivityPage>(ActivityPath, Ct)).Items.Should().BeEmpty();
+        (await me.GetJsonAsync<OpaqueCursorPage<ActivityItem>>(ActivityPath, Ct)).Items.Should().BeEmpty();
         (await UnreadCountAsync(me)).Should().Be(0);
     }
 

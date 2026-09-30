@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Sparks.Api.Auth.Models;
+using Sparks.Api.Auth.Services;
 
 namespace Sparks.Tests.Infrastructure;
 
@@ -36,9 +37,20 @@ internal static class ApiJson
     public static async Task<(HttpClient Client, CurrentUserResponse User)> SignedInClientAsync(
         this WebApplicationFactory<Program> api, CancellationToken ct)
     {
+        var (client, user, _) = await api.SignedInWithTokenAsync(ct);
+        return (client, user);
+    }
+
+    /// <summary>
+    /// A client signed in as a brand-new account, plus its access token for
+    /// connections that can't carry the cookie (the realtime hub in tests).
+    /// </summary>
+    public static async Task<(HttpClient Client, CurrentUserResponse User, string AccessToken)> SignedInWithTokenAsync(
+        this WebApplicationFactory<Program> api, CancellationToken ct)
+    {
         var client = api.CreateClient();
         var response = await client.SignUpAsync(AuthHelpers.NewAccount(), ct);
         response.EnsureSuccessStatusCode();
-        return (client, await response.ReadAsync<CurrentUserResponse>(ct));
+        return (client, await response.ReadAsync<CurrentUserResponse>(ct), response.CookieValue(AuthCookies.AccessToken));
     }
 }

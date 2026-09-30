@@ -1,9 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
+using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using Sparks.Api.Activity.Services;
 using Sparks.Api.Auth;
+using Sparks.Api.Chat.Services;
 using Sparks.Api.Common;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Email;
@@ -11,6 +13,7 @@ using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Health;
 using Sparks.Api.Common.Security;
 using Sparks.Api.Posts.Services;
+using Sparks.Api.Realtime;
 using Sparks.Api.Users.Services;
 
 // Logs anything that goes wrong before the host (and its configured logger) is built.
@@ -77,6 +80,11 @@ try
     builder.Services.AddScoped<CommentService>();
     builder.Services.AddScoped<UserService>();
     builder.Services.AddScoped<ActivityService>();
+    builder.Services.AddScoped<ChatService>();
+
+    // ── Realtime ─────────────────────────────────────────────────────────────
+    builder.Services.AddSignalR();
+    builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
     builder.Services.AddSparksHealthChecks();
 
     var app = builder.Build();
@@ -116,6 +124,9 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
     app.MapControllers();
+    // A connection outlives the access token it opened with; closing it when
+    // the token expires makes the browser reconnect with a refreshed one.
+    app.MapHub<RealtimeHub>(RealtimeHub.Path, hub => hub.CloseOnAuthenticationExpiration = true);
     app.MapSparksHealthEndpoints();
 
     await app.RunAsync();

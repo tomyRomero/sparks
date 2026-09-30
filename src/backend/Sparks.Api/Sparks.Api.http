@@ -135,3 +135,41 @@ Content-Type: application/json
 {
   "upTo": "{{activity.response.body.$.items[0].at}}"
 }
+
+# Chat: private conversations (needs sign-in). New messages and read receipts
+# are also pushed live over the SignalR hub at /hubs/live.
+
+### Open the conversation with a member (201 the first time, 200 after)
+# @name conversation
+POST {{api}}/api/v1/conversations
+Content-Type: application/json
+
+{
+  "username": "someone_else"
+}
+
+### Send a message
+# @name message
+POST {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}/messages
+Content-Type: application/json
+
+{
+  "body": "Hello!"
+}
+
+### The conversation's messages, newest first
+GET {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}/messages
+
+### Mark read up to a message
+POST {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}/read
+Content-Type: application/json
+
+{
+  "upToMessageId": {{message.response.body.$.id}}
+}
+
+### The inbox, most recent conversation first
+GET {{api}}/api/v1/conversations
+
+### Unread messages, for a badge
+GET {{api}}/api/v1/conversations/unread-count

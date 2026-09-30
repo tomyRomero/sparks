@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Sparks.Api.Activity.Models;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Errors;
+using Sparks.Api.Common.Models;
 using Sparks.Api.Users.Models;
 
 namespace Sparks.Api.Activity.Services;
@@ -18,7 +19,7 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
     /// <summary>How much of a post or comment an activity item quotes.</summary>
     private const int ExcerptLength = 140;
 
-    public async Task<ActivityPage> GetAsync(long userId, ActivityQuery query, CancellationToken ct)
+    public async Task<OpaqueCursorPage<ActivityItem>> GetAsync(long userId, OpaquePageRequest query, CancellationToken ct)
     {
         var rows = Rows(userId);
         if (query.Cursor is not null)
@@ -44,7 +45,7 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
 
         var page = fetched.Take(query.Limit).ToList();
         var nextCursor = fetched.Count > query.Limit ? ActivityCursor.After(page[^1]).Encode() : null;
-        return new ActivityPage(await DescribeAsync(userId, page, ct), nextCursor);
+        return new OpaqueCursorPage<ActivityItem>(await DescribeAsync(userId, page, ct), nextCursor);
     }
 
     public async Task<int> CountUnreadAsync(long userId, CancellationToken ct)

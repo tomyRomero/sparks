@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Sparks.Api.Activity.Models;
 using Sparks.Api.Activity.Services;
 using Sparks.Api.Auth.Services;
+using Sparks.Api.Common.Models;
 
 namespace Sparks.Api.Activity.Controllers;
 
@@ -11,7 +12,7 @@ namespace Sparks.Api.Activity.Controllers;
 public sealed class ActivityController(ActivityService activity) : ControllerBase
 {
     [HttpGet]
-    public Task<ActivityPage> Get([FromQuery] ActivityQuery query, CancellationToken ct) =>
+    public Task<OpaqueCursorPage<ActivityItem>> Get([FromQuery] OpaquePageRequest query, CancellationToken ct) =>
         activity.GetAsync(User.GetUserId(), query, ct);
 
     /// <summary>How many items are unread, for a badge.</summary>

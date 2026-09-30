@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Sparks.Api.Common.Models;
 using Sparks.Api.Users.Models;
 
 namespace Sparks.Api.Activity.Models;
@@ -32,20 +31,6 @@ public sealed record ActivityItem(
     long? CommentId,
     string Excerpt,
     bool Unread);
-
-/// <summary>One page of activity, newest first.</summary>
-/// <param name="NextCursor">Pass as <c>cursor</c> for the next page; null on the last page. Opaque.</param>
-public sealed record ActivityPage(IReadOnlyList<ActivityItem> Items, string? NextCursor);
-
-public sealed record ActivityQuery
-{
-    /// <summary>The <see cref="ActivityPage.NextCursor"/> of the previous page; omit for the first page.</summary>
-    [StringLength(200)]
-    public string? Cursor { get; init; }
-
-    [Range(1, PageRequest.MaxLimit)]
-    public int Limit { get; init; } = PageRequest.DefaultLimit;
-}
 
 public sealed record MarkActivityReadRequest
 {

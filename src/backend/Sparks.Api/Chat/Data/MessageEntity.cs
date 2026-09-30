@@ -1,9 +1,10 @@
+using Sparks.Api.Common.Data;
 using Sparks.Api.Users.Data;
 
 namespace Sparks.Api.Chat.Data;
 
 /// <summary>One message in a conversation (table <c>messages</c>).</summary>
-public class MessageEntity
+public class MessageEntity : IHasId
 {
     public long Id { get; set; }
 
