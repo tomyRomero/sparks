@@ -1,0 +1,220 @@
+using System.Net;
+using System.Text.Json;
+using FluentAssertions;
+using Sparks.Api.Common.Models;
+using Sparks.Api.Posts.Data;
+using Sparks.Api.Posts.Models;
+using Sparks.Tests.Infrastructure;
+
+namespace Sparks.Tests.Posts;
+
+/// <summary>
+/// The feed, single posts, and who may write, change and like them. The
+/// database is shared, so feed tests search for a word only their own posts
+/// contain.
+/// </summary>
+public sealed class PostTests(SparksApiFactory factory)
+{
+    private const string PostsPath = "/api/v1/posts";
+
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task Anyone_can_read_the_feed_newest_first()
+    {
+        var (author, _) = await factory.SignedInClientAsync(Ct);
+        var word = UniqueWord();
+        var created = new List<long>();
+        for (var i = 0; i < 3; i++)
+        {
+            created.Add((await CreatePostAsync(author, $"{word} number {i}")).Id);
+        }
+
+        var feed = await factory.CreateClient().GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word}", Ct);
+
+        feed.Items.Select(post => post.Id).Should().Equal(created.AsEnumerable().Reverse());
+        feed.Items.Should().OnlyContain(post => !post.LikedByMe);
+    }
+
+    [Fact]
+    public async Task The_feed_pages_with_a_cursor()
+    {
+        var (author, _) = await factory.SignedInClientAsync(Ct);
+        var word = UniqueWord();
+        for (var i = 0; i < 3; i++)
+        {
+            await CreatePostAsync(author, $"{word} {i}");
+        }
+
+        var reader = factory.CreateClient();
+        var first = await reader.GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word}&limit=2", Ct);
+        var second = await reader.GetJsonAsync<CursorPage<PostResponse>>(
+            $"{PostsPath}?q={word}&limit=2&cursor={first.NextCursor}", Ct);
+
+        first.Items.Should().HaveCount(2);
+        first.NextCursor.Should().Be(first.Items[^1].Id);
+        second.Items.Should().ContainSingle().Which.Id.Should().BeLessThan(first.Items[^1].Id);
+        second.NextCursor.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Search_matches_the_text_or_the_author_but_treats_wildcards_literally()
+    {
+        var (author, user) = await factory.SignedInClientAsync(Ct);
+        var word = UniqueWord();
+        var post = await CreatePostAsync(author, $"A spark about {word}");
+        var reader = factory.CreateClient();
+
+        var byText = await reader.GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word.ToUpperInvariant()}", Ct);
+        var byAuthor = await reader.GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={user.Username}", Ct);
+        var byWildcard = await reader.GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q=%25&limit=50", Ct);
+
+        byText.Items.Should().ContainSingle(item => item.Id == post.Id);
+        byAuthor.Items.Should().ContainSingle(item => item.Id == post.Id);
+        byWildcard.Items.Should().NotContain(item => item.Id == post.Id);
+    }
+
+    [Fact]
+    public async Task The_feed_filters_by_kind()
+    {
+        var (author, _) = await factory.SignedInClientAsync(Ct);
+        var word = UniqueWord();
+        var haiku = await CreatePostAsync(author, $"{word} in five seven five", SparkKind.Haiku);
+        await CreatePostAsync(author, $"{word} walks into a bar", SparkKind.Joke);
+
+        var feed = await factory.CreateClient()
+            .GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word}&kind=haiku", Ct);
+
+        feed.Items.Should().ContainSingle().Which.Id.Should().Be(haiku.Id);
+    }
+
+    [Fact]
+    public async Task Writing_a_post_requires_sign_in()
+    {
+        var response = await factory.CreateClient().PostJsonAsync(
+            PostsPath, new CreatePostRequest { Kind = SparkKind.Regular, Body = "Hello" }, Ct);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task A_new_post_comes_back_with_its_author_and_location()
+    {
+        var (author, user) = await factory.SignedInClientAsync(Ct);
+
+        var response = await author.PostJsonAsync(
+            PostsPath,
+            new CreatePostRequest { Kind = SparkKind.Quote, Body = "  Stay curious.  ", AiPrompt = "a short quote" },
+            Ct);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var post = await response.ReadAsync<PostResponse>(Ct);
+        response.Headers.Location!.ToString().Should().EndWith($"{PostsPath}/{post.Id}");
+        post.Should().BeEquivalentTo(new
+        {
+            Kind = SparkKind.Quote,
+            Body = "Stay curious.",
+            AiPrompt = "a short quote",
+            LikeCount = 0,
+            CommentCount = 0,
+            LikedByMe = false,
+        });
+        post.Author.Username.Should().Be(user.Username);
+        post.CreatedAt.Kind.Should().Be(DateTimeKind.Utc);
+    }
+
+    [Theory]
+    [InlineData("""{"body":"No kind"}""", "kind")]
+    [InlineData("""{"kind":"regular","body":""}""", "body")]
+    public async Task Invalid_posts_name_the_field_at_fault(string json, string field)
+    {
+        var (author, _) = await factory.SignedInClientAsync(Ct);
+
+        var response = await author.PostAsync(
+            PostsPath, new StringContent(json, System.Text.Encoding.UTF8, "application/json"), Ct);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var problem = await response.ReadAsync<JsonElement>(Ct);
+        problem.GetProperty("errors").EnumerateObject().Select(error => error.Name).Should().Contain(field);
+    }
+
+    [Fact]
+    public async Task A_numeric_kind_is_refused()
+    {
+        var (author, _) = await factory.SignedInClientAsync(Ct);
+
+        var response = await author.PostAsync(
+            PostsPath,
+            new StringContent("""{"kind":42,"body":"Sneaky"}""", System.Text.Encoding.UTF8, "application/json"),
+            Ct);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Only_the_author_can_edit_or_delete_a_post()
+    {
+        var (author, _) = await factory.SignedInClientAsync(Ct);
+        var (stranger, _) = await factory.SignedInClientAsync(Ct);
+        var post = await CreatePostAsync(author, "Original words");
+        var path = $"{PostsPath}/{post.Id}";
+
+        var strangerEdit = await stranger.PatchJsonAsync(path, new UpdatePostRequest { Body = "Hijacked" }, Ct);
+        var strangerDelete = await stranger.DeleteAsync(path, Ct);
+        var authorEdit = await author.PatchJsonAsync(path, new UpdatePostRequest { Body = "Better words" }, Ct);
+
+        strangerEdit.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        (await strangerEdit.ReadAsync<JsonElement>(Ct)).GetProperty("code").GetString().Should().Be("NOT_YOUR_POST");
+        strangerDelete.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        var edited = await authorEdit.ReadAsync<PostResponse>(Ct);
+        edited.Body.Should().Be("Better words");
+        edited.EditedAt.Should().NotBeNull();
+
+        (await author.DeleteAsync(path, Ct)).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        var gone = await factory.CreateClient().GetAsync(path, Ct);
+        gone.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await gone.ReadAsync<JsonElement>(Ct)).GetProperty("code").GetString().Should().Be("POST_NOT_FOUND");
+    }
+
+    [Fact]
+    public async Task Likes_count_once_per_user_and_show_to_whoever_liked()
+    {
+        var (author, _) = await factory.SignedInClientAsync(Ct);
+        var (fan, _) = await factory.SignedInClientAsync(Ct);
+        var post = await CreatePostAsync(author, "Like me");
+        var likePath = $"{PostsPath}/{post.Id}/like";
+
+        await fan.PutAsync(likePath, content: null, Ct);
+        var secondLike = await (await fan.PutAsync(likePath, content: null, Ct)).ReadAsync<LikeState>(Ct);
+        var seenByFan = await fan.GetJsonAsync<PostResponse>($"{PostsPath}/{post.Id}", Ct);
+        var seenByAnyone = await factory.CreateClient().GetJsonAsync<PostResponse>($"{PostsPath}/{post.Id}", Ct);
+        await fan.DeleteAsync(likePath, Ct);
+        var afterUnlikes = await (await fan.DeleteAsync(likePath, Ct)).ReadAsync<LikeState>(Ct);
+
+        secondLike.Should().Be(new LikeState(Liked: true, LikeCount: 1));
+        seenByFan.LikedByMe.Should().BeTrue();
+        seenByAnyone.LikedByMe.Should().BeFalse();
+        seenByAnyone.LikeCount.Should().Be(1);
+        afterUnlikes.Should().Be(new LikeState(Liked: false, LikeCount: 0));
+    }
+
+    [Fact]
+    public async Task Liking_a_post_that_does_not_exist_is_a_404()
+    {
+        var (fan, _) = await factory.SignedInClientAsync(Ct);
+
+        var response = await fan.PutAsync($"{PostsPath}/{long.MaxValue}/like", content: null, Ct);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    private static async Task<PostResponse> CreatePostAsync(HttpClient author, string body, SparkKind kind = SparkKind.Regular)
+    {
+        var response = await author.PostJsonAsync(PostsPath, new CreatePostRequest { Kind = kind, Body = body }, Ct);
+        response.EnsureSuccessStatusCode();
+        return await response.ReadAsync<PostResponse>(Ct);
+    }
+
+    /// <summary>A word no other test's post contains, to find this test's posts in the shared database.</summary>
+    private static string UniqueWord() => $"w{Guid.NewGuid():N}"[..16];
+}

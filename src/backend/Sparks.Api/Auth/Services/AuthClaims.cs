@@ -14,8 +14,11 @@ public static class AuthClaims
     /// every token the API issues carries the claim.
     /// </summary>
     public static long GetUserId(this ClaimsPrincipal principal) =>
-        long.Parse(
-            principal.FindFirstValue(UserId)
-                ?? throw new InvalidOperationException("The request is not authenticated."),
-            System.Globalization.CultureInfo.InvariantCulture);
+        principal.FindUserId() ?? throw new InvalidOperationException("The request is not authenticated.");
+
+    /// <summary>The signed-in user's id, or null for an anonymous request.</summary>
+    public static long? FindUserId(this ClaimsPrincipal principal) =>
+        principal.FindFirstValue(UserId) is { } value
+            ? long.Parse(value, System.Globalization.CultureInfo.InvariantCulture)
+            : null;
 }

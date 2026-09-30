@@ -1,11 +1,15 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Serilog;
 using Sparks.Api.Auth;
 using Sparks.Api.Common;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Email;
+using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Health;
 using Sparks.Api.Common.Security;
+using Sparks.Api.Posts.Services;
 
 // Logs anything that goes wrong before the host (and its configured logger) is built.
 Log.Logger = new LoggerConfiguration()
@@ -33,6 +37,7 @@ try
     // exceptions (a generic 500, never a stack trace) and bare status codes
     // such as 404 and 405.
     builder.Services.AddProblemDetails();
+    builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
     // ── Database ─────────────────────────────────────────────────────────────
     builder.Services.AddSparksDatabase();
@@ -57,8 +62,16 @@ try
     // Validation errors are keyed by JSON field name ("email"), not the C#
     // property name ("Email"), so the frontend can map them to its inputs.
     builder.Services.AddControllers(mvc =>
-        mvc.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider()));
+            mvc.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider()))
+        .AddJsonOptions(json =>
+            // Enums travel as names ("movieScript"), never numbers, so a stray
+            // number can't reach the database as an undefined value.
+            json.JsonSerializerOptions.Converters.Add(
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false)));
     builder.Services.AddOpenApi();
+
+    // ── Features ─────────────────────────────────────────────────────────────
+    builder.Services.AddScoped<PostService>();
     builder.Services.AddSparksHealthChecks();
 
     var app = builder.Build();
@@ -69,13 +82,21 @@ try
     }
 
     // ── Pipeline ─────────────────────────────────────────────────────────────
-    // The exception handler runs first so it catches errors from everything
-    // after it; security headers come next so error responses carry them too.
-    // Forwarded headers are applied before anything reads the client IP.
-    app.UseExceptionHandler();
+    // Forwarded headers come first, so everything after sees the real client
+    // IP. Request logging wraps the exception handler, so it records the
+    // status the client actually got rather than the exception on its way
+    // out. The exception handler catches errors from everything after it, and
+    // security headers come next so error responses carry them too.
+    app.UseForwardedHeaders();
+    app.UseSerilogRequestLogging();
+    app.UseExceptionHandler(new ExceptionHandlerOptions
+    {
+        // An ApiException is an expected outcome (404, 403), answered by
+        // ApiExceptionHandler; only unexpected exceptions are logged as errors.
+        SuppressDiagnosticsCallback = context => context.Exception is ApiException,
+    });
     app.UseStatusCodePages();
     app.UseMiddleware<SecurityHeadersMiddleware>();
-    app.UseForwardedHeaders();
     if (app.Environment.IsRealEnvironment())
     {
         app.UseHsts();
@@ -86,7 +107,6 @@ try
         app.MapOpenApi().AllowAnonymous();
     }
 
-    app.UseSerilogRequestLogging();
     app.UseRateLimiter();
     app.UseAuthentication();
     app.UseAuthorization();

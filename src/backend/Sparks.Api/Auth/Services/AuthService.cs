@@ -1,4 +1,3 @@
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Sparks.Api.Auth.Data;
@@ -62,10 +61,10 @@ public sealed class AuthService(
             logger.LogInformation("Account {UserId} created", account.Id);
             return signedIn;
         }
-        catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 } sql)
+        catch (DbUpdateException ex) when (ex.IsUniqueViolation())
         {
             throw new AccountConflictException(
-                sql.Message.Contains("username", StringComparison.OrdinalIgnoreCase)
+                ex.InnerException!.Message.Contains("username", StringComparison.OrdinalIgnoreCase)
                     ? AccountConflictException.UsernameField
                     : AccountConflictException.EmailField);
         }
