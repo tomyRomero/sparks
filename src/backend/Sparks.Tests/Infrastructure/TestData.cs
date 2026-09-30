@@ -12,12 +12,22 @@ internal static class TestData
     /// <summary>A username no other test will use (fits the 30-character limit).</summary>
     public static string UniqueUsername() => $"user_{Guid.NewGuid():N}"[..24];
 
-    public static UserEntity User(string? username = null) => new()
+    /// <summary>
+    /// A user row written straight to the database. It can't sign in (the hash
+    /// is a placeholder); tests that sign in create accounts through the API.
+    /// </summary>
+    public static UserEntity User(string? username = null)
     {
-        Username = username ?? UniqueUsername(),
-        DisplayName = "Test User",
-        CreatedAt = DateTime.UtcNow,
-    };
+        username ??= UniqueUsername();
+        return new UserEntity
+        {
+            Username = username,
+            DisplayName = "Test User",
+            Email = $"{username}@example.test",
+            PasswordHash = "not-a-real-hash",
+            CreatedAt = DateTime.UtcNow,
+        };
+    }
 
     public static PostEntity Post(UserEntity author, SparkKind kind = SparkKind.Regular) => new()
     {

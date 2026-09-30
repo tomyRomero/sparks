@@ -1,11 +1,14 @@
+using System.Security.Cryptography;
 using Docker.DotNet.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Sparks.Api.Auth.Services;
 using Sparks.Api.Common;
 using Sparks.Api.Common.Data;
+using Sparks.Api.Common.Security;
 using Testcontainers.MsSql;
 
 [assembly: AssemblyFixture(typeof(Sparks.Tests.Infrastructure.SparksApiFactory))]
@@ -31,6 +34,9 @@ public sealed class SparksApiFactory : WebApplicationFactory<Program>, IAsyncLif
             container.HostConfig.Memory = SqlServerMemoryBytes;
         })
         .Build();
+
+    // A fresh signing key per run, so no key is ever written into the repo.
+    private readonly string _jwtSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
 
     /// <summary>Connection string for the test database inside the container.</summary>
     public string ConnectionString =>
@@ -60,6 +66,13 @@ public sealed class SparksApiFactory : WebApplicationFactory<Program>, IAsyncLif
         builder.UseSetting(
             $"ConnectionStrings:{DatabaseServiceCollectionExtensions.ConnectionStringName}",
             ConnectionString);
+        builder.UseSetting($"{JwtOptions.SectionName}:Secret", _jwtSecret);
+
+        // Every test shares one client address, so the real limits would trip
+        // across unrelated tests. The limiter itself has its own test.
+        builder.UseSetting($"{RateLimitOptions.SectionName}:{nameof(RateLimitOptions.LoginPerMinute)}", "10000");
+        builder.UseSetting($"{RateLimitOptions.SectionName}:{nameof(RateLimitOptions.SignupPerMinute)}", "10000");
+        builder.UseSetting($"{RateLimitOptions.SectionName}:{nameof(RateLimitOptions.PassivePerMinute)}", "10000");
     }
 
     public override async ValueTask DisposeAsync()

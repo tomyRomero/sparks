@@ -10,6 +10,12 @@ public class UserEntity
 
     public required string DisplayName { get; set; }
 
+    /// <summary>Sign-in address, compared without regard to case. Never shown publicly.</summary>
+    public required string Email { get; set; }
+
+    /// <summary>BCrypt hash of the password; the password itself is never stored.</summary>
+    public required string PasswordHash { get; set; }
+
     public string? Bio { get; set; }
 
     /// <summary>Storage key of the profile picture; the storage provider turns it into a URL.</summary>

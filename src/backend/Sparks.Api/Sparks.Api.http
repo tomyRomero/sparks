@@ -8,3 +8,37 @@ GET {{api}}/health/ready
 
 ### OpenAPI document (Development only)
 GET {{api}}/openapi/v1.json
+
+# Auth: the API sets HttpOnly cookies, which the HTTP client keeps between
+# requests. Passwords are prompted for, never saved in this file.
+
+### Sign up
+# @prompt password
+POST {{api}}/api/v1/auth/signup
+Content-Type: application/json
+
+{
+  "email": "demo@example.test",
+  "username": "demo",
+  "displayName": "Demo User",
+  "password": "{{password}}"
+}
+
+### Sign in with email or username
+# @prompt password
+POST {{api}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "demo",
+  "password": "{{password}}"
+}
+
+### Who am I
+GET {{api}}/api/v1/auth/me
+
+### Rotate the refresh token
+POST {{api}}/api/v1/auth/refresh
+
+### Sign out
+POST {{api}}/api/v1/auth/logout

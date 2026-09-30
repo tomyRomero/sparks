@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Sparks.Api.Auth.Data;
 using Sparks.Api.Chat.Data;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Users.Data;
@@ -14,6 +15,8 @@ namespace Sparks.Api.Common.Data;
 public sealed class SparksDbContext(DbContextOptions<SparksDbContext> options) : DbContext(options)
 {
     public DbSet<UserEntity> Users => Set<UserEntity>();
+    public DbSet<SessionEntity> Sessions => Set<SessionEntity>();
+    public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
     public DbSet<PostEntity> Posts => Set<PostEntity>();
     public DbSet<PostLikeEntity> PostLikes => Set<PostLikeEntity>();
     public DbSet<CommentEntity> Comments => Set<CommentEntity>();

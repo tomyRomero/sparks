@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Serilog;
+using Sparks.Api.Auth;
 using Sparks.Api.Common;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Health;
@@ -34,10 +36,20 @@ try
     // ── Database ─────────────────────────────────────────────────────────────
     builder.Services.AddSparksDatabase();
 
+    // ── Security ─────────────────────────────────────────────────────────────
+    // One clock for everything time-based (token lifetimes, lockouts), so
+    // tests can move it forward.
+    builder.Services.AddSingleton(TimeProvider.System);
+    builder.Services.AddSparksAuth();
+    builder.Services.AddSparksRateLimiting(builder.Environment);
+
     // ── API ──────────────────────────────────────────────────────────────────
     // Don't advertise the web server in every response.
     builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
-    builder.Services.AddControllers();
+    // Validation errors are keyed by JSON field name ("email"), not the C#
+    // property name ("Email"), so the frontend can map them to its inputs.
+    builder.Services.AddControllers(mvc =>
+        mvc.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider()));
     builder.Services.AddOpenApi();
     builder.Services.AddSparksHealthChecks();
 
@@ -51,9 +63,11 @@ try
     // ── Pipeline ─────────────────────────────────────────────────────────────
     // The exception handler runs first so it catches errors from everything
     // after it; security headers come next so error responses carry them too.
+    // Forwarded headers are applied before anything reads the client IP.
     app.UseExceptionHandler();
     app.UseStatusCodePages();
     app.UseMiddleware<SecurityHeadersMiddleware>();
+    app.UseForwardedHeaders();
     if (app.Environment.IsRealEnvironment())
     {
         app.UseHsts();
@@ -61,10 +75,13 @@ try
 
     if (app.Environment.IsDevelopment())
     {
-        app.MapOpenApi();
+        app.MapOpenApi().AllowAnonymous();
     }
 
     app.UseSerilogRequestLogging();
+    app.UseRateLimiter();
+    app.UseAuthentication();
+    app.UseAuthorization();
     app.MapControllers();
     app.MapSparksHealthEndpoints();
 

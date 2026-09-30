@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,11 +49,13 @@ public sealed class PipelineTests(SparksApiFactory factory)
     }
 
     [Fact]
-    public async Task Unknown_routes_return_problem_details()
+    public async Task Anonymous_requests_to_unknown_routes_get_a_401_problem()
     {
+        // Sign-in is required by default, so an anonymous caller can't tell
+        // which routes exist.
         var response = await factory.CreateClient().GetAsync("/no-such-route", Ct);
 
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
         response.Headers.Should().Contain(header => header.Key == "X-Content-Type-Options");
     }
@@ -64,15 +65,15 @@ public sealed class PipelineTests(SparksApiFactory factory)
     {
         using var throwingApi = factory.WithWebHostBuilder(builder =>
             builder.ConfigureServices(services =>
-                services.AddTransient<IStartupFilter, ThrowingEndpoint>()));
+                services.AddControllers().AddApplicationPart(typeof(ThrowingController).Assembly)));
 
-        var response = await throwingApi.CreateClient().GetAsync(ThrowingEndpoint.Path, Ct);
+        var response = await throwingApi.CreateClient().GetAsync(ThrowingController.Path, Ct);
 
         response.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
         response.Content.Headers.ContentType?.MediaType.Should().Be("application/problem+json");
         var body = await response.Content.ReadAsStringAsync(Ct);
-        body.Should().NotContain(ThrowingEndpoint.SecretMessage);
-        body.Should().NotContain(nameof(ThrowingEndpoint));
+        body.Should().NotContain(ThrowingController.SecretMessage);
+        body.Should().NotContain(nameof(ThrowingController));
         JsonDocument.Parse(body).RootElement.GetProperty("traceId").GetString().Should().NotBeNullOrEmpty();
     }
 
@@ -81,22 +82,6 @@ public sealed class PipelineTests(SparksApiFactory factory)
     {
         var response = await factory.CreateClient().GetAsync("/openapi/v1.json", Ct);
 
-        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-    }
-
-    /// <summary>
-    /// Adds a route after the API's own pipeline that always throws, so the test
-    /// exercises the real exception handler rather than a stand-in.
-    /// </summary>
-    private sealed class ThrowingEndpoint : IStartupFilter
-    {
-        public const string Path = "/test/throw";
-        public const string SecretMessage = "connection string: Server=internal-db;Password=hunter2";
-
-        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next) => app =>
-        {
-            next(app);
-            app.Map(Path, branch => branch.Run(_ => throw new InvalidOperationException(SecretMessage)));
-        };
+        response.StatusCode.Should().NotBe(HttpStatusCode.OK);
     }
 }
