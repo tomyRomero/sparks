@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Sparks.Api.Auth.Models;
 using Sparks.Api.Auth.Services;
+using Sparks.Api.Common.Constants;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Http;
 using Sparks.Api.Common.Security;
@@ -46,6 +48,23 @@ public sealed class AuthController(
                 StatusCodes.Status409Conflict, "EMAIL_TAKEN", "An account with that email already exists.");
         }
     }
+
+    /// <summary>
+    /// Whether a username is free, for a sign-up form checking as someone
+    /// types. Profiles are public, so this reveals nothing a profile link
+    /// wouldn't; sign-up still has the last word if two people race.
+    /// </summary>
+    [HttpGet("username-available")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Passive)]
+    [ProducesResponseType<UsernameAvailabilityResponse>(StatusCodes.Status200OK)]
+    public async Task<UsernameAvailabilityResponse> UsernameAvailable(
+        // Named, so a problem is reported under "username" like every other field.
+        [FromQuery(Name = "username"), Required]
+        [RegularExpression(InputLimits.UsernamePattern, ErrorMessage = "Usernames are 3 to 30 letters, digits or underscores.")]
+        string username,
+        CancellationToken ct) =>
+        new(username, await auth.IsUsernameFreeAsync(username, ct));
 
     [HttpPost("login")]
     [AllowAnonymous]

@@ -24,6 +24,10 @@ public sealed class AuthService(
 {
     private readonly JwtOptions _jwt = jwtOptions.Value;
 
+    /// <summary>Whether no account has this username, compared without case like the unique index.</summary>
+    public async Task<bool> IsUsernameFreeAsync(string username, CancellationToken ct) =>
+        !await db.Users.AnyAsync(user => user.Username == username, ct);
+
     /// <summary>Creates an account and signs it in.</summary>
     /// <exception cref="AccountConflictException">The username or email is taken.</exception>
     public async Task<SignedIn> SignUpAsync(SignupRequest request, ClientInfo client, CancellationToken ct)

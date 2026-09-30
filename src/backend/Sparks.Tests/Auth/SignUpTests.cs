@@ -111,6 +111,38 @@ public sealed class SignUpTests(SparksApiFactory factory)
     }
 
     [Fact]
+    public async Task A_sign_up_form_can_ask_whether_a_username_is_free()
+    {
+        var taken = AuthHelpers.NewAccount();
+        await factory.CreateClient().SignUpAsync(taken, Ct);
+        var free = TestData.UniqueUsername();
+        var client = factory.CreateClient();
+
+        var forFree = await client.GetFromJsonAsync<UsernameAvailabilityResponse>(
+            $"/api/v1/auth/username-available?username={free}", Ct);
+        var forTaken = await client.GetFromJsonAsync<UsernameAvailabilityResponse>(
+            $"/api/v1/auth/username-available?username={taken.Username.ToUpperInvariant()}", Ct);
+
+        forFree.Should().Be(new UsernameAvailabilityResponse(free, true));
+        forTaken!.Available.Should().BeFalse("usernames compare without case");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("no spaces")]
+    [InlineData("ab")]
+    public async Task Asking_about_a_malformed_username_names_the_problem(string username)
+    {
+        var response = await factory.CreateClient().GetAsync(
+            $"/api/v1/auth/username-available?username={Uri.EscapeDataString(username)}", Ct);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
+        problem.GetProperty("errors").EnumerateObject().Select(error => error.Name)
+            .Should().Equal("username");
+    }
+
+    [Fact]
     public async Task Sign_ups_are_rate_limited_per_client()
     {
         using var api = factory.WithWebHostBuilder(builder =>

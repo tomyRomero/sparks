@@ -12,6 +12,9 @@ GET {{api}}/openapi/v1.json
 # Auth: the API sets HttpOnly cookies, which the HTTP client keeps between
 # requests. Passwords are prompted for, never saved in this file.
 
+### Is a username free? (what the sign-up form asks as you type)
+GET {{api}}/api/v1/auth/username-available?username=demo
+
 ### Sign up
 # @prompt password
 POST {{api}}/api/v1/auth/signup
