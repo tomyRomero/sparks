@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Serilog.Core;
+using Serilog.Events;
 using Sparks.Tests.Infrastructure;
 
 namespace Sparks.Tests.Common;
@@ -47,6 +49,23 @@ public sealed class PipelineTests(SparksApiFactory factory)
 
         kestrel.AddServerHeader.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task Requests_are_logged_through_the_hosts_configured_logger()
+    {
+        var logs = new CapturingLogSink();
+        using var api = factory.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services => services.AddSingleton<ILogEventSink>(logs)));
+
+        await api.CreateClient().GetAsync("/health/live", Ct);
+
+        logs.Events.Should().ContainSingle(log => IsRequestLog(log, "/health/live"));
+    }
+
+    private static bool IsRequestLog(LogEvent log, string path) =>
+        log.MessageTemplate.Text.Contains("responded")
+        && log.Properties.GetValueOrDefault("RequestPath") is ScalarValue { Value: string logged }
+        && logged == path;
 
     [Fact]
     public async Task Anonymous_requests_to_unknown_routes_get_a_401_problem()

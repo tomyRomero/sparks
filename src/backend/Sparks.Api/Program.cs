@@ -127,7 +127,10 @@ try
     // out. The exception handler catches errors from everything after it, and
     // security headers come next so error responses carry them too.
     app.UseForwardedHeaders();
-    app.UseSerilogRequestLogging();
+    // Without a logger of its own, the request log would go to the static
+    // bootstrap logger, which preserveStaticLogger keeps apart from the host's
+    // configured one: its settings, enrichers and sinks would all be skipped.
+    app.UseSerilogRequestLogging(options => options.Logger = app.Services.GetRequiredService<Serilog.ILogger>());
     app.UseExceptionHandler(new ExceptionHandlerOptions
     {
         // An ApiException is an expected outcome (404, 403), answered by
