@@ -98,6 +98,17 @@ export type Message = {
   readAt: string | null;
 };
 
+/** Pushed live when the other participant reads the member's messages up to a point. */
+export type MessagesReadEvent = {
+  conversationId: number;
+  readerId: number;
+  upToMessageId: number;
+  readAt: string;
+};
+
+/** Pushed live while the other participant types. */
+export type TypingEvent = { conversationId: number; userId: number };
+
 export type Conversation = {
   id: number;
   with: UserSummary;

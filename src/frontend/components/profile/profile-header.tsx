@@ -1,22 +1,30 @@
 import { CalendarDays } from "lucide-react";
 import Link from "next/link";
+import { MessageButton } from "@/components/messages/message-button";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { Profile } from "@/lib/api/types";
 
 const joined = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" });
 
+type ProfileHeaderProps = {
+  profile: Profile;
+  /** Who's looking: the member themselves, another member, or a guest. */
+  viewer: "self" | "member" | "guest";
+};
+
 /** Who a member is: picture, names, bio, when they joined, and what they've shared. */
-export function ProfileHeader({ profile, isViewer }: { profile: Profile; isViewer: boolean }) {
+export function ProfileHeader({ profile, viewer }: ProfileHeaderProps) {
   return (
     <section aria-label="Profile" className="px-4 pt-6 pb-4 sm:px-6">
       <div className="flex items-start justify-between gap-4">
         <Avatar name={profile.displayName} src={profile.avatarUrl} size={88} />
-        {isViewer && (
+        {viewer === "self" && (
           <Button asChild variant="secondary" size="sm">
             <Link href="/settings/profile">Edit profile</Link>
           </Button>
         )}
+        {viewer === "member" && <MessageButton username={profile.username} />}
       </div>
       <p className="mt-4 font-display text-2xl leading-tight font-semibold tracking-tight">{profile.displayName}</p>
       <p className="label-mono">@{profile.username}</p>

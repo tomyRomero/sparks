@@ -25,7 +25,7 @@ export default async function ProfileLayout({ params, children }: LayoutProps<"/
   return (
     <>
       <PageHeader title={profile.displayName} back="/" />
-      <ProfileHeader profile={profile} isViewer={viewer?.id === profile.id} />
+      <ProfileHeader profile={profile} viewer={!viewer ? "guest" : viewer.id === profile.id ? "self" : "member"} />
       <ProfileTabs username={profile.username} />
       {children}
     </>

@@ -2,11 +2,12 @@ import { MobileNav } from "@/components/shell/mobile-nav";
 import { RightRail } from "@/components/shell/right-rail";
 import { Sidebar } from "@/components/shell/sidebar";
 import { getViewer } from "@/lib/auth/viewer";
+import { LiveProvider } from "@/lib/realtime/live";
 
 /** Every page after sign-in (and the public ones guests can read). */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const viewer = await getViewer();
-  return (
+  const page = (
     <>
       <a
         href="#main"
@@ -23,5 +24,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
       <MobileNav viewer={viewer} />
     </>
+  );
+
+  // Members get a live connection, a new one for each member who signs in.
+  return viewer ? (
+    <LiveProvider key={viewer.id} viewerId={viewer.id}>
+      {page}
+    </LiveProvider>
+  ) : (
+    page
   );
 }

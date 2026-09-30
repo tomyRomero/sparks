@@ -23,5 +23,6 @@ export const queryKeys = {
 
   activity: ["activity"] as const,
   inbox: ["inbox"] as const,
+  conversation: (id: number) => ["conversation", id] as const,
   messages: (conversationId: number) => ["messages", conversationId] as const,
 };

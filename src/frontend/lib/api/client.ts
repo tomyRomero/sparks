@@ -11,9 +11,9 @@ let refreshing: Promise<boolean> | null = null;
 
 /**
  * Rotates the session once, however many requests found it expired at the
- * same moment; they all wait for the one refresh.
+ * same moment; they all wait for the one refresh. True when it worked.
  */
-function refreshSession(): Promise<boolean> {
+export function refreshSession(): Promise<boolean> {
   refreshing ??= fetch("/api/v1/auth/refresh", { method: "POST" })
     .then((response) => response.ok)
     .catch(() => false)
