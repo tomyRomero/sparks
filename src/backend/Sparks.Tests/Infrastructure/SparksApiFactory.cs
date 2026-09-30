@@ -37,6 +37,13 @@ public sealed class SparksApiFactory : WebApplicationFactory<Program>, IAsyncLif
         new SqlConnectionStringBuilder(_sql.GetConnectionString()) { InitialCatalog = "SparksTests" }
             .ConnectionString;
 
+    /// <summary>
+    /// A fresh context built from the API's own registration, so tests use the
+    /// same model and naming conventions as the app. The caller disposes it.
+    /// </summary>
+    public SparksDbContext CreateDbContext() =>
+        new(Services.GetRequiredService<DbContextOptions<SparksDbContext>>());
+
     public async ValueTask InitializeAsync()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

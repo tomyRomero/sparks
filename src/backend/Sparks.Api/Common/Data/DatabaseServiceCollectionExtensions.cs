@@ -8,25 +8,30 @@ public static class DatabaseServiceCollectionExtensions
     public const string ConnectionStringName = "SparksDb";
 
     /// <summary>
-    /// Registers <see cref="SparksDbContext"/> on SQL Server. The connection
-    /// string is read when a context is first created rather than at startup,
-    /// so configuration added later (such as a test's own database) applies.
+    /// Registers <see cref="SparksDbContext"/> on SQL Server with snake_case
+    /// table and column names. The connection string is read when the options
+    /// are first built rather than at startup, so configuration added later
+    /// (such as a test's own database) applies. The options are a singleton
+    /// because they never change; each request still gets its own context.
     /// </summary>
     public static IServiceCollection AddSparksDatabase(this IServiceCollection services)
     {
-        services.AddDbContext<SparksDbContext>((provider, options) =>
-        {
-            var connectionString = provider.GetRequiredService<IConfiguration>()
-                .GetConnectionString(ConnectionStringName);
-            if (string.IsNullOrWhiteSpace(connectionString))
+        services.AddDbContext<SparksDbContext>(
+            (provider, options) =>
             {
-                throw new InvalidOperationException(
-                    $"ConnectionStrings:{ConnectionStringName} is not configured. " +
-                    "For local development, run scripts/setup-dev.sh.");
-            }
+                var connectionString = provider.GetRequiredService<IConfiguration>()
+                    .GetConnectionString(ConnectionStringName);
+                if (string.IsNullOrWhiteSpace(connectionString))
+                {
+                    throw new InvalidOperationException(
+                        $"ConnectionStrings:{ConnectionStringName} is not configured. " +
+                        "For local development, run scripts/setup-dev.sh.");
+                }
 
-            options.UseSqlServer(connectionString);
-        });
+                options.UseSqlServer(connectionString).UseSnakeCaseNamingConvention();
+            },
+            contextLifetime: ServiceLifetime.Scoped,
+            optionsLifetime: ServiceLifetime.Singleton);
 
         return services;
     }
