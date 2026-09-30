@@ -213,7 +213,7 @@ cd sparks/src/frontend
 npm install
 
 # Start the development server
-npm run dev
+npm run dev   # http://localhost:3100
 
 
 
