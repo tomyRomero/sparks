@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { CharacterCount } from "@/components/ui/character-count";
 import { Input, Textarea } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import { ApiError, errorMessage } from "@/lib/api/problem";
@@ -137,9 +138,12 @@ export function Composer({ startWithAi, initialKind }: ComposerProps) {
             <Zap className="size-3.5 fill-current" aria-hidden />
             Draft with AI
           </h2>
-          <label htmlFor={`${id}-idea`} className="text-sm font-medium text-ink-soft">
-            {info.prompt}
-          </label>
+          <div className="flex items-baseline justify-between gap-3">
+            <label htmlFor={`${id}-idea`} className="text-sm font-medium text-ink-soft">
+              {info.prompt}
+            </label>
+            <CharacterCount length={idea.length} max={limits.aiPromptMax} showFrom={limits.aiPromptMax * 0.9} />
+          </div>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               id={`${id}-idea`}
@@ -176,12 +180,15 @@ export function Composer({ startWithAi, initialKind }: ComposerProps) {
           <label htmlFor={`${id}-body`} className="text-sm font-medium text-ink-soft">
             {kind === "regular" ? "Your spark" : `Your ${info.label.toLowerCase()}`}
           </label>
-          {draftedFrom && (
-            <span className="inline-flex items-center gap-1 rounded-sm bg-charge-soft px-1.5 py-0.5 font-mono text-[10px] text-charge">
-              <Zap className="size-3 fill-current" aria-hidden />
-              ai draft · edit freely
-            </span>
-          )}
+          <span className="flex items-center gap-3">
+            {draftedFrom && (
+              <span className="inline-flex items-center gap-1 rounded-sm bg-charge-soft px-1.5 py-0.5 font-mono text-[10px] text-charge">
+                <Zap className="size-3 fill-current" aria-hidden />
+                ai draft · edit freely
+              </span>
+            )}
+            <CharacterCount length={body.length} max={limits.postBodyMax} showFrom={limits.postBodyMax * 0.9} />
+          </span>
         </div>
         <Textarea
           id={`${id}-body`}

@@ -3,16 +3,19 @@
 import { LoaderCircle } from "lucide-react";
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
+import { Field, fieldDescription } from "@/components/ui/field";
 import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/problem";
+import { stopIfInvalid, useField } from "@/lib/forms";
 import { limits } from "@/lib/limits";
+import { emailProblem } from "@/lib/validation";
 
 type State = { sent: boolean; error?: string };
 
 export function ForgotPasswordForm() {
+  const email = useField("", emailProblem);
   const [state, requestLink, pending] = useActionState<State, FormData>(
     async (_, form) => {
       try {
@@ -38,10 +41,24 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form action={requestLink} className="mt-8 grid gap-5">
+    <form
+      action={requestLink}
+      noValidate
+      onSubmit={(event) => stopIfInvalid(event, [["email", email]])}
+      className="mt-8 grid gap-5"
+    >
       {state.error && <FormMessage tone="error">{state.error}</FormMessage>}
-      <Field id="email" label="Email">
-        <Input id="email" name="email" type="email" autoComplete="email" required maxLength={limits.emailMax} />
+      <Field id="email" label="Email" error={email.error}>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          maxLength={limits.emailMax}
+          {...email.props}
+          {...fieldDescription("email", email.error)}
+        />
       </Field>
       <Button type="submit" size="lg" disabled={pending} aria-busy={pending}>
         {pending && <LoaderCircle className="animate-spin" aria-hidden />}

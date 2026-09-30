@@ -12,6 +12,15 @@ export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 export function imageProblem(file: File, maxBytes: number): string | null {
   if (!(IMAGE_TYPES as readonly string[]).includes(file.type)) return "Pictures must be PNG, JPEG, GIF or WebP.";
   if (file.size === 0) return "That file is empty.";
-  if (file.size > maxBytes) return `Pictures can be up to ${maxBytes / (1024 * 1024)} MB.`;
+  if (file.size > maxBytes)
+    return `That picture is ${megabytes(file.size, Math.ceil)} MB. Pictures can be up to ${megabytes(maxBytes)} MB.`;
   return null;
+}
+
+/**
+ * 3.4 for 3.4 MB, whole numbers without the ".0". A file's size rounds up,
+ * so one just over the limit never reads as equal to it.
+ */
+function megabytes(bytes: number, round: (value: number) => number = Math.round): string {
+  return String(round((bytes / (1024 * 1024)) * 10) / 10);
 }

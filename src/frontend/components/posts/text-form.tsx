@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { CharacterCount } from "@/components/ui/character-count";
 import { Textarea } from "@/components/ui/input";
 import { errorMessage } from "@/lib/api/problem";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,6 @@ export function TextForm({
   }, [focusOnOpen]);
 
   const trimmed = text.trim();
-  const remaining = maxLength - text.length;
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -89,9 +89,7 @@ export function TextForm({
             {error}
           </p>
         )}
-        {remaining < maxLength * 0.1 && (
-          <span className={cn("font-mono text-xs text-muted", remaining === 0 && "text-danger")}>{remaining}</span>
-        )}
+        <CharacterCount length={text.length} max={maxLength} showFrom={maxLength * 0.9} />
         <div className="ml-auto flex gap-2">
           {onCancel && (
             <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={pending}>

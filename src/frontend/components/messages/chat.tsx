@@ -7,6 +7,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } fr
 import { PageHeader } from "@/components/shell/page-header";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { CharacterCount } from "@/components/ui/character-count";
 import { Textarea } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import type { Conversation, CurrentUser, CursorPage, Message } from "@/lib/api/types";
@@ -359,6 +360,14 @@ function ChatComposer({ name, onSend, onTyping }: ChatComposerProps) {
       }}
       className="border-t border-line bg-canvas px-4 py-3 sm:px-6"
     >
+      <div className="flex justify-end">
+        <CharacterCount
+          length={text.length}
+          max={limits.messageBodyMax}
+          showFrom={limits.messageBodyMax * 0.9}
+          className="mb-1.5"
+        />
+      </div>
       <div className="flex items-end gap-2">
         <Textarea
           aria-label={`Message ${name}`}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { imageProblem, POST_IMAGE_MAX_BYTES } from "./images";
+import { AVATAR_MAX_BYTES, imageProblem, POST_IMAGE_MAX_BYTES } from "./images";
 
 const file = (type: string, size: number) => new File([new Uint8Array(size)], "picture", { type });
 
@@ -19,7 +19,13 @@ describe("imageProblem", () => {
   it("allows exactly the limit and nothing over it", () => {
     expect(imageProblem(file("image/png", POST_IMAGE_MAX_BYTES), POST_IMAGE_MAX_BYTES)).toBeNull();
     expect(imageProblem(file("image/png", POST_IMAGE_MAX_BYTES + 1), POST_IMAGE_MAX_BYTES)).toBe(
-      "Pictures can be up to 5 MB.",
+      "That picture is 5.1 MB. Pictures can be up to 5 MB.",
+    );
+  });
+
+  it("says how big a picture over the limit is", () => {
+    expect(imageProblem(file("image/jpeg", 3.4 * 1024 * 1024), AVATAR_MAX_BYTES)).toBe(
+      "That picture is 3.4 MB. Pictures can be up to 2 MB.",
     );
   });
 });

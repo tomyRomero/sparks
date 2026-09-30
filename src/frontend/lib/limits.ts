@@ -3,11 +3,14 @@
  * the server would. The server still checks; these only save a round trip.
  */
 export const limits = {
+  usernameMin: 3,
   usernameMax: 30,
   displayNameMax: 50,
   bioMax: 1000,
   emailMax: 254,
   passwordMin: 8,
+  /** BCrypt reads only the first 72 bytes, so the API turns down longer passwords. */
+  passwordMaxBytes: 72,
   postBodyMax: 10_000,
   aiPromptMax: 1000,
   commentBodyMax: 2000,

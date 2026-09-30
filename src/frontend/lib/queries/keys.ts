@@ -20,6 +20,8 @@ export const queryKeys = {
   profileComments: (username: string) => ["comments", "profile", username] as const,
 
   members: (q: string) => ["members", q] as const,
+  /** Usernames compare without case, as the API does. */
+  usernameFree: (username: string) => ["username-free", username.toLowerCase()] as const,
 
   activity: ["activity"] as const,
   inbox: ["inbox"] as const,
