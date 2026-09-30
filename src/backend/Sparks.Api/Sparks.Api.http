@@ -98,3 +98,23 @@ DELETE {{api}}/api/v1/comments/{{createComment.response.body.$.id}}
 
 ### Delete the post
 DELETE {{api}}/api/v1/posts/{{createPost.response.body.$.id}}
+
+# Members: profiles are public; editing needs the sign-in above.
+
+### Find members by username or display name
+GET {{api}}/api/v1/users?q=demo
+
+### A profile
+GET {{api}}/api/v1/users/demo
+
+### The lists on a profile: posts, comments, liked
+GET {{api}}/api/v1/users/demo/posts
+
+### Edit your profile (a blank bio clears it)
+PATCH {{api}}/api/v1/users/me
+Content-Type: application/json
+
+{
+  "displayName": "Demo User",
+  "bio": "Writes haiku between builds."
+}

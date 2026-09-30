@@ -36,6 +36,23 @@ public sealed class PostService(SparksDbContext db, TimeProvider time)
         return PageAsync(posts, query, viewerId, ct);
     }
 
+    /// <summary>One member's posts, newest first.</summary>
+    public Task<CursorPage<PostResponse>> GetByAuthorAsync(
+        long authorId, PageRequest page, long? viewerId, CancellationToken ct) =>
+        PageAsync(db.Posts.AsNoTracking().Where(post => post.AuthorId == authorId), page, viewerId, ct);
+
+    /// <summary>
+    /// The posts a member liked, newest post first. Ordering by the post
+    /// rather than the like keeps one cursor for every post list.
+    /// </summary>
+    public Task<CursorPage<PostResponse>> GetLikedByAsync(
+        long userId, PageRequest page, long? viewerId, CancellationToken ct) =>
+        PageAsync(
+            db.Posts.AsNoTracking().Where(post => post.Likes.Any(like => like.UserId == userId)),
+            page,
+            viewerId,
+            ct);
+
     public async Task<PostResponse> GetAsync(long postId, long? viewerId, CancellationToken ct) =>
         await db.Posts.AsNoTracking()
             .Where(post => post.Id == postId)
@@ -144,19 +161,10 @@ public sealed class PostService(SparksDbContext db, TimeProvider time)
         post.Comments.Count,
         viewerId != null && post.Likes.Any(like => like.UserId == viewerId));
 
-    private async Task<CursorPage<PostResponse>> PageAsync(
+    private static async Task<CursorPage<PostResponse>> PageAsync(
         IQueryable<PostEntity> posts, PageRequest page, long? viewerId, CancellationToken ct)
     {
-        if (page.Cursor is { } cursor)
-        {
-            posts = posts.Where(post => post.Id < cursor);
-        }
-
-        var fetched = await posts
-            .OrderByDescending(post => post.Id)
-            .Take(page.Limit + 1)
-            .Select(ToResponse(viewerId))
-            .ToListAsync(ct);
+        var fetched = await posts.NewestFirst(page).Select(ToResponse(viewerId)).ToListAsync(ct);
         return CursorPage.From(fetched, page.Limit, post => post.Id);
     }
 

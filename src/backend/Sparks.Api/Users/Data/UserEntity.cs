@@ -1,7 +1,9 @@
+using Sparks.Api.Common.Data;
+
 namespace Sparks.Api.Users.Data;
 
 /// <summary>A Sparks member's public profile (table <c>users</c>).</summary>
-public class UserEntity
+public class UserEntity : IHasId
 {
     public long Id { get; set; }
 

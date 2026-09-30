@@ -25,8 +25,10 @@ public sealed class CommentService(SparksDbContext db, TimeProvider time)
             throw PostErrors.PostNotFound();
         }
 
-        return await PageAsync(
-            db.Comments.Where(comment => comment.PostId == postId && comment.ParentCommentId == null),
+        return await ToPageAsync(
+            db.Comments.AsNoTracking()
+                .Where(comment => comment.PostId == postId && comment.ParentCommentId == null)
+                .OldestFirst(page),
             page,
             viewerId,
             ct);
@@ -48,9 +50,21 @@ public sealed class CommentService(SparksDbContext db, TimeProvider time)
             throw PostErrors.CommentNotFound();
         }
 
-        return await PageAsync(
-            db.Comments.Where(comment => comment.ParentCommentId == commentId), page, viewerId, ct);
+        return await ToPageAsync(
+            db.Comments.AsNoTracking().Where(comment => comment.ParentCommentId == commentId).OldestFirst(page),
+            page,
+            viewerId,
+            ct);
     }
+
+    /// <summary>One member's comments and replies, newest first, for their profile.</summary>
+    public Task<CursorPage<CommentResponse>> GetByAuthorAsync(
+        long authorId, PageRequest page, long? viewerId, CancellationToken ct) =>
+        ToPageAsync(
+            db.Comments.AsNoTracking().Where(comment => comment.AuthorId == authorId).NewestFirst(page),
+            page,
+            viewerId,
+            ct);
 
     public async Task<CommentResponse> CommentOnPostAsync(
         long postId, long authorId, CommentRequest request, CancellationToken ct)
@@ -221,21 +235,11 @@ public sealed class CommentService(SparksDbContext db, TimeProvider time)
         return await GetAsync(comment.Id, authorId, ct);
     }
 
-    /// <summary>Oldest first: the cursor is the last id seen, and the page continues after it.</summary>
-    private static async Task<CursorPage<CommentResponse>> PageAsync(
-        IQueryable<CommentEntity> comments, PageRequest page, long? viewerId, CancellationToken ct)
+    /// <summary>Projects one page of rows, already ordered and cut by <see cref="CursorPaging"/>.</summary>
+    private static async Task<CursorPage<CommentResponse>> ToPageAsync(
+        IQueryable<CommentEntity> pageRows, PageRequest page, long? viewerId, CancellationToken ct)
     {
-        if (page.Cursor is { } cursor)
-        {
-            comments = comments.Where(comment => comment.Id > cursor);
-        }
-
-        var fetched = await comments
-            .AsNoTracking()
-            .OrderBy(comment => comment.Id)
-            .Take(page.Limit + 1)
-            .Select(ToResponse(viewerId))
-            .ToListAsync(ct);
+        var fetched = await pageRows.Select(ToResponse(viewerId)).ToListAsync(ct);
         return CursorPage.From(fetched, page.Limit, comment => comment.Id);
     }
 

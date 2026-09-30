@@ -1,3 +1,4 @@
+using Sparks.Api.Common.Data;
 using Sparks.Api.Users.Data;
 
 namespace Sparks.Api.Posts.Data;
@@ -6,7 +7,7 @@ namespace Sparks.Api.Posts.Data;
 /// A comment on a post, or a reply to another comment (table <c>comments</c>).
 /// Every comment in a thread keeps the id of the post the thread is on.
 /// </summary>
-public class CommentEntity
+public class CommentEntity : IHasId
 {
     public long Id { get; set; }
 

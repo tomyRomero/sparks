@@ -10,6 +10,7 @@ using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Health;
 using Sparks.Api.Common.Security;
 using Sparks.Api.Posts.Services;
+using Sparks.Api.Users.Services;
 
 // Logs anything that goes wrong before the host (and its configured logger) is built.
 Log.Logger = new LoggerConfiguration()
@@ -73,6 +74,7 @@ try
     // ── Features ─────────────────────────────────────────────────────────────
     builder.Services.AddScoped<PostService>();
     builder.Services.AddScoped<CommentService>();
+    builder.Services.AddScoped<UserService>();
     builder.Services.AddSparksHealthChecks();
 
     var app = builder.Build();

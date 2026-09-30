@@ -1,9 +1,10 @@
+using Sparks.Api.Common.Data;
 using Sparks.Api.Users.Data;
 
 namespace Sparks.Api.Posts.Data;
 
 /// <summary>A top-level spark (table <c>posts</c>).</summary>
-public class PostEntity
+public class PostEntity : IHasId
 {
     public long Id { get; set; }
 
