@@ -9,6 +9,7 @@ using Sparks.Api.Auth.Services;
 using Sparks.Api.Common;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Security;
+using Sparks.Api.Storage;
 using Testcontainers.MsSql;
 
 [assembly: AssemblyFixture(typeof(Sparks.Tests.Infrastructure.SparksApiFactory))]
@@ -37,6 +38,9 @@ public sealed class SparksApiFactory : WebApplicationFactory<Program>, IAsyncLif
 
     // A fresh signing key per run, so no key is ever written into the repo.
     private readonly string _jwtSecret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
+
+    /// <summary>Where this run's uploaded images go: a temporary folder, removed afterwards.</summary>
+    public string StorageRoot { get; } = Path.Combine(Path.GetTempPath(), $"sparks-tests-{Guid.NewGuid():N}");
 
     /// <summary>Connection string for the test database inside the container.</summary>
     public string ConnectionString =>
@@ -67,17 +71,24 @@ public sealed class SparksApiFactory : WebApplicationFactory<Program>, IAsyncLif
             $"ConnectionStrings:{DatabaseServiceCollectionExtensions.ConnectionStringName}",
             ConnectionString);
         builder.UseSetting($"{JwtOptions.SectionName}:Secret", _jwtSecret);
+        builder.UseSetting($"{StorageOptions.SectionName}:{nameof(StorageOptions.LocalRoot)}", StorageRoot);
 
         // Every test shares one client address, so the real limits would trip
         // across unrelated tests. The limiter itself has its own test.
         builder.UseSetting($"{RateLimitOptions.SectionName}:{nameof(RateLimitOptions.LoginPerMinute)}", "10000");
         builder.UseSetting($"{RateLimitOptions.SectionName}:{nameof(RateLimitOptions.SignupPerMinute)}", "10000");
         builder.UseSetting($"{RateLimitOptions.SectionName}:{nameof(RateLimitOptions.PassivePerMinute)}", "10000");
+        builder.UseSetting($"{RateLimitOptions.SectionName}:{nameof(RateLimitOptions.UploadsPerHour)}", "10000");
+        builder.UseSetting($"{RateLimitOptions.SectionName}:{nameof(RateLimitOptions.AiPerHour)}", "10000");
     }
 
     public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
         await _sql.DisposeAsync();
+        if (Directory.Exists(StorageRoot))
+        {
+            Directory.Delete(StorageRoot, recursive: true);
+        }
     }
 }

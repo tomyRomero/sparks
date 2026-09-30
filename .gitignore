@@ -24,6 +24,8 @@ obj/
 *.user
 .vs/
 TestResults/
+# Images the API stores on local disk in development.
+App_Data/
 # `dotnet ef` on macOS can create directories literally named `bin\Debug`.
 **/bin\\*
 

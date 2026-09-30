@@ -7,6 +7,7 @@ using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Realtime;
+using Sparks.Api.Storage;
 using Sparks.Api.Users.Models;
 using Sparks.Api.Users.Services;
 
@@ -210,7 +211,8 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
             new UserSummary(
                 conversation.UserAId == viewerId ? conversation.UserBId : conversation.UserAId,
                 conversation.UserAId == viewerId ? conversation.UserB.Username : conversation.UserA.Username,
-                conversation.UserAId == viewerId ? conversation.UserB.DisplayName : conversation.UserA.DisplayName),
+                conversation.UserAId == viewerId ? conversation.UserB.DisplayName : conversation.UserA.DisplayName,
+                FileUrls.Of(conversation.UserAId == viewerId ? conversation.UserB.AvatarKey : conversation.UserA.AvatarKey)),
             conversation.Messages
                 .OrderByDescending(message => message.Id)
                 .Select(message => new MessageResponse(

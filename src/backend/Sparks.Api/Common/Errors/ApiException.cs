@@ -18,4 +18,7 @@ public sealed class ApiException(int statusCode, string code, string title) : Ex
 
     public static ApiException BadRequest(string code, string title) =>
         new(StatusCodes.Status400BadRequest, code, title);
+
+    public static ApiException Conflict(string code, string title) =>
+        new(StatusCodes.Status409Conflict, code, title);
 }

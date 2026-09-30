@@ -16,6 +16,7 @@ using Sparks.Api.Common.Health;
 using Sparks.Api.Common.Security;
 using Sparks.Api.Posts.Services;
 using Sparks.Api.Realtime;
+using Sparks.Api.Storage;
 using Sparks.Api.Users.Services;
 
 // Logs anything that goes wrong before the host (and its configured logger) is built.
@@ -48,6 +49,9 @@ try
 
     // ── Database ─────────────────────────────────────────────────────────────
     builder.Services.AddSparksDatabase();
+
+    // ── Storage ──────────────────────────────────────────────────────────────
+    builder.Services.AddSparksStorage();
 
     // ── Email ────────────────────────────────────────────────────────────────
     builder.Services.AddOptions<FrontendOptions>()
@@ -135,8 +139,10 @@ try
     // turns away writes and live connections from any other site.
     app.UseCors();
     app.UseMiddleware<OriginCheckMiddleware>();
-    app.UseRateLimiter();
+    // Authentication runs before the limiter so uploads and AI can be
+    // limited per member rather than per address.
     app.UseAuthentication();
+    app.UseRateLimiter();
     app.UseAuthorization();
     app.MapControllers();
     // A connection outlives the access token it opened with; closing it when

@@ -7,10 +7,12 @@ using Sparks.Api.Users.Models;
 namespace Sparks.Api.Posts.Models;
 
 /// <summary>A spark as the feed and the post page show it.</summary>
+/// <param name="ImageUrl">The attached image's path under the API; null when there's none.</param>
 public sealed record PostResponse(
     long Id,
     SparkKind Kind,
     string Body,
+    string? ImageUrl,
     string? AiPrompt,
     DateTime CreatedAt,
     DateTime? EditedAt,
@@ -30,6 +32,10 @@ public sealed record CreatePostRequest
     /// <summary>The prompt, when the body was drafted with AI.</summary>
     [StringLength(InputLimits.AiPromptMaxLength)]
     public string? AiPrompt { get; init; }
+
+    /// <summary>The key of an image the author uploaded or generated for this post.</summary>
+    [StringLength(InputLimits.StorageKeyMaxLength)]
+    public string? ImageKey { get; init; }
 }
 
 public sealed record UpdatePostRequest

@@ -3,6 +3,7 @@ using Sparks.Api.Activity.Models;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
+using Sparks.Api.Storage;
 using Sparks.Api.Users.Models;
 
 namespace Sparks.Api.Activity.Services;
@@ -141,7 +142,7 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
 
         var actors = await db.Users
             .Where(user => actorIds.Contains(user.Id))
-            .Select(user => new UserSummary(user.Id, user.Username, user.DisplayName))
+            .Select(user => new UserSummary(user.Id, user.Username, user.DisplayName, FileUrls.Of(user.AvatarKey)))
             .ToDictionaryAsync(user => user.Id, ct);
 
         // Substring runs as SQL SUBSTRING, so long posts aren't read in full,

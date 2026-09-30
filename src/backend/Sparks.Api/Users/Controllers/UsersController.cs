@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Sparks.Api.Auth.Services;
 using Sparks.Api.Common.Models;
+using Sparks.Api.Common.Security;
 using Sparks.Api.Posts.Models;
 using Sparks.Api.Posts.Services;
+using Sparks.Api.Storage;
 using Sparks.Api.Users.Models;
 using Sparks.Api.Users.Services;
 
@@ -56,4 +59,15 @@ public sealed class UsersController(UserService users, PostService posts, Commen
     [HttpPatch("me")]
     public Task<ProfileResponse> UpdateProfile(UpdateProfileRequest request, CancellationToken ct) =>
         users.UpdateProfileAsync(User.GetUserId(), request, ct);
+
+    /// <summary>Sets the profile picture from an uploaded image (multipart field <c>file</c>).</summary>
+    [HttpPut("me/avatar")]
+    [RequestSizeLimit(ImageUploadService.MaxRequestBytes)]
+    [EnableRateLimiting(RateLimitPolicies.Uploads)]
+    public Task<ProfileResponse> SetAvatar(IFormFile file, CancellationToken ct) =>
+        users.SetAvatarAsync(User.GetUserId(), file, ct);
+
+    [HttpDelete("me/avatar")]
+    public Task<ProfileResponse> RemoveAvatar(CancellationToken ct) =>
+        users.RemoveAvatarAsync(User.GetUserId(), ct);
 }

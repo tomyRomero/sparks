@@ -5,12 +5,14 @@ using Sparks.Api.Common.Models;
 namespace Sparks.Api.Users.Models;
 
 /// <summary>The header of a member's profile page. Public, so it never includes the email.</summary>
+/// <param name="AvatarUrl">The profile picture's path under the API; null when there's none.</param>
 /// <param name="LikesReceived">Likes on the member's posts, from everyone.</param>
 public sealed record ProfileResponse(
     long Id,
     string Username,
     string DisplayName,
     string? Bio,
+    string? AvatarUrl,
     DateTime JoinedAt,
     int PostCount,
     int LikesReceived);

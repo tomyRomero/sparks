@@ -5,6 +5,7 @@ using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
+using Sparks.Api.Storage;
 using Sparks.Api.Users.Models;
 
 namespace Sparks.Api.Posts.Services;
@@ -200,7 +201,8 @@ public sealed class CommentService(SparksDbContext db, TimeProvider time)
             comment.Body,
             comment.CreatedAt,
             comment.EditedAt,
-            new UserSummary(comment.Author.Id, comment.Author.Username, comment.Author.DisplayName),
+            new UserSummary(
+                comment.Author.Id, comment.Author.Username, comment.Author.DisplayName, FileUrls.Of(comment.Author.AvatarKey)),
             comment.Likes.Count,
             comment.Replies.Count,
             viewerId != null && comment.Likes.Any(like => like.UserId == viewerId));

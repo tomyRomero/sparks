@@ -28,5 +28,10 @@ internal sealed class PostEntityConfiguration : IEntityTypeConfiguration<PostEnt
         // Feeds read newest first by id: a profile's posts, and posts of one kind.
         builder.HasIndex(post => new { post.AuthorId, post.Id });
         builder.HasIndex(post => new { post.Kind, post.Id });
+
+        // Each image belongs to one post, so deleting the post can delete the
+        // file. SQL Server limits a unique index on a nullable column to the
+        // rows that have a value.
+        builder.HasIndex(post => post.ImageKey).IsUnique();
     }
 }

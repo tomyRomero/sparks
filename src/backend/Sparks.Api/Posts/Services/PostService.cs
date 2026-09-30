@@ -5,12 +5,13 @@ using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
+using Sparks.Api.Storage;
 using Sparks.Api.Users.Models;
 
 namespace Sparks.Api.Posts.Services;
 
 /// <summary>Sparks: the feed, a single post, and writing, editing, deleting and liking posts.</summary>
-public sealed class PostService(SparksDbContext db, TimeProvider time)
+public sealed class PostService(SparksDbContext db, TimeProvider time, IFileStorage storage)
 {
     /// <summary>Newest posts first, optionally of one kind or matching a search.</summary>
     public Task<CursorPage<PostResponse>> GetFeedAsync(PostFeedQuery query, long? viewerId, CancellationToken ct)
@@ -62,16 +63,41 @@ public sealed class PostService(SparksDbContext db, TimeProvider time)
 
     public async Task<PostResponse> CreateAsync(long authorId, CreatePostRequest request, CancellationToken ct)
     {
+        // Only an image the author stored, which is still there, and which no
+        // other post uses: deleting a post deletes its image.
+        if (request.ImageKey is { } imageKey)
+        {
+            if (!StorageKeys.BelongsTo(imageKey, StorageKeys.Images, authorId) || !await storage.ExistsAsync(imageKey, ct))
+            {
+                throw PostErrors.InvalidImage();
+            }
+
+            if (await db.Posts.AnyAsync(post => post.ImageKey == imageKey, ct))
+            {
+                throw PostErrors.ImageAlreadyUsed();
+            }
+        }
+
         var post = new PostEntity
         {
             AuthorId = authorId,
             Kind = request.Kind!.Value,
             Body = request.Body.Trim(),
+            ImageKey = request.ImageKey,
             AiPrompt = string.IsNullOrWhiteSpace(request.AiPrompt) ? null : request.AiPrompt.Trim(),
             CreatedAt = time.GetUtcNow().UtcDateTime,
         };
         db.Posts.Add(post);
-        await db.SaveChangesAsync(ct);
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (ex.IsUniqueViolation())
+        {
+            // Another post took the image a moment ago; the unique index caught it.
+            throw PostErrors.ImageAlreadyUsed();
+        }
+
         return await GetAsync(post.Id, authorId, ct);
     }
 
@@ -95,15 +121,22 @@ public sealed class PostService(SparksDbContext db, TimeProvider time)
         return await GetAsync(postId, userId, ct);
     }
 
-    /// <summary>Deletes a post with its comments and likes (by cascade). Only its author may.</summary>
+    /// <summary>
+    /// Deletes a post with its comments and likes (by cascade), then its
+    /// image. Only its author may.
+    /// </summary>
     public async Task DeleteAsync(long postId, long userId, CancellationToken ct)
     {
-        var deleted = await db.Posts
-            .Where(post => post.Id == postId && post.AuthorId == userId)
-            .ExecuteDeleteAsync(ct);
-        if (deleted == 0)
+        var own = db.Posts.Where(post => post.Id == postId && post.AuthorId == userId);
+        var imageKey = await own.Select(post => post.ImageKey).FirstOrDefaultAsync(ct);
+        if (await own.ExecuteDeleteAsync(ct) == 0)
         {
             throw await RefusalAsync(postId, ct);
+        }
+
+        if (imageKey is not null)
+        {
+            await storage.DeleteAsync(imageKey, ct);
         }
     }
 
@@ -153,10 +186,11 @@ public sealed class PostService(SparksDbContext db, TimeProvider time)
         post.Id,
         post.Kind,
         post.Body,
+        FileUrls.Of(post.ImageKey),
         post.AiPrompt,
         post.CreatedAt,
         post.EditedAt,
-        new UserSummary(post.Author.Id, post.Author.Username, post.Author.DisplayName),
+        new UserSummary(post.Author.Id, post.Author.Username, post.Author.DisplayName, FileUrls.Of(post.Author.AvatarKey)),
         post.Likes.Count,
         post.Comments.Count,
         viewerId != null && post.Likes.Any(like => like.UserId == viewerId));
