@@ -52,3 +52,29 @@ jobs:
           CLERK_SECRET_KEY: sk_test_ci-placeholder
           NEXT_PUBLIC_PUSHER_APP_KEY: ci-placeholder
           NEXT_PUBLIC_PUSHER_CLUSTER: us2
+
+  backend:
+    name: Backend (build, format, test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_NOLOGO: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - run: dotnet restore sparks.slnx
+
+      # Warnings are errors (src/backend/Directory.Build.props).
+      - name: Build
+        run: dotnet build sparks.slnx --no-restore --configuration Release
+
+      - name: Format
+        run: dotnet format sparks.slnx --verify-no-changes --no-restore
+
+      - name: Tests
+        run: dotnet test --solution sparks.slnx --no-build --configuration Release

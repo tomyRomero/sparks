@@ -1,0 +1,10 @@
+@api = http://localhost:5100
+
+### Liveness: the process is up
+GET {{api}}/health/live
+
+### Readiness: dependencies are reachable
+GET {{api}}/health/ready
+
+### OpenAPI document (Development only)
+GET {{api}}/openapi/v1.json

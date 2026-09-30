@@ -10,6 +10,15 @@ updates:
       minor-and-patch:
         update-types: [minor, patch]
 
+  - package-ecosystem: nuget
+    directories: ["/src/backend/*"]
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
   - package-ecosystem: github-actions
     directory: /
     schedule:

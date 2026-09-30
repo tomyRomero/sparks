@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/backend/">
+    <Project Path="src/backend/Sparks.Api/Sparks.Api.csproj" />
+    <Project Path="src/backend/Sparks.Tests/Sparks.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,12 @@
+<Project>
+
+  <!-- Shared by every backend project. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Zero warnings: each one is fixed, or suppressed where it occurs with a reason. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>
