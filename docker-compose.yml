@@ -33,13 +33,17 @@ services:
     stop_grace_period: 30s
     healthcheck:
       # $$ leaves the variable for the container's shell, so the password
-      # never appears in the container's configuration.
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -b -Q \"SELECT 1\""]
+      # never appears in the container's configuration. sqlcmd reads it from
+      # SQLCMDPASSWORD rather than -P, so it never appears in the process
+      # list either (docker top, ps).
+      test: ["CMD-SHELL", "SQLCMDPASSWORD=\"$$MSSQL_SA_PASSWORD\" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -Q \"SELECT 1\""]
       # The first start builds the system databases on a new volume, which can
       # take a few minutes under emulation; later starts take about 30 seconds.
       start_period: 5m
       start_interval: 5s
-      interval: 10s
+      # Every check starts sqlcmd under emulation, which costs a burst of CPU;
+      # once healthy, twice a minute is plenty.
+      interval: 30s
       timeout: 5s
       retries: 5
 
