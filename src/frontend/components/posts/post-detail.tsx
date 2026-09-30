@@ -132,7 +132,7 @@ export function PostDetail({ initial, viewer }: { initial: Post; viewer: Current
         )}
       </p>
 
-      <footer className="-ml-2 mt-3 flex items-center gap-2 border-t border-line pt-3">
+      <footer className="mt-3 -ml-2 flex items-center gap-2 border-t border-line pt-3">
         <LikeButton
           target={{ kind: "post", id: post.id }}
           liked={post.likedByMe}

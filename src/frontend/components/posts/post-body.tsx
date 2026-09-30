@@ -7,9 +7,7 @@ import { cn } from "@/lib/utils";
  */
 export function PostBody({ kind, body, compact = false }: { kind: SparkKind; body: string; compact?: boolean }) {
   if (kind === "haiku") {
-    return (
-      <p className="py-2 text-center font-display text-xl leading-relaxed whitespace-pre-line text-ink">{body}</p>
-    );
+    return <p className="py-2 text-center font-display text-xl leading-relaxed whitespace-pre-line text-ink">{body}</p>;
   }
 
   if (kind === "quote" || kind === "aphorism") {

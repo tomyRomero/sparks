@@ -80,7 +80,10 @@ export function PictureField({ image, onChange, paint, disabled = false }: Pictu
             />
           )}
           {busy && (
-            <p role="status" className="absolute inset-x-0 bottom-0 bg-canvas/80 px-4 py-2 text-sm text-ink-soft backdrop-blur">
+            <p
+              role="status"
+              className="absolute inset-x-0 bottom-0 bg-canvas/80 px-4 py-2 text-sm text-ink-soft backdrop-blur"
+            >
               {busy === "painting" ? "Painting your picture…" : "Uploading…"}
             </p>
           )}

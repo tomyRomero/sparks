@@ -14,7 +14,11 @@ import { cn } from "@/lib/utils";
  * live: the live connection refreshes this list whenever one arrives.
  */
 export function Inbox({ initial, viewerId }: { initial: OpaquePage<Conversation>; viewerId: number }) {
-  const { query, items: conversations } = usePagedList<Conversation, string>("/conversations", queryKeys.inbox, initial);
+  const { query, items: conversations } = usePagedList<Conversation, string>(
+    "/conversations",
+    queryKeys.inbox,
+    initial,
+  );
   if (conversations.length === 0) {
     return (
       <div className="px-6 py-16 text-center">

@@ -21,7 +21,11 @@ export default async function ProfileLikesPage({ params }: PageProps<"/u/[userna
       path={path}
       queryKey={queryKeys.profilePosts(profile.username, "liked")}
       signedIn={viewer !== null}
-      empty={<p className="text-muted">{viewer?.id === profile.id ? "You haven't" : `${profile.displayName} hasn't`} liked a spark yet.</p>}
+      empty={
+        <p className="text-muted">
+          {viewer?.id === profile.id ? "You haven't" : `${profile.displayName} hasn't`} liked a spark yet.
+        </p>
+      }
     />
   );
 }

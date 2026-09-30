@@ -23,8 +23,14 @@ export function CommentFocus({ initial, viewer }: { initial: Comment; viewer: Cu
   const parent = comment.parentCommentId;
   return (
     <>
-      <nav aria-label="Thread" className="flex flex-wrap gap-x-4 gap-y-1 border-b border-line px-4 py-3 text-sm sm:px-6">
-        <Link href={`/p/${comment.postId}`} className="inline-flex items-center gap-1 font-medium text-brand hover:underline">
+      <nav
+        aria-label="Thread"
+        className="flex flex-wrap gap-x-4 gap-y-1 border-b border-line px-4 py-3 text-sm sm:px-6"
+      >
+        <Link
+          href={`/p/${comment.postId}`}
+          className="inline-flex items-center gap-1 font-medium text-brand hover:underline"
+        >
           <ArrowUpLeft className="size-4" aria-hidden />
           The spark
         </Link>

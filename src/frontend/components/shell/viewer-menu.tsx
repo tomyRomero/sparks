@@ -37,12 +37,7 @@ export function ViewerMenu({ viewer }: { viewer: CurrentUser }) {
         <Ellipsis className="size-4 text-muted" aria-hidden />
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Content
-          side="top"
-          align="start"
-          sideOffset={8}
-          className={cn(menuContentStyle, "min-w-52")}
-        >
+        <Menu.Content side="top" align="start" sideOffset={8} className={cn(menuContentStyle, "min-w-52")}>
           <Menu.Item asChild className={menuItemStyle}>
             <Link href={`/u/${viewer.username}`}>
               <UserRound className="size-4" aria-hidden /> Your profile

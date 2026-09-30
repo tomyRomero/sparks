@@ -12,14 +12,17 @@ import { limits } from "@/lib/limits";
 type State = { sent: boolean; error?: string };
 
 export function ForgotPasswordForm() {
-  const [state, requestLink, pending] = useActionState<State, FormData>(async (_, form) => {
-    try {
-      await api("/auth/forgot-password", { method: "POST", json: { email: String(form.get("email")).trim() } });
-      return { sent: true };
-    } catch (error) {
-      return { sent: false, error: errorMessage(error) };
-    }
-  }, { sent: false });
+  const [state, requestLink, pending] = useActionState<State, FormData>(
+    async (_, form) => {
+      try {
+        await api("/auth/forgot-password", { method: "POST", json: { email: String(form.get("email")).trim() } });
+        return { sent: true };
+      } catch (error) {
+        return { sent: false, error: errorMessage(error) };
+      }
+    },
+    { sent: false },
+  );
 
   if (state.sent) {
     // The same answer whether or not the address has an account, so this

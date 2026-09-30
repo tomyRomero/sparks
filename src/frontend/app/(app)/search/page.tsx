@@ -72,14 +72,22 @@ async function MemberResults({ q }: { q: string }) {
   const path = `/users?q=${encodeURIComponent(q)}`;
   const first = await serverGet<CursorPage<UserSummary>>(`/api/v1${path}`);
   return (
-    <MemberList key={path} initial={first} path={path} queryKey={queryKeys.members(q)} empty={<NoResults q={q} what="members" />} />
+    <MemberList
+      key={path}
+      initial={first}
+      path={path}
+      queryKey={queryKeys.members(q)}
+      empty={<NoResults q={q} what="members" />}
+    />
   );
 }
 
 function NoResults({ q, what }: { q: string; what: string }) {
   return (
     <>
-      <p className="font-display text-lg font-semibold">No {what} match “{q}”</p>
+      <p className="font-display text-lg font-semibold">
+        No {what} match “{q}”
+      </p>
       <p className="mt-1 text-muted">Try a shorter word, or a name.</p>
     </>
   );

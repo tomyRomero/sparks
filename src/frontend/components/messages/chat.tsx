@@ -126,7 +126,11 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
   return (
     <div className="flex h-[calc(100dvh-5rem)] flex-col md:h-dvh">
       <PageHeader title={other.displayName} back="/messages">
-        <Link href={`/u/${other.username}`} className="shrink-0 rounded-full" aria-label={`${other.displayName}'s profile`}>
+        <Link
+          href={`/u/${other.username}`}
+          className="shrink-0 rounded-full"
+          aria-label={`${other.displayName}'s profile`}
+        >
           <Avatar name={other.displayName} src={other.avatarUrl} size={32} />
         </Link>
       </PageHeader>
@@ -143,59 +147,62 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
       >
         {/* A short conversation sits just above the message box, as chats do. */}
         <div className="flex min-h-full flex-col justify-end">
-        {query.hasNextPage && (
-          <div className="mb-4 flex justify-center">
-            <Button variant="ghost" size="sm" onClick={loadEarlier} disabled={query.isFetchingNextPage}>
-              {query.isFetchingNextPage ? "Loading…" : "Load earlier messages"}
-            </Button>
-          </div>
-        )}
-        {messages.length === 0 ? (
-          <p className="py-16 text-center text-muted">Say hello to {other.displayName}.</p>
-        ) : (
-          <ol aria-label={`Messages with ${other.displayName}`}>
-            {messages.map((message, index) => {
-              const mine = message.senderId === viewer.id;
-              const before = messages[index - 1];
-              const after = messages[index + 1];
-              const startsRun = !before || !sameRun(before, message);
-              const endsRun = !after || !sameRun(message, after);
-              return (
-                <li key={message.id} className={cn("flex flex-col", mine ? "items-end" : "items-start", startsRun ? "mt-3" : "mt-0.5")}>
-                  <p
-                    title={fullDate(message.createdAt)}
-                    className={cn(
-                      "max-w-[80%] rounded-2xl px-3.5 py-2 leading-relaxed break-words whitespace-pre-wrap",
-                      mine ? "bg-brand text-brand-ink" : "bg-raised text-ink",
-                      mine ? !endsRun && "rounded-br-md" : !endsRun && "rounded-bl-md",
-                      mine ? !startsRun && "rounded-tr-md" : !startsRun && "rounded-tl-md",
-                    )}
+          {query.hasNextPage && (
+            <div className="mb-4 flex justify-center">
+              <Button variant="ghost" size="sm" onClick={loadEarlier} disabled={query.isFetchingNextPage}>
+                {query.isFetchingNextPage ? "Loading…" : "Load earlier messages"}
+              </Button>
+            </div>
+          )}
+          {messages.length === 0 ? (
+            <p className="py-16 text-center text-muted">Say hello to {other.displayName}.</p>
+          ) : (
+            <ol aria-label={`Messages with ${other.displayName}`}>
+              {messages.map((message, index) => {
+                const mine = message.senderId === viewer.id;
+                const before = messages[index - 1];
+                const after = messages[index + 1];
+                const startsRun = !before || !sameRun(before, message);
+                const endsRun = !after || !sameRun(message, after);
+                return (
+                  <li
+                    key={message.id}
+                    className={cn("flex flex-col", mine ? "items-end" : "items-start", startsRun ? "mt-3" : "mt-0.5")}
                   >
-                    <span className="sr-only">{mine ? "You" : other.displayName}: </span>
-                    {message.body}
-                  </p>
-                  {endsRun && (
-                    <span className="mt-1 label-mono">
-                      <time dateTime={message.createdAt} suppressHydrationWarning>
-                        {timeAgo(message.createdAt)}
-                      </time>
-                      {message.id === lastMine?.id && (message.readAt ? " · Seen" : " · Sent")}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        )}
-        {typing && (
-          <p className="mt-3 flex items-center gap-2 text-sm text-muted">
-            <TypingDots />
-            {other.displayName} is typing…
+                    <p
+                      title={fullDate(message.createdAt)}
+                      className={cn(
+                        "max-w-[80%] rounded-2xl px-3.5 py-2 leading-relaxed break-words whitespace-pre-wrap",
+                        mine ? "bg-brand text-brand-ink" : "bg-raised text-ink",
+                        mine ? !endsRun && "rounded-br-md" : !endsRun && "rounded-bl-md",
+                        mine ? !startsRun && "rounded-tr-md" : !startsRun && "rounded-tl-md",
+                      )}
+                    >
+                      <span className="sr-only">{mine ? "You" : other.displayName}: </span>
+                      {message.body}
+                    </p>
+                    {endsRun && (
+                      <span className="mt-1 label-mono">
+                        <time dateTime={message.createdAt} suppressHydrationWarning>
+                          {timeAgo(message.createdAt)}
+                        </time>
+                        {message.id === lastMine?.id && (message.readAt ? " · Seen" : " · Sent")}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+          {typing && (
+            <p className="mt-3 flex items-center gap-2 text-sm text-muted">
+              <TypingDots />
+              {other.displayName} is typing…
+            </p>
+          )}
+          <p aria-live="polite" className="sr-only">
+            {announcement}
           </p>
-        )}
-        <p aria-live="polite" className="sr-only">
-          {announcement}
-        </p>
         </div>
       </div>
 
@@ -237,7 +244,10 @@ function Offline({ connected }: { connected: boolean }) {
 
   if (!shown) return null;
   return (
-    <p role="status" className="flex items-center gap-2 border-b border-line bg-raised px-4 py-2 text-sm text-muted sm:px-6">
+    <p
+      role="status"
+      className="flex items-center gap-2 border-b border-line bg-raised px-4 py-2 text-sm text-muted sm:px-6"
+    >
       <WifiOff className="size-4" aria-hidden />
       Reconnecting… You can still send; new messages appear once you&apos;re back.
     </p>
@@ -248,7 +258,11 @@ function TypingDots() {
   return (
     <span className="inline-flex gap-0.5" aria-hidden>
       {[0, 150, 300].map((delay) => (
-        <span key={delay} className="size-1.5 animate-bounce rounded-full bg-muted" style={{ animationDelay: `${delay}ms` }} />
+        <span
+          key={delay}
+          className="size-1.5 animate-bounce rounded-full bg-muted"
+          style={{ animationDelay: `${delay}ms` }}
+        />
       ))}
     </span>
   );
@@ -315,7 +329,7 @@ function ChatComposer({ name, onSend, onTyping }: ChatComposerProps) {
               void send();
             }
           }}
-          className="max-h-40 min-h-11 resize-none [field-sizing:content]"
+          className="[field-sizing:content] max-h-40 min-h-11 resize-none"
         />
         <Button type="submit" size="icon" className="size-11 rounded-full" disabled={!text.trim() || pending}>
           <SendHorizontal aria-hidden />

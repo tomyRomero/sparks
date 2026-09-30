@@ -15,19 +15,22 @@ type State = { error?: string; identifier: string };
 
 export function SignInForm({ returnTo, passwordReset }: { returnTo: string; passwordReset: boolean }) {
   const router = useRouter();
-  const [state, signIn, pending] = useActionState<State, FormData>(async (_, form) => {
-    const identifier = String(form.get("identifier"));
-    try {
-      await api("/auth/login", { method: "POST", json: { identifier, password: form.get("password") } });
-    } catch (error) {
-      // Wrong credentials and a locked account each come with their own message.
-      return { identifier, error: errorMessage(error) };
-    }
+  const [state, signIn, pending] = useActionState<State, FormData>(
+    async (_, form) => {
+      const identifier = String(form.get("identifier"));
+      try {
+        await api("/auth/login", { method: "POST", json: { identifier, password: form.get("password") } });
+      } catch (error) {
+        // Wrong credentials and a locked account each come with their own message.
+        return { identifier, error: errorMessage(error) };
+      }
 
-    router.replace(returnTo);
-    router.refresh();
-    return { identifier };
-  }, { identifier: "" });
+      router.replace(returnTo);
+      router.refresh();
+      return { identifier };
+    },
+    { identifier: "" },
+  );
 
   return (
     <form action={signIn} className="mt-8 grid gap-5">

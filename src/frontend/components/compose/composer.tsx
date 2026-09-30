@@ -126,8 +126,14 @@ export function Composer({ startWithAi, initialKind }: ComposerProps) {
       <KindPicker value={kind} onChange={setKind} aiOnly={withAi} disabled={busy} />
 
       {withAi && (
-        <section aria-labelledby={`${id}-ai`} className="grid gap-2 rounded-lg border border-charge/25 bg-charge-soft/60 p-4">
-          <h2 id={`${id}-ai`} className="flex items-center gap-1.5 font-mono text-[11px] tracking-wide text-charge uppercase">
+        <section
+          aria-labelledby={`${id}-ai`}
+          className="grid gap-2 rounded-lg border border-charge/25 bg-charge-soft/60 p-4"
+        >
+          <h2
+            id={`${id}-ai`}
+            className="flex items-center gap-1.5 font-mono text-[11px] tracking-wide text-charge uppercase"
+          >
             <Zap className="size-3.5 fill-current" aria-hidden />
             Draft with AI
           </h2>

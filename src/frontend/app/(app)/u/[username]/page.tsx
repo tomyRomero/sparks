@@ -21,7 +21,11 @@ export default async function ProfileSparksPage({ params }: PageProps<"/u/[usern
       path={path}
       queryKey={queryKeys.profilePosts(profile.username, "posts")}
       signedIn={viewer !== null}
-      empty={<p className="text-muted">{viewer?.id === profile.id ? "You haven't" : `${profile.displayName} hasn't`} shared a spark yet.</p>}
+      empty={
+        <p className="text-muted">
+          {viewer?.id === profile.id ? "You haven't" : `${profile.displayName} hasn't`} shared a spark yet.
+        </p>
+      }
     />
   );
 }

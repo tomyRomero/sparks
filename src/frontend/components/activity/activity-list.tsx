@@ -66,7 +66,8 @@ export function ActivityList({ initial }: { initial: OpaquePage<ActivityItem> })
                 href={target(item)}
                 className={cn(
                   "relative flex gap-3 border-b border-line px-4 py-4 transition-colors hover:bg-surface/60 sm:px-6",
-                  item.unread && "bg-brand-soft/40 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-brand",
+                  item.unread &&
+                    "bg-brand-soft/40 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-brand",
                 )}
               >
                 <span className="relative shrink-0">

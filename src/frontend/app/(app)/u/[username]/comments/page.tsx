@@ -20,7 +20,11 @@ export default async function ProfileCommentsPage({ params }: PageProps<"/u/[use
       initial={first}
       path={path}
       queryKey={queryKeys.profileComments(profile.username)}
-      empty={<p className="text-muted">{viewer?.id === profile.id ? "You haven't" : `${profile.displayName} hasn't`} commented yet.</p>}
+      empty={
+        <p className="text-muted">
+          {viewer?.id === profile.id ? "You haven't" : `${profile.displayName} hasn't`} commented yet.
+        </p>
+      }
     />
   );
 }

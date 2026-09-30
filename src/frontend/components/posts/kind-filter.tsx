@@ -36,7 +36,7 @@ export function KindFilter({ active }: { active: SparkKind | undefined }) {
       {/* One scrolling row; the faded edges say there are more kinds. */}
       <ul
         ref={list}
-        className="relative flex gap-2 overflow-x-auto py-3 ps-4 pe-12 [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-3rem),transparent)] [scrollbar-width:none] sm:ps-6"
+        className="relative flex [scrollbar-width:none] gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-3rem),transparent)] py-3 ps-4 pe-12 sm:ps-6"
       >
         <li className="shrink-0">
           <Link href="/" className={cn(chip, active ? idle : current)} aria-current={active ? undefined : "page"}>

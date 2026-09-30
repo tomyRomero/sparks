@@ -32,18 +32,16 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
             Bright sparks.
           </p>
           <p className="mt-5 text-lg text-white/75">
-            Share a haiku, a movie pitch or a photo idea. Let AI help you draft it, then talk it over with people
-            who care about the same things.
+            Share a haiku, a movie pitch or a photo idea. Let AI help you draft it, then talk it over with people who
+            care about the same things.
           </p>
         </div>
         <ul className="relative flex flex-wrap gap-2 font-mono text-xs text-white/80">
-          {["haiku", "movie script", "book plot", "artwork", "fashion", "photography", "quote", "joke"].map(
-            (kind) => (
-              <li key={kind} className="rounded-sm border border-white/20 px-2 py-1">
-                {kind}
-              </li>
-            ),
-          )}
+          {["haiku", "movie script", "book plot", "artwork", "fashion", "photography", "quote", "joke"].map((kind) => (
+            <li key={kind} className="rounded-sm border border-white/20 px-2 py-1">
+              {kind}
+            </li>
+          ))}
         </ul>
       </aside>
       <main className="flex flex-col items-center justify-center px-4 py-12 sm:px-8">

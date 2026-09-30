@@ -132,7 +132,7 @@ export function CommentItem({ comment, viewer, depth, onDeleted, startExpanded =
             <p className="mt-1 leading-relaxed whitespace-pre-line">{comment.body}</p>
           )}
 
-          <div className="-ml-2 mt-1 flex items-center gap-1">
+          <div className="mt-1 -ml-2 flex items-center gap-1">
             <LikeButton
               target={{ kind: "comment", id: comment.id }}
               liked={comment.likedByMe}
@@ -175,7 +175,9 @@ export function CommentItem({ comment, viewer, depth, onDeleted, startExpanded =
                 className="mt-1 -ml-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-brand hover:bg-brand/10"
               >
                 <ChevronDown className={cn("size-4 transition-transform", !showReplies && "-rotate-90")} aria-hidden />
-                {showReplies ? "Hide replies" : `${comment.replyCount} ${comment.replyCount === 1 ? "reply" : "replies"}`}
+                {showReplies
+                  ? "Hide replies"
+                  : `${comment.replyCount} ${comment.replyCount === 1 ? "reply" : "replies"}`}
               </button>
             ) : (
               <Link

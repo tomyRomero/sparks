@@ -24,7 +24,13 @@ type LikeButtonProps = {
  * returns, which every cached list showing the item picks up too. A failure
  * puts it back. Guests are sent to sign in.
  */
-export function LikeButton({ target, liked: initialLiked, count: initialCount, signedIn, size = "md" }: LikeButtonProps) {
+export function LikeButton({
+  target,
+  liked: initialLiked,
+  count: initialCount,
+  signedIn,
+  size = "md",
+}: LikeButtonProps) {
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -45,7 +51,9 @@ export function LikeButton({ target, liked: initialLiked, count: initialCount, s
     setState({ liked, likeCount: previous.likeCount + (liked ? 1 : -1) });
     startTransition(async () => {
       try {
-        const settled = await api<LikeState>(`/${target.kind}s/${target.id}/like`, { method: liked ? "PUT" : "DELETE" });
+        const settled = await api<LikeState>(`/${target.kind}s/${target.id}/like`, {
+          method: liked ? "PUT" : "DELETE",
+        });
         if (request !== latest.current) return;
         setState(settled);
         const update = { likedByMe: settled.liked, likeCount: settled.likeCount };
@@ -74,7 +82,11 @@ export function LikeButton({ target, liked: initialLiked, count: initialCount, s
       )}
     >
       <Heart
-        className={cn(size === "sm" ? "size-3.5" : "size-4", "transition-transform group-active:scale-90", state.liked && "fill-current")}
+        className={cn(
+          size === "sm" ? "size-3.5" : "size-4",
+          "transition-transform group-active:scale-90",
+          state.liked && "fill-current",
+        )}
         aria-hidden
       />
       {/* A toggle keeps one name ("Like"); aria-pressed says whether it's on. */}

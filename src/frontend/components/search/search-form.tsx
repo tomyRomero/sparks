@@ -9,7 +9,10 @@ export function SearchForm({ q, tab }: { q: string; tab: "sparks" | "members" })
   return (
     <Form action="/search" role="search" className="border-b border-line px-4 py-4 sm:px-6">
       <div className="relative">
-        <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted" aria-hidden />
+        <Search
+          className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted"
+          aria-hidden
+        />
         <input
           // A new query from a link resets the box to it.
           key={q}

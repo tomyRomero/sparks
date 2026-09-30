@@ -20,7 +20,14 @@ type ListFooterProps = {
  * The end of a paged list: loads the next page as the reader nears it, with
  * a button for anyone who can't or won't scroll, and a retry when it fails.
  */
-export function ListFooter({ hasNextPage, isFetchingNextPage, failed, error, fetchNextPage, loadingLabel }: ListFooterProps) {
+export function ListFooter({
+  hasNextPage,
+  isFetchingNextPage,
+  failed,
+  error,
+  fetchNextPage,
+  loadingLabel,
+}: ListFooterProps) {
   const sentinel = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const element = sentinel.current;

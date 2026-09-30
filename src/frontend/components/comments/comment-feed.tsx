@@ -34,7 +34,10 @@ export function CommentFeed({ initial, path, queryKey, empty }: CommentFeedProps
                 {timeAgo(comment.createdAt)}
               </time>
             </p>
-            <Link href={`/c/${comment.id}`} className="mt-1.5 block leading-relaxed whitespace-pre-line hover:underline">
+            <Link
+              href={`/c/${comment.id}`}
+              className="mt-1.5 block leading-relaxed whitespace-pre-line hover:underline"
+            >
               {comment.body}
             </Link>
             <p className="mt-2 flex gap-4 font-mono text-xs text-muted">

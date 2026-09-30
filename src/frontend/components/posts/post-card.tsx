@@ -60,7 +60,7 @@ export function PostCard({ post, signedIn, eagerImage = false }: PostCardProps) 
               />
             </Link>
           )}
-          <footer className="-ml-2 mt-3 flex items-center gap-2">
+          <footer className="mt-3 -ml-2 flex items-center gap-2">
             <LikeButton
               target={{ kind: "post", id: post.id }}
               liked={post.likedByMe}
