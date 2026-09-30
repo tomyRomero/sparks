@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
+using Sparks.Api.Auth.Models;
 using Sparks.Api.Common.Security;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
@@ -35,6 +36,7 @@ public sealed class ImageTests(SparksApiFactory factory)
 
         profile.AvatarUrl.Should().MatchRegex($"^/files/avatars/{user.Id}/[0-9a-f]{{32}}\\.png$");
         post.Author.AvatarUrl.Should().Be(profile.AvatarUrl);
+        (await member.GetJsonAsync<CurrentUserResponse>("/api/v1/auth/me", Ct)).AvatarUrl.Should().Be(profile.AvatarUrl);
         file.StatusCode.Should().Be(HttpStatusCode.OK);
         file.Content.Headers.ContentType!.MediaType.Should().Be("image/png");
         file.Headers.CacheControl!.ToString().Should().Contain("immutable");
