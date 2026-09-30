@@ -200,14 +200,14 @@ Shout out to https://unsplash.com/ for all the pictures that were not AI generat
 Shout out to adrianhajdin on Github for tutorials on Next.js
 
 ## Setup
-### .env.example is provided to follow on what keys the project needs
+### src/frontend/.env.example is provided to follow on what keys the project needs
 
 ```bash
 # Clone the repository
 git clone https://github.com/tomyRomero/sparks
 
-# Navigate to the project directory
-cd sparks
+# Navigate to the frontend
+cd sparks/src/frontend
 
 # Install dependencies
 npm install

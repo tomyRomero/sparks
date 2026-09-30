@@ -1,40 +1,38 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
+# ─── Secrets and local config ───────────────────────────
+.env
+.env.*
+!.env.example
+appsettings.*.json
+!appsettings.json
 *.pem
+*.pfx
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# local env files
-.env*.local
-
-# vercel
-.vercel
-
-# typescript
+# ─── Frontend (Next.js) ─────────────────────────────────
+node_modules/
+src/frontend/.next/
+src/frontend/out/
+src/frontend/build/
+src/frontend/coverage/
 *.tsbuildinfo
 next-env.d.ts
+.vercel
+npm-debug.log*
 
-# internal notes: planning, audits and assistant files stay local
+# ─── Backend (.NET) ─────────────────────────────────────
+bin/
+obj/
+*.user
+.vs/
+TestResults/
+# `dotnet ef` on macOS can create directories literally named `bin\Debug`.
+**/bin\\*
+
+# ─── OS and editors ─────────────────────────────────────
+.DS_Store
+.vscode/
+.idea/
+
+# ─── Internal notes: planning, audits and assistant files stay local ───
 AUDIT.md
 DESIGN.md
 DECISIONS.md
