@@ -9,7 +9,6 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
-import { errorMessage } from "@/lib/api/problem";
 import type { Conversation, CurrentUser, CursorPage, Message } from "@/lib/api/types";
 import { limits } from "@/lib/limits";
 import { queryKeys } from "@/lib/queries/keys";
@@ -28,6 +27,9 @@ const TYPING_SIGNAL_MS = 3000;
 
 type ChatProps = { conversation: Conversation; initial: CursorPage<Message>; viewer: CurrentUser };
 
+/** A message shown straight away while it's on its way to the server, or after it failed to get there. */
+type Outgoing = { key: number; body: string; failed: boolean };
+
 /**
  * One conversation, oldest message at the top. New messages arrive live and
  * are marked read while the tab is visible; the other participant sees when.
@@ -41,6 +43,8 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
   const visible = useDocumentVisible();
   const [typing, setTyping] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+  const [outbox, setOutbox] = useState<Outgoing[]>([]);
+  const nextKey = useRef(0);
 
   // Each visit starts from the server's latest messages, never an old cache.
   useEffect(() => () => queryClient.removeQueries({ queryKey: queryKeys.messages(id) }), [queryClient, id]);
@@ -110,16 +114,47 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
     }
   }, [oldestId]);
 
+  // A message the member just wrote always scrolls into view.
+  useLayoutEffect(() => {
+    const element = scroller.current;
+    if (element && outbox.length > 0) element.scrollTop = element.scrollHeight;
+  }, [outbox.length]);
+
   function loadEarlier() {
     const element = scroller.current;
     if (element) fromBottom.current = element.scrollHeight - element.scrollTop;
     void query.fetchNextPage();
   }
 
-  async function send(body: string) {
-    const message = await api<Message>(`/conversations/${id}/messages`, { method: "POST", json: { body } });
-    addCachedMessage(queryClient, message);
-    void queryClient.invalidateQueries({ queryKey: queryKeys.inbox });
+  // Sending shows the message at once; the server's copy replaces it when it
+  // arrives. A failed one stays, with the text, until it's retried or removed.
+  async function deliver(item: Outgoing) {
+    try {
+      const message = await api<Message>(`/conversations/${id}/messages`, {
+        method: "POST",
+        json: { body: item.body },
+      });
+      addCachedMessage(queryClient, message);
+      setOutbox((items) => items.filter((other) => other.key !== item.key));
+      void queryClient.invalidateQueries({ queryKey: queryKeys.inbox });
+    } catch {
+      setOutbox((items) => items.map((other) => (other.key === item.key ? { ...other, failed: true } : other)));
+    }
+  }
+
+  function send(body: string) {
+    const item = { key: ++nextKey.current, body, failed: false };
+    setOutbox((items) => [...items, item]);
+    void deliver(item);
+  }
+
+  function retry(item: Outgoing) {
+    setOutbox((items) => items.map((other) => (other.key === item.key ? { ...other, failed: false } : other)));
+    void deliver({ ...item, failed: false });
+  }
+
+  function discard(item: Outgoing) {
+    setOutbox((items) => items.filter((other) => other.key !== item.key));
   }
 
   const lastMine = newestFirst.find((message) => message.senderId === viewer.id);
@@ -154,7 +189,7 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
               </Button>
             </div>
           )}
-          {messages.length === 0 ? (
+          {messages.length === 0 && outbox.length === 0 ? (
             <p className="py-16 text-center text-muted">Say hello to {other.displayName}.</p>
           ) : (
             <ol aria-label={`Messages with ${other.displayName}`}>
@@ -192,6 +227,36 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
                   </li>
                 );
               })}
+            </ol>
+          )}
+          {outbox.length > 0 && (
+            <ol aria-label="Messages you're sending">
+              {outbox.map((item) => (
+                <li key={item.key} className="mt-0.5 flex flex-col items-end">
+                  <p
+                    className={cn(
+                      "max-w-[80%] rounded-2xl rounded-br-md bg-brand px-3.5 py-2 leading-relaxed break-words whitespace-pre-wrap text-brand-ink",
+                      item.failed ? "opacity-50" : "opacity-70",
+                    )}
+                  >
+                    <span className="sr-only">You: </span>
+                    {item.body}
+                  </p>
+                  {item.failed ? (
+                    <span role="alert" className="mt-1 flex items-center gap-2 text-xs text-danger">
+                      Not sent.
+                      <button type="button" onClick={() => retry(item)} className="font-semibold hover:underline">
+                        Retry
+                      </button>
+                      <button type="button" onClick={() => discard(item)} className="text-muted hover:underline">
+                        Remove
+                      </button>
+                    </span>
+                  ) : (
+                    <span className="mt-1 label-mono">Sending…</span>
+                  )}
+                </li>
+              ))}
             </ol>
           )}
           {typing && (
@@ -270,45 +335,30 @@ function TypingDots() {
 
 type ChatComposerProps = {
   name: string;
-  onSend: (body: string) => Promise<void>;
+  onSend: (body: string) => void;
   onTyping: () => void;
 };
 
 /** The message box: Enter sends, Shift+Enter starts a new line. */
 function ChatComposer({ name, onSend, onTyping }: ChatComposerProps) {
   const [text, setText] = useState("");
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string>();
   const lastSignal = useRef(0);
 
-  async function send() {
+  function send() {
     const body = text.trim();
-    if (!body || pending) return;
-    setPending(true);
-    setError(undefined);
-    try {
-      await onSend(body);
-      setText("");
-    } catch (failure) {
-      setError(errorMessage(failure));
-    } finally {
-      setPending(false);
-    }
+    if (!body) return;
+    onSend(body);
+    setText("");
   }
 
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
-        void send();
+        send();
       }}
       className="border-t border-line bg-canvas px-4 py-3 sm:px-6"
     >
-      {error && (
-        <p role="alert" className="mb-2 text-sm text-danger">
-          {error}
-        </p>
-      )}
       <div className="flex items-end gap-2">
         <Textarea
           aria-label={`Message ${name}`}
@@ -326,12 +376,12 @@ function ChatComposer({ name, onSend, onTyping }: ChatComposerProps) {
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault();
-              void send();
+              send();
             }
           }}
           className="[field-sizing:content] max-h-40 min-h-11 resize-none"
         />
-        <Button type="submit" size="icon" className="size-11 rounded-full" disabled={!text.trim() || pending}>
+        <Button type="submit" size="icon" className="size-11 rounded-full" disabled={!text.trim()}>
           <SendHorizontal aria-hidden />
           <span className="sr-only">Send</span>
         </Button>
