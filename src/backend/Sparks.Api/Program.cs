@@ -1,7 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Sparks.Api.Activity.Services;
 using Sparks.Api.Auth;
@@ -60,6 +62,15 @@ try
     builder.Services.AddSingleton(TimeProvider.System);
     builder.Services.AddSparksAuth();
     builder.Services.AddSparksRateLimiting(builder.Environment);
+    // The web app calls the API from the browser with its cookies; its
+    // origin, and only it, gets cross-origin access with credentials.
+    builder.Services.AddCors();
+    builder.Services.AddOptions<CorsOptions>()
+        .Configure<IOptions<FrontendOptions>>((cors, frontend) => cors.AddDefaultPolicy(policy => policy
+            .WithOrigins(frontend.Value.Origin)
+            .AllowCredentials()
+            .AllowAnyHeader()
+            .AllowAnyMethod()));
 
     // ── API ──────────────────────────────────────────────────────────────────
     // Don't advertise the web server in every response.
@@ -81,11 +92,11 @@ try
     builder.Services.AddScoped<UserService>();
     builder.Services.AddScoped<ActivityService>();
     builder.Services.AddScoped<ChatService>();
+    builder.Services.AddSparksHealthChecks();
 
     // ── Realtime ─────────────────────────────────────────────────────────────
     builder.Services.AddSignalR();
     builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
-    builder.Services.AddSparksHealthChecks();
 
     var app = builder.Build();
 
@@ -120,6 +131,10 @@ try
         app.MapOpenApi().AllowAnonymous();
     }
 
+    // CORS answers the web app's preflight requests; the origin check then
+    // turns away writes and live connections from any other site.
+    app.UseCors();
+    app.UseMiddleware<OriginCheckMiddleware>();
     app.UseRateLimiter();
     app.UseAuthentication();
     app.UseAuthorization();
