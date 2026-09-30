@@ -145,7 +145,7 @@ public sealed class AuthService(
             throw new UnauthorizedAccessException();
         }
 
-        var (rawToken, successorHash) = TokenService.CreateRefreshToken();
+        var (rawToken, successorHash) = TokenService.CreateOpaqueToken();
         var successor = new RefreshTokenEntity
         {
             Session = stored.Session,
@@ -226,7 +226,7 @@ public sealed class AuthService(
     private async Task<SignedIn> StartSessionAsync(UserEntity account, ClientInfo client, CancellationToken ct)
     {
         var now = time.GetUtcNow().UtcDateTime;
-        var (rawToken, hash) = TokenService.CreateRefreshToken();
+        var (rawToken, hash) = TokenService.CreateOpaqueToken();
         var session = new SessionEntity
         {
             User = account,

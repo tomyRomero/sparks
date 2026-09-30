@@ -25,6 +25,7 @@ public static class AuthServiceCollectionExtensions
         services.AddSingleton<AuthCookies>();
         services.AddSingleton<IAccountLockout, InMemoryAccountLockout>();
         services.AddScoped<AuthService>();
+        services.AddScoped<PasswordResetService>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 

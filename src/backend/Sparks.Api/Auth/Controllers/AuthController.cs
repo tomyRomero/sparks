@@ -18,7 +18,11 @@ namespace Sparks.Api.Auth.Controllers;
 [ApiController]
 [Route("api/v1/auth")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class AuthController(AuthService auth, AuthCookies cookies, TimeProvider time) : ControllerBase
+public sealed class AuthController(
+    AuthService auth,
+    PasswordResetService passwordResets,
+    AuthCookies cookies,
+    TimeProvider time) : ControllerBase
 {
     [HttpPost("signup")]
     [AllowAnonymous]
@@ -109,6 +113,42 @@ public sealed class AuthController(AuthService auth, AuthCookies cookies, TimePr
 
         cookies.Delete(Response);
         return NoContent();
+    }
+
+    /// <summary>
+    /// Emails a reset link when the address has an account. Always answers 202,
+    /// so the endpoint can't be used to find out who has an account.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Login)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken ct)
+    {
+        await passwordResets.RequestResetAsync(request.Email, ct);
+        return Accepted();
+    }
+
+    /// <summary>Sets a new password from an emailed link and signs the account out everywhere.</summary>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Login)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken ct)
+    {
+        try
+        {
+            await passwordResets.ResetPasswordAsync(request.Token, request.Password, ct);
+            cookies.Delete(Response);
+            return NoContent();
+        }
+        catch (InvalidResetTokenException)
+        {
+            return this.CodedProblem(
+                StatusCodes.Status400BadRequest,
+                "INVALID_RESET_LINK",
+                "This reset link is invalid or has expired. Request a new one.");
+        }
     }
 
     /// <summary>The signed-in user.</summary>

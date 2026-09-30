@@ -3,6 +3,7 @@ using Serilog;
 using Sparks.Api.Auth;
 using Sparks.Api.Common;
 using Sparks.Api.Common.Data;
+using Sparks.Api.Common.Email;
 using Sparks.Api.Common.Health;
 using Sparks.Api.Common.Security;
 
@@ -35,6 +36,13 @@ try
 
     // ── Database ─────────────────────────────────────────────────────────────
     builder.Services.AddSparksDatabase();
+
+    // ── Email ────────────────────────────────────────────────────────────────
+    builder.Services.AddOptions<FrontendOptions>()
+        .BindConfiguration(FrontendOptions.SectionName)
+        .ValidateDataAnnotations()
+        .ValidateOnStart();
+    builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
 
     // ── Security ─────────────────────────────────────────────────────────────
     // One clock for everything time-based (token lifetimes, lockouts), so

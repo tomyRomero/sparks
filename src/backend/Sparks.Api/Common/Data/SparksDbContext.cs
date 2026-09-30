@@ -17,6 +17,7 @@ public sealed class SparksDbContext(DbContextOptions<SparksDbContext> options) :
     public DbSet<UserEntity> Users => Set<UserEntity>();
     public DbSet<SessionEntity> Sessions => Set<SessionEntity>();
     public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
+    public DbSet<PasswordResetTokenEntity> PasswordResetTokens => Set<PasswordResetTokenEntity>();
     public DbSet<PostEntity> Posts => Set<PostEntity>();
     public DbSet<PostLikeEntity> PostLikes => Set<PostLikeEntity>();
     public DbSet<CommentEntity> Comments => Set<CommentEntity>();

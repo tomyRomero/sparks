@@ -39,10 +39,10 @@ public sealed class TokenService(IOptions<JwtOptions> options, TimeProvider time
     }
 
     /// <summary>
-    /// 256 random bits, URL-safe, plus the hash to store. The raw token goes
-    /// only into the user's HttpOnly cookie.
+    /// 256 random bits, URL-safe, plus the hash to store. Used for refresh
+    /// tokens and reset links; the raw value only ever goes to the user.
     /// </summary>
-    public static (string Token, string Hash) CreateRefreshToken()
+    public static (string Token, string Hash) CreateOpaqueToken()
     {
         var token = Base64UrlEncoder.Encode(RandomNumberGenerator.GetBytes(32));
         return (token, Hash(token));
