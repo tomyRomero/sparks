@@ -9,15 +9,6 @@ export default defineConfig([
   // Next enables only a few accessibility rules; turn on the full recommended set.
   { rules: jsxA11y.flatConfigs.recommended.rules },
   {
-    // Legacy patterns that are widespread in code the upgrade rewrites. They
-    // warn for now and go back to errors once those files are replaced.
-    rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/ban-ts-comment": "warn",
-      "react-hooks/set-state-in-effect": "warn",
-    },
-  },
-  {
     // Tooling config files are CommonJS.
     files: ["*.config.js"],
     rules: { "@typescript-eslint/no-require-imports": "off" },
