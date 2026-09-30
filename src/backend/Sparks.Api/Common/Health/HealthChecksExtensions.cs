@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Sparks.Api.Common.Data;
 
 namespace Sparks.Api.Common.Health;
 
@@ -15,7 +16,8 @@ public static class HealthChecksExtensions
 
     public static IServiceCollection AddSparksHealthChecks(this IServiceCollection services)
     {
-        services.AddHealthChecks();
+        services.AddHealthChecks()
+            .AddDbContextCheck<SparksDbContext>("database", tags: [ReadyTag]);
         return services;
     }
 

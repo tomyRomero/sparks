@@ -1,5 +1,6 @@
 using Serilog;
 using Sparks.Api.Common;
+using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Health;
 using Sparks.Api.Common.Security;
 
@@ -30,6 +31,9 @@ try
     // such as 404 and 405.
     builder.Services.AddProblemDetails();
 
+    // ── Database ─────────────────────────────────────────────────────────────
+    builder.Services.AddSparksDatabase();
+
     // ── API ──────────────────────────────────────────────────────────────────
     // Don't advertise the web server in every response.
     builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
@@ -38,6 +42,11 @@ try
     builder.Services.AddSparksHealthChecks();
 
     var app = builder.Build();
+
+    if (app.Environment.IsDevelopment())
+    {
+        await app.MigrateDatabaseAsync();
+    }
 
     // ── Pipeline ─────────────────────────────────────────────────────────────
     // The exception handler runs first so it catches errors from everything

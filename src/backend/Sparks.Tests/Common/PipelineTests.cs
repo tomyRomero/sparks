@@ -15,7 +15,7 @@ namespace Sparks.Tests.Common;
 /// Behaviour every endpoint gets from the shared pipeline: health probes,
 /// security headers, and the shape of error responses.
 /// </summary>
-public sealed class PipelineTests(SparksApiFactory factory) : IClassFixture<SparksApiFactory>
+public sealed class PipelineTests(SparksApiFactory factory)
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
