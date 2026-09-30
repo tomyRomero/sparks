@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, fieldDescription } from "@/components/ui/field";
+import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/problem";
 import { limits } from "@/lib/limits";
-import { FormMessage } from "../form-message";
 
 type State = { error?: string; identifier: string };
 

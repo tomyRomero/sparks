@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, fieldDescription } from "@/components/ui/field";
+import { FormMessage } from "@/components/ui/form-message";
 import { Input } from "@/components/ui/input";
 import { api } from "@/lib/api/client";
 import { ApiError, errorMessage } from "@/lib/api/problem";
 import { limits } from "@/lib/limits";
-import { FormMessage } from "../form-message";
 
 type Values = { email: string; username: string; displayName: string };
 type State = { values: Values; fieldErrors: Partial<Record<keyof Values | "password", string>>; error?: string };

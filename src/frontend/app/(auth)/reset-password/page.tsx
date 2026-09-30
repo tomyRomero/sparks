@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FormMessage } from "../form-message";
+import { FormMessage } from "@/components/ui/form-message";
 import { ResetPasswordForm } from "./reset-password-form";
 
 export const metadata: Metadata = { title: "Choose a new password" };
