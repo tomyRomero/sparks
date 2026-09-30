@@ -28,6 +28,10 @@ internal static class ApiJson
         await client.GetFromJsonAsync<T>(url, Options, ct)
             ?? throw new InvalidOperationException("The response had no body.");
 
+    /// <summary>The machine-readable <c>code</c> of a problem-details response.</summary>
+    public static async Task<string?> ProblemCodeAsync(this HttpResponseMessage response, CancellationToken ct) =>
+        (await response.ReadAsync<JsonElement>(ct)).GetProperty("code").GetString();
+
     /// <summary>A client signed in as a brand-new account.</summary>
     public static async Task<(HttpClient Client, CurrentUserResponse User)> SignedInClientAsync(
         this WebApplicationFactory<Program> api, CancellationToken ct)

@@ -3,9 +3,10 @@ using System.ComponentModel.DataAnnotations;
 namespace Sparks.Api.Common.Models;
 
 /// <summary>
-/// Paging for newest-first lists. Instead of a page number, the client sends
-/// back the cursor from the previous page, so items added in the meantime
-/// can't shift what it has already seen.
+/// Paging for lists ordered by id: the feed newest first, a thread oldest
+/// first. Instead of a page number, the client sends back the cursor from the
+/// previous page, so items added in the meantime can't shift what it has
+/// already seen.
 /// </summary>
 public record PageRequest
 {
@@ -20,7 +21,7 @@ public record PageRequest
     public int Limit { get; init; } = DefaultLimit;
 }
 
-/// <summary>One page of results, newest first.</summary>
+/// <summary>One page of results, in the list's order.</summary>
 /// <param name="NextCursor">Pass as <c>cursor</c> to get the next page; null on the last page.</param>
 public sealed record CursorPage<T>(IReadOnlyList<T> Items, long? NextCursor);
 

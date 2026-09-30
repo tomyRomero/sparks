@@ -8,12 +8,13 @@ using Sparks.Api.Posts.Services;
 namespace Sparks.Api.Posts.Controllers;
 
 /// <summary>
-/// Sparks. Reading is open to everyone; writing, editing, deleting and
-/// liking need a signed-in user, and editing or deleting only the author.
+/// Sparks, and the comments made directly on them. Reading is open to
+/// everyone; writing, editing, deleting and liking need a signed-in user, and
+/// editing or deleting only the author.
 /// </summary>
 [ApiController]
 [Route("api/v1/posts")]
-public sealed class PostsController(PostService posts) : ControllerBase
+public sealed class PostsController(PostService posts, CommentService comments) : ControllerBase
 {
     [HttpGet]
     [AllowAnonymous]
@@ -52,4 +53,17 @@ public sealed class PostsController(PostService posts) : ControllerBase
     [HttpDelete("{id:long}/like")]
     public Task<LikeState> Unlike(long id, CancellationToken ct) =>
         posts.UnlikeAsync(id, User.GetUserId(), ct);
+
+    [HttpGet("{id:long}/comments")]
+    [AllowAnonymous]
+    public Task<CursorPage<CommentResponse>> GetComments(long id, [FromQuery] PageRequest page, CancellationToken ct) =>
+        comments.GetForPostAsync(id, page, User.FindUserId(), ct);
+
+    [HttpPost("{id:long}/comments")]
+    [ProducesResponseType<CommentResponse>(StatusCodes.Status201Created)]
+    public async Task<IActionResult> Comment(long id, CommentRequest request, CancellationToken ct)
+    {
+        var comment = await comments.CommentOnPostAsync(id, User.GetUserId(), request, ct);
+        return CreatedAtAction(nameof(CommentsController.Get), "Comments", new { id = comment.Id }, comment);
+    }
 }

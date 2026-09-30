@@ -27,7 +27,7 @@ public sealed class PostTests(SparksApiFactory factory)
         var created = new List<long>();
         for (var i = 0; i < 3; i++)
         {
-            created.Add((await CreatePostAsync(author, $"{word} number {i}")).Id);
+            created.Add((await author.CreatePostAsync($"{word} number {i}", Ct)).Id);
         }
 
         var feed = await factory.CreateClient().GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word}", Ct);
@@ -43,7 +43,7 @@ public sealed class PostTests(SparksApiFactory factory)
         var word = UniqueWord();
         for (var i = 0; i < 3; i++)
         {
-            await CreatePostAsync(author, $"{word} {i}");
+            await author.CreatePostAsync($"{word} {i}", Ct);
         }
 
         var reader = factory.CreateClient();
@@ -62,7 +62,7 @@ public sealed class PostTests(SparksApiFactory factory)
     {
         var (author, user) = await factory.SignedInClientAsync(Ct);
         var word = UniqueWord();
-        var post = await CreatePostAsync(author, $"A spark about {word}");
+        var post = await author.CreatePostAsync($"A spark about {word}", Ct);
         var reader = factory.CreateClient();
 
         var byText = await reader.GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word.ToUpperInvariant()}", Ct);
@@ -79,8 +79,8 @@ public sealed class PostTests(SparksApiFactory factory)
     {
         var (author, _) = await factory.SignedInClientAsync(Ct);
         var word = UniqueWord();
-        var haiku = await CreatePostAsync(author, $"{word} in five seven five", SparkKind.Haiku);
-        await CreatePostAsync(author, $"{word} walks into a bar", SparkKind.Joke);
+        var haiku = await author.CreatePostAsync($"{word} in five seven five", SparkKind.Haiku, Ct);
+        await author.CreatePostAsync($"{word} walks into a bar", SparkKind.Joke, Ct);
 
         var feed = await factory.CreateClient()
             .GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word}&kind=haiku", Ct);
@@ -156,7 +156,7 @@ public sealed class PostTests(SparksApiFactory factory)
     {
         var (author, _) = await factory.SignedInClientAsync(Ct);
         var (stranger, _) = await factory.SignedInClientAsync(Ct);
-        var post = await CreatePostAsync(author, "Original words");
+        var post = await author.CreatePostAsync("Original words", Ct);
         var path = $"{PostsPath}/{post.Id}";
 
         var strangerEdit = await stranger.PatchJsonAsync(path, new UpdatePostRequest { Body = "Hijacked" }, Ct);
@@ -164,7 +164,7 @@ public sealed class PostTests(SparksApiFactory factory)
         var authorEdit = await author.PatchJsonAsync(path, new UpdatePostRequest { Body = "Better words" }, Ct);
 
         strangerEdit.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-        (await strangerEdit.ReadAsync<JsonElement>(Ct)).GetProperty("code").GetString().Should().Be("NOT_YOUR_POST");
+        (await strangerEdit.ProblemCodeAsync(Ct)).Should().Be("NOT_YOUR_POST");
         strangerDelete.StatusCode.Should().Be(HttpStatusCode.Forbidden);
         var edited = await authorEdit.ReadAsync<PostResponse>(Ct);
         edited.Body.Should().Be("Better words");
@@ -173,7 +173,7 @@ public sealed class PostTests(SparksApiFactory factory)
         (await author.DeleteAsync(path, Ct)).StatusCode.Should().Be(HttpStatusCode.NoContent);
         var gone = await factory.CreateClient().GetAsync(path, Ct);
         gone.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        (await gone.ReadAsync<JsonElement>(Ct)).GetProperty("code").GetString().Should().Be("POST_NOT_FOUND");
+        (await gone.ProblemCodeAsync(Ct)).Should().Be("POST_NOT_FOUND");
     }
 
     [Fact]
@@ -181,7 +181,7 @@ public sealed class PostTests(SparksApiFactory factory)
     {
         var (author, _) = await factory.SignedInClientAsync(Ct);
         var (fan, _) = await factory.SignedInClientAsync(Ct);
-        var post = await CreatePostAsync(author, "Like me");
+        var post = await author.CreatePostAsync("Like me", Ct);
         var likePath = $"{PostsPath}/{post.Id}/like";
 
         await fan.PutAsync(likePath, content: null, Ct);
@@ -206,13 +206,6 @@ public sealed class PostTests(SparksApiFactory factory)
         var response = await fan.PutAsync($"{PostsPath}/{long.MaxValue}/like", content: null, Ct);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-    }
-
-    private static async Task<PostResponse> CreatePostAsync(HttpClient author, string body, SparkKind kind = SparkKind.Regular)
-    {
-        var response = await author.PostJsonAsync(PostsPath, new CreatePostRequest { Kind = kind, Body = body }, Ct);
-        response.EnsureSuccessStatusCode();
-        return await response.ReadAsync<PostResponse>(Ct);
     }
 
     /// <summary>A word no other test's post contains, to find this test's posts in the shared database.</summary>

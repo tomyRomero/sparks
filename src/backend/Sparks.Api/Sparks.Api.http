@@ -42,3 +42,59 @@ POST {{api}}/api/v1/auth/refresh
 
 ### Sign out
 POST {{api}}/api/v1/auth/logout
+
+# Posts and comments: reading is anonymous, writing needs the sign-in above.
+# Later requests reuse the ids the create requests return.
+
+### The feed, newest first (optional: kind, q, cursor, limit)
+GET {{api}}/api/v1/posts?limit=10
+
+### Write a post
+# @name createPost
+POST {{api}}/api/v1/posts
+Content-Type: application/json
+
+{
+  "kind": "haiku",
+  "body": "An autumn evening\nthe server answers softly\ntwo hundred and one"
+}
+
+### Edit it
+PATCH {{api}}/api/v1/posts/{{createPost.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "body": "An edited spark."
+}
+
+### Like it
+PUT {{api}}/api/v1/posts/{{createPost.response.body.$.id}}/like
+
+### Comment on it
+# @name createComment
+POST {{api}}/api/v1/posts/{{createPost.response.body.$.id}}/comments
+Content-Type: application/json
+
+{
+  "body": "First!"
+}
+
+### Reply to the comment
+POST {{api}}/api/v1/comments/{{createComment.response.body.$.id}}/replies
+Content-Type: application/json
+
+{
+  "body": "A reply."
+}
+
+### The thread, oldest first
+GET {{api}}/api/v1/posts/{{createPost.response.body.$.id}}/comments
+
+### The comment's replies
+GET {{api}}/api/v1/comments/{{createComment.response.body.$.id}}/replies
+
+### Delete the comment and its replies
+DELETE {{api}}/api/v1/comments/{{createComment.response.body.$.id}}
+
+### Delete the post
+DELETE {{api}}/api/v1/posts/{{createPost.response.body.$.id}}

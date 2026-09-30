@@ -72,6 +72,7 @@ try
 
     // ── Features ─────────────────────────────────────────────────────────────
     builder.Services.AddScoped<PostService>();
+    builder.Services.AddScoped<CommentService>();
     builder.Services.AddSparksHealthChecks();
 
     var app = builder.Build();
