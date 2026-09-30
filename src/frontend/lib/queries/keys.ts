@@ -19,6 +19,8 @@ export const queryKeys = {
   replies: (commentId: number) => ["comments", "replies", commentId] as const,
   profileComments: (username: string) => ["comments", "profile", username] as const,
 
+  members: (q: string) => ["members", q] as const,
+
   activity: ["activity"] as const,
   inbox: ["inbox"] as const,
   messages: (conversationId: number) => ["messages", conversationId] as const,
