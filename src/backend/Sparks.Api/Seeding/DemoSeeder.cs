@@ -52,21 +52,29 @@ public sealed class DemoSeeder(
         // ── Members, a month ago ────────────────────────────────────────────
         _clock.Ago(TimeSpan.FromDays(30));
         var nova = await MemberAsync(MainUsername, "Nova Reyes",
-            "Screenwriter by night, barista by day. Collecting plot twists.", passwordHash, ct);
+            "Screenwriter by night, barista by day. Collecting plot twists.",
+            "a woman in her late twenties with curly dark hair and a mustard scarf", passwordHash, ct);
         var theo = await MemberAsync("theo_park", "Theo Park",
-            "Landscape photographer. Chasing blue hour in every city.", passwordHash, ct);
+            "Landscape photographer. Chasing blue hour in every city.",
+            "a man in his thirties with short black hair, round glasses and a camera strap", passwordHash, ct);
         var amara = await MemberAsync("amara_okafor", "Amara Okafor",
-            "Designer. Slow fashion and far too many sketchbooks.", passwordHash, ct);
+            "Designer. Slow fashion and far too many sketchbooks.",
+            "a woman with short natural hair, gold hoop earrings and a green linen shirt", passwordHash, ct);
         var lucas = await MemberAsync("lucas_meyer", "Lucas Meyer",
-            "Backend developer who writes haiku while the build runs.", passwordHash, ct);
+            "Backend developer who writes haiku while the build runs.",
+            "a man with sandy hair, a short beard and a grey hoodie", passwordHash, ct);
         var isla = await MemberAsync("isla_novak", "Isla Novak",
-            "Reader of old maps, writer of new stories.", passwordHash, ct);
+            "Reader of old maps, writer of new stories.",
+            "a woman with a long auburn braid and a navy knit sweater", passwordHash, ct);
         var kenji = await MemberAsync("kenji_mori", "Kenji Mori",
-            "Painter. Oil, ink and the occasional coffee stain.", passwordHash, ct);
+            "Painter. Oil, ink and the occasional coffee stain.",
+            "a man in his forties with tousled hair and a paint-flecked apron", passwordHash, ct);
         var sofia = await MemberAsync("sofia_ruiz", "Sofia Ruiz",
-            "Stand-up on weekends. Every joke is tested on my cat first.", passwordHash, ct);
+            "Stand-up on weekends. Every joke is tested on my cat first.",
+            "a smiling woman with wavy brown hair and a red jacket, holding a tabby cat", passwordHash, ct);
         var omar = await MemberAsync("omar_haddad", "Omar Haddad",
-            "Philosophy graduate, professional overthinker.", passwordHash, ct);
+            "Philosophy graduate, professional overthinker.",
+            "a man with dark hair, a neat beard and a corduroy blazer", passwordHash, ct);
 
         // ── Two weeks of posts, comments and likes ──────────────────────────
         _clock.Ago(TimeSpan.FromDays(14));
@@ -102,7 +110,7 @@ public sealed class DemoSeeder(
 
         _clock.Ago(TimeSpan.FromDays(11));
         var catReview = await PostAsync(sofia, SparkKind.Joke,
-            "My cat reviewed my new set. Two stars: \"Not enough tuna references.\"", ct: ct);
+            "My cat reviewed my new set.\n\nTwo stars: \"Not enough tuna references.\"", ct: ct);
         await LikeAsync(catReview, ct, nova, lucas, omar);
 
         _clock.Ago(TimeSpan.FromDays(10));
@@ -131,8 +139,8 @@ public sealed class DemoSeeder(
 
         _clock.Ago(TimeSpan.FromDays(8));
         var tideClock = await PostAsync(kenji, SparkKind.Artwork,
-            "\"Tide Clock\", oil on linen. A kitchen clock half-sunk in a calm sea at dawn, its hands made of " +
-            "driftwood and gulls resting on the numbers. The quiet feeling of time that has stopped rushing.",
+            "Title: Tide Clock\n\nOil on linen. A kitchen clock half-sunk in a calm sea at dawn, its hands made " +
+            "of driftwood and gulls resting on the numbers. The quiet feeling of time that has stopped rushing.",
             aiPrompt: "time slowing down by the sea",
             imagePrompt: "A surreal oil painting of a kitchen clock sinking into a calm sea at dawn, driftwood hands, gulls resting on its numbers.",
             ct: ct);
@@ -196,7 +204,7 @@ public sealed class DemoSeeder(
 
         _clock.Ago(TimeSpan.FromDays(1));
         var barista = await PostAsync(sofia, SparkKind.Joke,
-            "I asked the barista for something strong. She handed me the Wi-Fi password.",
+            "I asked the barista for something strong.\n\nShe handed me the Wi-Fi password.",
             aiPrompt: "coffee shops", ct: ct);
         await CommentAsync(barista, nova, "As a barista: this is accurate.", ct);
         await LikeAsync(barista, ct, nova, lucas, omar, theo);
@@ -216,27 +224,38 @@ public sealed class DemoSeeder(
 
         // ── Chats with Nova ─────────────────────────────────────────────────
         await ConversationAsync(nova, theo, ct,
-            (TimeSpan.FromDays(5), theo, "Found three lighthouses within an hour of the city. Want location photos?"),
-            (TimeSpan.FromDays(5) - TimeSpan.FromMinutes(20), nova, "Yes please! The one with the red door, if it exists."),
-            (TimeSpan.FromDays(4.9), theo, "It exists. I'll shoot it at blue hour on Sunday."),
-            (TimeSpan.FromDays(4.8), nova, "You're the best."));
+            new Said(TimeSpan.FromDays(5), theo, "Found three lighthouses within an hour of the city. Want location photos?"),
+            new Said(TimeSpan.FromDays(5) - TimeSpan.FromMinutes(20), nova, "Yes please! The one with the red door, if it exists."),
+            new Said(TimeSpan.FromDays(4.9), theo, "It exists. I'll shoot it at blue hour on Sunday."),
+            new Said(TimeSpan.FromDays(4.8), nova, "You're the best."));
         await ConversationAsync(nova, isla, ct,
-            (TimeSpan.FromDays(2), isla, "Would you ever turn The Last Signal into a novella?"),
-            (TimeSpan.FromDays(1.9), nova, "Only if you write the map at the front."),
-            (TimeSpan.FromHours(5), isla, "Deal. I already sketched the coastline."));
+            new Said(TimeSpan.FromDays(2), isla, "Would you ever turn The Last Signal into a novella?"),
+            new Said(TimeSpan.FromDays(1.9), nova, "Only if you write the map at the front."),
+            new Said(TimeSpan.FromHours(5), isla, "Deal. I already sketched the coastline."));
         await ConversationAsync(nova, sofia, ct,
-            (TimeSpan.FromDays(1), nova, "Table read is at 7. Bring your best lighthouse voice."),
-            (TimeSpan.FromHours(20), sofia, "Should the lighthouse have an accent?"),
-            (TimeSpan.FromHours(19), nova, "Absolutely not."),
-            (TimeSpan.FromHours(2), sofia, "It's going to have an accent."),
-            (TimeSpan.FromHours(1), sofia, "Also, I'm bringing my cat. She has notes."));
+            new Said(TimeSpan.FromDays(1), nova, "Table read is at 7. Bring your best lighthouse voice."),
+            new Said(TimeSpan.FromHours(20), sofia, "Should the lighthouse have an accent?"),
+            new Said(TimeSpan.FromHours(19), nova, "Absolutely not."),
+            new Said(TimeSpan.FromHours(2.5), nova, "", Shares: tableRead),
+            new Said(TimeSpan.FromHours(2), sofia, "It's going to have an accent."),
+            new Said(TimeSpan.FromHours(1), sofia, "Also, I'm bringing my cat. She has notes."));
+
+        // ── When everyone was last around ───────────────────────────────────
+        await LastSeenAsync(sofia, TimeSpan.FromMinutes(4), ct);
+        await LastSeenAsync(theo, TimeSpan.FromMinutes(12), ct);
+        await LastSeenAsync(isla, TimeSpan.FromMinutes(40), ct);
+        await LastSeenAsync(kenji, TimeSpan.FromHours(1), ct);
+        await LastSeenAsync(lucas, TimeSpan.FromHours(3), ct);
+        await LastSeenAsync(amara, TimeSpan.FromHours(5), ct);
+        await LastSeenAsync(omar, TimeSpan.FromDays(1), ct);
 
         logger.LogInformation("Seeded demo data: 8 members with posts, threads, likes and chats");
         return true;
     }
 
+    /// <param name="appearance">What the member looks like, for their portrait.</param>
     private async Task<Member> MemberAsync(
-        string username, string displayName, string bio, string passwordHash, CancellationToken ct)
+        string username, string displayName, string bio, string appearance, string passwordHash, CancellationToken ct)
     {
         var user = new UserEntity
         {
@@ -251,7 +270,11 @@ public sealed class DemoSeeder(
         await db.SaveChangesAsync(ct);
 
         user.AvatarKey = await PaintAsync(
-            $"A friendly illustrated avatar for {displayName}, {bio}", StorageKeys.Avatars, user.Id, ct);
+            $"A warm illustrated portrait of {appearance}. Head and shoulders, facing the viewer, soft flat colours, " +
+            "a plain pastel background, no text.",
+            StorageKeys.Avatars,
+            user.Id,
+            ct);
         await db.SaveChangesAsync(ct);
         return new Member(user.Id, username);
     }
@@ -290,6 +313,14 @@ public sealed class DemoSeeder(
         }
     }
 
+    private async Task LastSeenAsync(Member member, TimeSpan ago, CancellationToken ct)
+    {
+        DateTime? seenAt = (realTime.GetUtcNow() - ago).UtcDateTime;
+        await db.Users
+            .Where(user => user.Id == member.Id)
+            .ExecuteUpdateAsync(set => set.SetProperty(user => user.LastSeenAt, seenAt), ct);
+    }
+
     private async Task MarkActivityReadAsync(Member member, CancellationToken ct)
     {
         DateTime? readAt = _clock.GetUtcNow().UtcDateTime;
@@ -303,13 +334,12 @@ public sealed class DemoSeeder(
     /// sends a message has read everything before it, so what's left unread
     /// is what came after each one's last reply.
     /// </summary>
-    private async Task ConversationAsync(
-        Member main, Member other, CancellationToken ct, params (TimeSpan Ago, Member From, string Body)[] messages)
+    private async Task ConversationAsync(Member main, Member other, CancellationToken ct, params Said[] messages)
     {
         _clock.Ago(messages[0].Ago);
         var (conversation, _) = await Chat.OpenAsync(main.Id, other.Username, ct);
         long? lastMessageId = null;
-        foreach (var (ago, from, body) in messages)
+        foreach (var (ago, from, body, shares) in messages)
         {
             _clock.Ago(ago);
             if (lastMessageId is { } previous)
@@ -317,7 +347,8 @@ public sealed class DemoSeeder(
                 await Chat.MarkReadAsync(conversation.Id, from.Id, previous, ct);
             }
 
-            var sent = await Chat.SendAsync(conversation.Id, from.Id, new SendMessageRequest { Body = body }, ct);
+            var sent = await Chat.SendAsync(
+                conversation.Id, from.Id, new SendMessageRequest { Body = body, SharedPostId = shares }, ct);
             lastMessageId = sent.Id;
         }
     }
@@ -330,6 +361,9 @@ public sealed class DemoSeeder(
     }
 
     private sealed record Member(long Id, string Username);
+
+    /// <summary>One message in a seeded chat, optionally sharing a spark.</summary>
+    private sealed record Said(TimeSpan Ago, Member From, string Body, long? Shares = null);
 
     /// <summary>A clock the seeder moves, so seeded content spreads over past weeks.</summary>
     private sealed class SeedClock(DateTimeOffset realNow) : TimeProvider

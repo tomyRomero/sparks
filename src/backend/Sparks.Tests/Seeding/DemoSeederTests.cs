@@ -34,7 +34,12 @@ public sealed class DemoSeederTests(SparksApiFactory factory)
         profile.PostCount.Should().BePositive();
         (await nova.GetJsonAsync<UnreadActivity>("/api/v1/activity/unread-count", Ct)).Count.Should().BePositive();
         (await nova.GetJsonAsync<UnreadMessages>("/api/v1/conversations/unread-count", Ct)).Count.Should().BePositive();
-        (await nova.GetJsonAsync<OpaqueCursorPage<ConversationResponse>>("/api/v1/conversations", Ct)).Items.Should().HaveCount(3);
+        var inbox = await nova.GetJsonAsync<OpaqueCursorPage<ConversationResponse>>("/api/v1/conversations", Ct);
+        inbox.Items.Should().HaveCount(3);
+        var withSofia = inbox.Items.Single(conversation => conversation.With.Username == "sofia_ruiz");
+        var chat = await nova.GetJsonAsync<CursorPage<MessageResponse>>(
+            $"/api/v1/conversations/{withSofia.Id}/messages", Ct);
+        chat.Items.Should().Contain(message => message.SharedPost != null, "the demo shows a spark shared in a chat");
 
         var posts = await nova.GetJsonAsync<CursorPage<PostResponse>>("/api/v1/users/theo_park/posts", Ct);
         posts.Items.Should().OnlyContain(post => post.ImageUrl != null, "Theo's photography posts come with pictures");

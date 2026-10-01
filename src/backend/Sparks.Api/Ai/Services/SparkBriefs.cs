@@ -36,8 +36,9 @@ public static class SparkBriefs
             "with \"Title: \" and the title on its own line.",
             "an illustrated book cover"),
         SparkKind.Artwork => new(
-            "Describe an original artwork inspired by the member's idea, under 110 words: its title, " +
-            "medium, what it shows and the feeling it leaves.",
+            "Describe an original artwork inspired by the member's idea, under 110 words. Start with " +
+            "\"Title: \" and the title on its own line, then give its medium, what it shows and the " +
+            "feeling it leaves.",
             "a fine-art piece"),
         SparkKind.Fashion => new(
             "Describe an original fashion look inspired by the member's idea, under 110 words: the " +
@@ -56,7 +57,8 @@ public static class SparkBriefs
             "attribution.",
             null),
         SparkKind.Joke => new(
-            "Write one short, clean, original joke about the member's topic.",
+            "Write one short, clean, original joke about the member's topic: the setup, then a blank " +
+            "line, then the punchline.",
             null),
         SparkKind.Aphorism => new(
             "Write one original aphorism on the member's theme: a single short, pithy sentence stating " +

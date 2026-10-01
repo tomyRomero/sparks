@@ -33,11 +33,11 @@ public sealed class SampleSparkWriter : ISparkWriter
         ],
         [SparkKind.Artwork] =
         [
-            "\"Tide Clock\", oil on linen. A kitchen clock half-sunk in a calm sea at dawn, its hands made of " +
-            "driftwood, gulls resting on the numbers. It leaves the quiet feeling of time that has stopped " +
+            "Title: Tide Clock\n\nOil on linen. A kitchen clock half-sunk in a calm sea at dawn, its hands made " +
+            "of driftwood, gulls resting on the numbers. It leaves the quiet feeling of time that has stopped " +
             "rushing.",
-            "\"Borrowed Light\", cut paper and gold leaf. A city skyline built from folded letters, every window " +
-            "lit from behind. It reads as a love note to everyone who stays up late.",
+            "Title: Borrowed Light\n\nCut paper and gold leaf. A city skyline built from folded letters, every " +
+            "window lit from behind. It reads as a love note to everyone who stays up late.",
         ],
         [SparkKind.Fashion] =
         [
@@ -65,8 +65,8 @@ public sealed class SampleSparkWriter : ISparkWriter
         ],
         [SparkKind.Joke] =
         [
-            "I told my computer I needed a break. It said it would go to sleep and see how I felt in the morning.",
-            "Why did the developer go broke? They used up all their cache.",
+            "I told my computer I needed a break.\n\nIt said it would go to sleep and see how I felt in the morning.",
+            "Why did the developer go broke?\n\nThey used up all their cache.",
         ],
         [SparkKind.Aphorism] =
         [
