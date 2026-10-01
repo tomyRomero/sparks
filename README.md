@@ -2,7 +2,7 @@
 
 A social network for creative ideas: people post short "sparks" (film and novel outlines, art and fashion concepts, haiku, jokes, aphorisms), draft them with AI help, discuss them in threaded comments and message each other in real time.
 
-Sparks started in 2024 as a Next.js app built on Clerk, MySQL on RDS, S3, Pusher and OpenAI. This version rebuilds it on a stack I run myself: an ASP.NET Core API that owns the data, authentication and real-time, and a Next.js front end that is purely a client of that API. It runs locally with no cloud accounts, and the AI providers are optional.
+Sparks started in 2024 as a Next.js app built on Clerk, MySQL on RDS, S3, Pusher and OpenAI. This version rebuilds it on a stack I run myself: an ASP.NET Core API that owns the data, authentication and real-time, and a Next.js front end that is purely a client of that API. Images live in a private Cloudflare R2 bucket, and drafts and pictures come from Google Gemini and Cloudflare Workers AI.
 
 ## Features
 
@@ -33,8 +33,8 @@ flowchart LR
     end
 
     sql[("SQL Server 2025")]
-    storage[("File storage<br/>local disk")]
-    ai["AI providers<br/>sample · Gemini · Cloudflare"]
+    storage[("Image storage<br/>Cloudflare R2")]
+    ai["AI<br/>Gemini · Workers AI"]
 
     browser -->|page requests| pages
     browser -->|fetch · WebSocket| rewrites
@@ -64,6 +64,8 @@ flowchart LR
 
 **Presence.** Connections are counted per member in memory, so several tabs count once. A member stays online for a short grace period after their last connection closes, so a page reload or a token refresh doesn't read as leaving and coming back; a background sweep then saves when they were last seen and tells everyone. One instance's memory is enough for one API instance; more would need a shared store, as SignalR would need a backplane.
 
+**Storage.** Images go to a private R2 bucket through the S3 API, and the API serves them at `/files`, so the browser stays on one origin and the bucket is never public. A key holds the owner's id and a random name, and its content never changes, so browsers cache images for good. The storage sits behind one interface; a `Local` setting keeps images in a folder instead, for tests and working offline.
+
 **Paging.** Every list pages by cursor rather than page number, so new posts never shift a page. Activity merges three tables, so its cursor carries the whole sort key, encoded as an opaque token.
 
 **Errors.** Every error is an RFC 9457 problem details response with a machine-readable code (`POST_NOT_FOUND`, `PROMPT_DECLINED`) and a trace id that matches the logs. Expected outcomes such as a 404 or a request the client abandoned aren't logged as errors.
@@ -78,8 +80,9 @@ flowchart LR
 | **API** | ASP.NET Core on .NET 10, EF Core 10, SignalR, Serilog, OpenAPI |
 | **Database** | SQL Server 2025 in Docker, EF Core migrations |
 | **Auth** | JWT access tokens, rotating refresh tokens, BCrypt |
+| **Storage** | Cloudflare R2 through the S3 API (AWS SDK for .NET) |
 | **AI** | Google Gemini (text), Cloudflare Workers AI with FLUX.1 schnell (images), sample providers |
-| **Tests** | xUnit v3, FluentAssertions, WebApplicationFactory, Testcontainers (SQL Server), Vitest |
+| **Tests** | xUnit v3, FluentAssertions, WebApplicationFactory, Testcontainers (SQL Server, SeaweedFS for S3), Vitest |
 | **Tooling** | GitHub Actions CI, ESLint, Prettier, `dotnet format`, Dependabot |
 
 ## Running locally
@@ -109,6 +112,20 @@ npm run dev
 ```
 
 To use the demo data, sign in as `nova_reyes` with the password stored as `Seed:Password` (`dotnet user-secrets list --project src/backend/Sparks.Api`). Every demo member shares that password. Password-reset emails are printed to the API console.
+
+### Image storage
+
+Images go to an S3-compatible bucket. For Cloudflare R2, create a bucket and an R2 API token with Object Read & Write on it, then store the bucket's settings in user-secrets:
+
+```bash
+cd src/backend/Sparks.Api
+dotnet user-secrets set "Storage:S3:ServiceUrl" "https://<account id>.r2.cloudflarestorage.com"
+dotnet user-secrets set "Storage:S3:Bucket" "<bucket>"
+dotnet user-secrets set "Storage:S3:AccessKeyId" "<access key id>"
+dotnet user-secrets set "Storage:S3:SecretAccessKey" "<secret access key>"
+```
+
+To keep images in a folder instead, for working offline, set `Storage:Provider` to `Local`.
 
 ### AI providers
 
