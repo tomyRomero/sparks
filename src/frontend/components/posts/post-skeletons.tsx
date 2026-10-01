@@ -55,12 +55,13 @@ export function ComposerPromptSkeleton() {
   );
 }
 
-export function KindFilterSkeleton() {
+/** The home feed's filter bar: kinds, pictures, and the sort on the right. */
+export function FeedBarSkeleton() {
   return (
-    <div className="-mx-3 mb-4 flex gap-2 overflow-hidden ps-3 sm:-mx-4 sm:ps-4 md:mx-0 md:ps-0.5">
-      {["w-11", "w-20", "w-28", "w-24", "w-20", "w-24", "w-28"].map((width, index) => (
-        <Skeleton key={index} className={`h-[34px] shrink-0 rounded-full ${width}`} />
-      ))}
+    <div className="mb-4 flex items-center gap-2 py-2 md:px-1">
+      <Skeleton className="h-9 w-28 rounded-full" />
+      <Skeleton className="h-9 w-9 rounded-full sm:w-36" />
+      <Skeleton className="ms-auto h-9 w-32 rounded-full sm:w-48" />
     </div>
   );
 }

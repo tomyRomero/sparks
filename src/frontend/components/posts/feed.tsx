@@ -2,7 +2,8 @@
 
 import { ListFooter } from "@/components/ui/list-footer";
 import type { CursorPage, Post } from "@/lib/api/types";
-import { usePagedList } from "@/lib/queries/use-paged-list";
+import { type ListPaging, usePagedList } from "@/lib/queries/use-paged-list";
+import { cn } from "@/lib/utils";
 import { PostCard } from "./post-card";
 
 type FeedProps = {
@@ -15,14 +16,28 @@ type FeedProps = {
 };
 
 export function Feed({ initial, path, queryKey, signedIn, empty }: FeedProps) {
-  const { query, items: posts } = usePagedList(path, queryKey, initial);
+  const { query, items } = usePagedList(path, queryKey, initial);
+  return <PostList posts={items} paging={query} signedIn={signedIn} empty={empty} />;
+}
+
+type PostListProps = {
+  posts: Post[];
+  paging: ListPaging;
+  signedIn: boolean;
+  empty: React.ReactNode;
+  /** These are the last filter's results, shown faded while the new ones load. */
+  stale?: boolean;
+};
+
+export function PostList({ posts, paging, signedIn, empty, stale = false }: PostListProps) {
+  const fade = cn("transition-opacity duration-200", stale && "pointer-events-none opacity-50");
   if (posts.length === 0) {
-    return <div className="px-6 py-16 text-center">{empty}</div>;
+    return <div className={cn("px-6 py-16 text-center", fade)}>{empty}</div>;
   }
 
   const firstPicture = posts.find((post) => post.imageUrl)?.id;
   return (
-    <div>
+    <div aria-busy={stale} className={fade}>
       <ul className="flex flex-col gap-4">
         {posts.map((post) => (
           <li key={post.id}>
@@ -30,14 +45,17 @@ export function Feed({ initial, path, queryKey, signedIn, empty }: FeedProps) {
           </li>
         ))}
       </ul>
-      <ListFooter
-        hasNextPage={query.hasNextPage}
-        isFetchingNextPage={query.isFetchingNextPage}
-        failed={query.isFetchNextPageError}
-        error={query.error}
-        fetchNextPage={query.fetchNextPage}
-        loadingLabel="Loading more sparks"
-      />
+      {/* The old list's next page isn't the new list's. */}
+      {!stale && (
+        <ListFooter
+          hasNextPage={paging.hasNextPage}
+          isFetchingNextPage={paging.isFetchingNextPage}
+          failed={paging.isFetchNextPageError}
+          error={paging.error}
+          fetchNextPage={paging.fetchNextPage}
+          loadingLabel="Loading more sparks"
+        />
+      )}
     </div>
   );
 }

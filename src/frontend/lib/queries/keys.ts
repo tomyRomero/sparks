@@ -6,7 +6,11 @@ export const queryKeys = {
 
   posts: ["posts"] as const,
   post: (id: number) => ["posts", "detail", id] as const,
-  feed: (filter: { kind?: string; q?: string }) => ["posts", "feed", filter] as const,
+  /** The home feed's filter, or a search's term and kinds. */
+  feed: (filter: { kinds?: readonly string[]; sort?: string; pictures?: boolean; q?: string }) =>
+    ["posts", "feed", filter] as const,
+  /** The week's most liked sparks, for the right rail. */
+  trending: ["posts", "trending"] as const,
   profilePosts: (username: string, tab: "posts" | "liked") => ["posts", "profile", username, tab] as const,
 
   comments: ["comments"] as const,

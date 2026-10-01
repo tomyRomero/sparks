@@ -1,24 +1,33 @@
 import type { InfiniteData, QueryClient } from "@tanstack/react-query";
-import type { Comment, CursorPage, Post } from "@/lib/api/types";
+import type { Comment, Post } from "@/lib/api/types";
 import { queryKeys } from "./keys";
 
-/** What a cache entry under "posts" or "comments" holds: a paged list, or one item on its own page. */
-type Cached<T> = InfiniteData<CursorPage<T>> | T;
+/** One page of a list, by id or with an opaque cursor. */
+type Page<T> = { items: T[]; nextCursor: unknown };
 
-function isPages<T>(data: Cached<T>): data is InfiniteData<CursorPage<T>> {
+/**
+ * What a cache entry under "posts" or "comments" holds: a paged list, a single
+ * page (a short list like Trending), or one item on its own page.
+ */
+type Cached<T> = InfiniteData<Page<T>> | Page<T> | T;
+
+function isPages<T>(data: Cached<T>): data is InfiniteData<Page<T>> {
   return typeof data === "object" && data !== null && "pages" in data;
+}
+
+function isPage<T>(data: Cached<T>): data is Page<T> {
+  return typeof data === "object" && data !== null && "items" in data;
 }
 
 function updateCached<T extends { id: number }>(data: Cached<T> | undefined, id: number, update: (item: T) => T) {
   if (data === undefined) return data;
-  if (!isPages(data)) return data.id === id ? update(data) : data;
-  return {
-    ...data,
-    pages: data.pages.map((page) => ({
-      ...page,
-      items: page.items.map((item) => (item.id === id ? update(item) : item)),
-    })),
-  };
+  const updatePage = (page: Page<T>) => ({
+    ...page,
+    items: page.items.map((item) => (item.id === id ? update(item) : item)),
+  });
+  if (isPages(data)) return { ...data, pages: data.pages.map(updatePage) };
+  if (isPage(data)) return updatePage(data);
+  return data.id === id ? update(data) : data;
 }
 
 export function updateCachedPost(queryClient: QueryClient, id: number, update: (post: Post) => Post) {

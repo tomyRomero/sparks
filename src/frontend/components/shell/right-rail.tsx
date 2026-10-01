@@ -2,6 +2,7 @@ import { Zap } from "lucide-react";
 import Link from "next/link";
 import type { CurrentUser } from "@/lib/api/types";
 import { QuickDraft } from "./quick-draft";
+import { Trending } from "./trending";
 import { WhosAround } from "./whos-around";
 
 export function RightRail({ viewer }: { viewer: CurrentUser | null }) {
@@ -28,6 +29,7 @@ export function RightRail({ viewer }: { viewer: CurrentUser | null }) {
           </Link>
         </section>
       )}
+      <Trending />
       {viewer && <WhosAround />}
       <p className="mx-1.5 mt-auto label-mono">Sparks · a portfolio project by Tomy Romero</p>
     </aside>
