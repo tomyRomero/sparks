@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { MobileNav } from "@/components/shell/mobile-nav";
+import { SearchShortcut } from "@/components/shell/search-shortcut";
 import { Sidebar } from "@/components/shell/sidebar";
 import { getViewer } from "@/lib/auth/viewer";
 import { SIDEBAR_COOKIE } from "@/lib/preferences";
@@ -23,6 +24,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <div className="flex min-w-0 flex-1">{children}</div>
       </div>
       <MobileNav viewer={viewer} />
+      <SearchShortcut />
     </>
   );
 

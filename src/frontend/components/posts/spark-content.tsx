@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { Marked } from "@/components/search/highlight";
 import type { Post } from "@/lib/api/types";
 import { haikuLines, splitSpark } from "@/lib/spark-text";
 import { cn } from "@/lib/utils";
@@ -59,7 +60,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
                       card ? "text-xl sm:text-[26px]" : "text-2xl sm:text-3xl",
                     )}
                   >
-                    {title}
+                    <Marked text={title} />
                   </p>
                 </>
               )}
@@ -72,7 +73,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
                   card ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl",
                 )}
               >
-                {title}
+                <Marked text={title} />
               </p>
             )
           )}
@@ -86,7 +87,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
                     card ? "line-clamp-6 text-[14.5px]" : "text-base",
                   )}
                 >
-                  {text}
+                  <Marked text={text} />
                 </span>
               </>,
               "px-5 pt-4 pb-5 sm:px-6",
@@ -113,7 +114,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
                     card ? "text-xl" : "text-2xl",
                   )}
                 >
-                  {title}
+                  <Marked text={title} />
                 </span>
               )}
               <span
@@ -122,7 +123,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
                   card ? "line-clamp-[8] text-sm sm:text-[15px]" : "text-base",
                 )}
               >
-                {text}
+                <Marked text={text} />
               </span>
             </>,
             "min-w-0 flex-1",
@@ -137,7 +138,9 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
           {linked(
             <>
               {title && (
-                <span className={cn("block font-display font-bold", card ? "text-[21px]" : "text-2xl")}>{title}</span>
+                <span className={cn("block font-display font-bold", card ? "text-[21px]" : "text-2xl")}>
+                  <Marked text={title} />
+                </span>
               )}
               <span
                 className={cn(
@@ -145,7 +148,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
                   card ? "line-clamp-4 text-[15px]" : "text-base",
                 )}
               >
-                {text}
+                <Marked text={text} />
               </span>
             </>,
           )}
@@ -167,7 +170,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
                 card ? "line-clamp-4 text-[15px]" : "text-[17px]",
               )}
             >
-              {text}
+              <Marked text={text} />
             </span>,
           )}
         </div>
@@ -185,7 +188,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
                 index === 1 && "ps-6 sm:ps-7",
               )}
             >
-              {line}
+              <Marked text={line} />
             </span>
           ))}
         </figure>,
@@ -203,7 +206,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
               card ? "text-[22px] sm:text-[26px]" : "text-3xl",
             )}
           >
-            {text}
+            <Marked text={text} />
           </span>
         </blockquote>,
       );
@@ -216,7 +219,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
             card ? "text-[26px] sm:text-[30px]" : "text-4xl",
           )}
         >
-          {text}
+          <Marked text={text} />
         </span>,
       );
 
@@ -225,7 +228,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
         <div className="flex flex-col gap-3">
           {linked(
             <span className={cn("block leading-normal whitespace-pre-line", card ? "text-lg" : "text-xl")}>
-              {text}
+              <Marked text={text} />
             </span>,
           )}
           {punchline && <Punchline text={punchline} large={!card} />}
@@ -240,7 +243,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
             <span
               className={cn("block leading-relaxed whitespace-pre-line", card ? "line-clamp-6 text-[17px]" : "text-lg")}
             >
-              {text}
+              <Marked text={text} />
             </span>,
           )}
           {picture("aspect-[4/3]", columnSizes)}
@@ -309,7 +312,7 @@ function Punchline({ text, large }: { text: string; large: boolean }) {
         large ? "text-3xl" : "text-2xl",
       )}
     >
-      {text}
+      <Marked text={text} />
     </p>
   );
 }

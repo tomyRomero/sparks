@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { excerpt } from "./text";
+import { excerpt, matchParts } from "./text";
 
 describe("excerpt", () => {
   it("leaves a short text alone, on one line", () => {
@@ -16,5 +16,28 @@ describe("excerpt", () => {
 
   it("never goes past the limit", () => {
     expect(excerpt("x".repeat(100), 10)).toHaveLength(10);
+  });
+});
+
+describe("matchParts", () => {
+  it("marks every place the term appears, whatever its case", () => {
+    expect(matchParts("Rain, rain, go away", "RAIN")).toEqual([
+      { text: "Rain", match: true },
+      { text: ", ", match: false },
+      { text: "rain", match: true },
+      { text: ", go away", match: false },
+    ]);
+  });
+
+  it("treats the term as plain text, not a pattern", () => {
+    expect(matchParts("What? (Really.)", "(really.)")).toEqual([
+      { text: "What? ", match: false },
+      { text: "(Really.)", match: true },
+    ]);
+  });
+
+  it("leaves the text whole with no term or no match", () => {
+    expect(matchParts("Low tide", "  ")).toEqual([{ text: "Low tide", match: false }]);
+    expect(matchParts("Low tide", "moon")).toEqual([{ text: "Low tide", match: false }]);
   });
 });

@@ -1,134 +1,41 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Suspense } from "react";
-import { Feed } from "@/components/posts/feed";
-import { FeedSkeleton } from "@/components/posts/post-skeletons";
-import { MemberList } from "@/components/profile/member-list";
-import { MemberListSkeleton } from "@/components/profile/profile-skeletons";
-import { SearchForm } from "@/components/search/search-form";
+import { SearchView } from "@/components/search/search-view";
 import { PageHeader } from "@/components/shell/page-header";
-import { Panel } from "@/components/ui/panel";
-import { TabNav } from "@/components/ui/tab-nav";
 import { serverGet } from "@/lib/api/server";
-import type { CursorPage, Post, UserSummary } from "@/lib/api/types";
+import type { CursorPage, Post, SearchCounts, UserSummary } from "@/lib/api/types";
 import { getViewer } from "@/lib/auth/viewer";
-import { kinds } from "@/lib/kinds";
-import { queryKeys } from "@/lib/queries/keys";
+import { memberSearchPath, readSearch, searchHref, sparkSearchPath } from "@/lib/search";
 
 type SearchProps = PageProps<"/search">;
 
-/** Capped at 100 characters, like the API. */
-async function readSearch(searchParams: SearchProps["searchParams"]) {
-  const { q, type } = await searchParams;
-  const query = typeof q === "string" ? q.trim().slice(0, 100) : "";
-  return { q: query, tab: type === "members" ? ("members" as const) : ("sparks" as const) };
-}
-
 export async function generateMetadata({ searchParams }: SearchProps): Promise<Metadata> {
-  const { q } = await readSearch(searchParams);
+  const { q } = readSearch(await searchParams);
   return { title: q ? `“${q}”` : "Search" };
 }
 
 export default async function SearchPage({ searchParams }: SearchProps) {
-  const { q, tab } = await readSearch(searchParams);
-  const encoded = encodeURIComponent(q);
+  const search = readSearch(await searchParams);
+  const { q, tab, kinds } = search;
+  const [viewer, sparks, members, counts] = await Promise.all([
+    getViewer(),
+    q && tab === "sparks" ? serverGet<CursorPage<Post>>(`/api/v1${sparkSearchPath(q, kinds)}`) : undefined,
+    q && tab === "members" ? serverGet<CursorPage<UserSummary>>(`/api/v1${memberSearchPath(q)}`) : undefined,
+    q ? serverGet<SearchCounts>(`/api/v1/search/counts?${new URLSearchParams({ q })}`) : undefined,
+  ]);
 
+  // Typing changes the URL without coming back here; a link to another
+  // search does, and starts the view again under its own key.
   return (
     <>
       <PageHeader title="Search" />
-      <SearchForm q={q} tab={tab} />
-      {q ? (
-        <>
-          <TabNav
-            label="Search results"
-            tabs={[
-              { href: `/search?q=${encoded}`, label: "Sparks", current: tab === "sparks" },
-              { href: `/search?q=${encoded}&type=members`, label: "Members", current: tab === "members" },
-            ]}
-          />
-          {/* A new search or tab keys a new boundary, so its results show a skeleton while they load. */}
-          <Suspense
-            key={`${tab}:${q}`}
-            fallback={
-              tab === "sparks" ? (
-                <FeedSkeleton count={3} />
-              ) : (
-                <Panel>
-                  <MemberListSkeleton />
-                </Panel>
-              )
-            }
-          >
-            {tab === "sparks" ? <SparkResults q={q} /> : <MemberResults q={q} />}
-          </Suspense>
-        </>
-      ) : (
-        <Suggestions />
-      )}
-    </>
-  );
-}
-
-async function SparkResults({ q }: { q: string }) {
-  const path = `/posts?q=${encodeURIComponent(q)}`;
-  const [viewer, first] = await Promise.all([getViewer(), serverGet<CursorPage<Post>>(`/api/v1${path}`)]);
-  return (
-    <Feed
-      key={path}
-      initial={first}
-      path={path}
-      queryKey={queryKeys.feed({ q })}
-      signedIn={viewer !== null}
-      empty={<NoResults q={q} what="sparks" />}
-    />
-  );
-}
-
-async function MemberResults({ q }: { q: string }) {
-  const path = `/users?q=${encodeURIComponent(q)}`;
-  const first = await serverGet<CursorPage<UserSummary>>(`/api/v1${path}`);
-  return (
-    <Panel>
-      <MemberList
-        key={path}
-        initial={first}
-        path={path}
-        queryKey={queryKeys.members(q)}
-        empty={<NoResults q={q} what="members" />}
+      <SearchView
+        key={searchHref(search)}
+        initialSearch={search}
+        sparks={sparks}
+        members={members}
+        counts={counts}
+        signedIn={viewer !== null}
       />
-    </Panel>
-  );
-}
-
-function NoResults({ q, what }: { q: string; what: string }) {
-  return (
-    <>
-      <p className="font-display text-lg font-semibold">
-        No {what} match “{q}”
-      </p>
-      <p className="mt-1 text-muted">Try a shorter word, or a name.</p>
     </>
-  );
-}
-
-function Suggestions() {
-  return (
-    <div className="rounded-[18px] border border-line bg-surface p-5 shadow-card sm:p-6">
-      <p className="text-muted">Find sparks by their words or their author, and members by name.</p>
-      <h2 className="mt-6 label-mono">Or browse a kind</h2>
-      <ul className="mt-3 flex flex-wrap gap-2">
-        {kinds.map(({ kind, label, icon: Icon }) => (
-          <li key={kind}>
-            <Link
-              href={`/?kind=${kind}`}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm text-ink-soft transition-colors hover:border-line-strong hover:text-ink"
-            >
-              <Icon className="size-3.5" aria-hidden />
-              {label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }

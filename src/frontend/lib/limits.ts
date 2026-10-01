@@ -12,4 +12,6 @@ export const limits = {
   aiPromptMax: 1000,
   commentBodyMax: 2000,
   messageBodyMax: 2000,
+  /** PostFilters.MaxQueryLength, for search. */
+  searchMax: 100,
 } as const;

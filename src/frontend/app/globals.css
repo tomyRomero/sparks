@@ -28,6 +28,8 @@
   --success: light-dark(#0b7a53, #34d399);
   --warn: light-dark(#8a5a00, #f5c451);
   --online: light-dark(#12b76a, #34d399);
+  /* Search matches, like a highlighter pen. */
+  --mark: light-dark(#fde68a, #5a4611);
   --focus: light-dark(#0060d4, #6ea8ff);
   /* The dark panel a movie script plays on, in either mode. */
   --screen: light-dark(#0b1224, #04070e);
@@ -68,6 +70,7 @@
   --color-success: var(--success);
   --color-warn: var(--warn);
   --color-online: var(--online);
+  --color-mark: var(--mark);
   --color-screen: var(--screen);
   --color-screen-ink: var(--screen-ink);
   --color-screen-muted: var(--screen-muted);

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Marked } from "@/components/search/highlight";
 import { Avatar } from "@/components/ui/avatar";
 import type { Post } from "@/lib/api/types";
 import { kindInfo } from "@/lib/kinds";
@@ -28,10 +29,10 @@ export function PostCard({ post, signedIn, eagerImage = false }: PostCardProps) 
         </Link>
         <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2">
           <Link href={profile} className="truncate text-[15.5px] font-semibold hover:underline">
-            {post.author.displayName}
+            <Marked text={post.author.displayName} />
           </Link>
           <span className="truncate font-mono text-xs text-muted">
-            @{post.author.username} ·{" "}
+            @<Marked text={post.author.username} /> ·{" "}
             <Link href={href} className="hover:underline">
               <time dateTime={post.createdAt} title={fullDate(post.createdAt)} suppressHydrationWarning>
                 {timeAgo(post.createdAt)}

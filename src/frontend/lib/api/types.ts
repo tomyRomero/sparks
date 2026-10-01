@@ -140,5 +140,8 @@ export type Draft = { body: string; imagePrompt: string | null };
 
 export type UnreadCount = { count: number };
 
+/** GET /search/counts: how many of each a search finds. */
+export type SearchCounts = { sparks: number; members: number };
+
 /** GET /auth/username-available: whether a sign-up could take this name. */
 export type UsernameAvailability = { username: string; available: boolean };

@@ -20,6 +20,7 @@ export const queryKeys = {
   profileComments: (username: string) => ["comments", "profile", username] as const,
 
   members: (q: string) => ["members", q] as const,
+  searchCounts: (q: string) => ["search-counts", q] as const,
   /** A quick lookup for pickers (one page, not a paged list). */
   memberLookup: (q: string) => ["member-lookup", q] as const,
   /** The viewer's own sparks or liked ones, one page, for sharing into a chat. */
