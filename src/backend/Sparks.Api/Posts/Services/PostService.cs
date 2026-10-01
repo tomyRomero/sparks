@@ -181,7 +181,11 @@ public sealed class PostService(SparksDbContext db, TimeProvider time, IFileStor
         return await LikeStateAsync(postId, userId, ct);
     }
 
-    /// <summary>The projection every post read uses, with counts computed in SQL.</summary>
+    /// <summary>
+    /// The projection every post read uses, with counts and the top comment
+    /// computed in SQL. Only comments on the spark itself count as its top
+    /// one, never replies.
+    /// </summary>
     internal static Expression<Func<PostEntity, PostResponse>> ToResponse(long? viewerId) => post => new PostResponse(
         post.Id,
         post.Kind,
@@ -193,7 +197,17 @@ public sealed class PostService(SparksDbContext db, TimeProvider time, IFileStor
         new UserSummary(post.Author.Id, post.Author.Username, post.Author.DisplayName, FileUrls.Of(post.Author.AvatarKey)),
         post.Likes.Count,
         post.Comments.Count,
-        viewerId != null && post.Likes.Any(like => like.UserId == viewerId));
+        viewerId != null && post.Likes.Any(like => like.UserId == viewerId),
+        post.Comments
+            .Where(comment => comment.ParentCommentId == null)
+            .OrderByDescending(comment => comment.Likes.Count)
+            .ThenBy(comment => comment.Id)
+            .Select(comment => new CommentPreview(
+                comment.Id,
+                comment.Body.Substring(0, CommentPreview.ExcerptLength),
+                new UserSummary(
+                    comment.Author.Id, comment.Author.Username, comment.Author.DisplayName, FileUrls.Of(comment.Author.AvatarKey))))
+            .FirstOrDefault());
 
     private static async Task<CursorPage<PostResponse>> PageAsync(
         IQueryable<PostEntity> posts, PageRequest page, long? viewerId, CancellationToken ct)

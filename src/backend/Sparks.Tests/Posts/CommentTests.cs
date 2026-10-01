@@ -38,6 +38,33 @@ public sealed class CommentTests(SparksApiFactory factory)
     }
 
     [Fact]
+    public async Task A_spark_brings_its_most_liked_comment_for_lists()
+    {
+        var (author, _) = await factory.SignedInClientAsync(Ct);
+        var (fan, fanUser) = await factory.SignedInClientAsync(Ct);
+        var post = await author.CreatePostAsync("Which line works best?", Ct);
+        var before = await factory.CreateClient().GetJsonAsync<PostResponse>($"/api/v1/posts/{post.Id}", Ct);
+        var first = await author.CommentAsync(post.Id, "The first one.", Ct);
+        var liked = await fan.CommentAsync(post.Id, new string('x', 300), Ct);
+        var reply = await author.ReplyAsync(first.Id, "Replies never count.", Ct);
+        await fan.PutAsync($"{CommentsPath}/{reply.Id}/like", content: null, Ct);
+        await author.PutAsync($"{CommentsPath}/{reply.Id}/like", content: null, Ct);
+
+        var earliest = await factory.CreateClient().GetJsonAsync<PostResponse>($"/api/v1/posts/{post.Id}", Ct);
+        await author.PutAsync($"{CommentsPath}/{liked.Id}/like", content: null, Ct);
+        var mostLiked = await factory.CreateClient().GetJsonAsync<PostResponse>($"/api/v1/posts/{post.Id}", Ct);
+
+        before.TopComment.Should().BeNull();
+        earliest.TopComment!.Id.Should().Be(first.Id, "with no likes on top-level comments, the earliest leads");
+        mostLiked.TopComment.Should().BeEquivalentTo(new
+        {
+            liked.Id,
+            Body = new string('x', CommentPreview.ExcerptLength),
+            Author = new { fanUser.Id, fanUser.Username },
+        });
+    }
+
+    [Fact]
     public async Task A_thread_pages_with_a_cursor()
     {
         var (author, _) = await factory.SignedInClientAsync(Ct);

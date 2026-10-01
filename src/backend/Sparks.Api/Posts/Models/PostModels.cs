@@ -8,6 +8,7 @@ namespace Sparks.Api.Posts.Models;
 
 /// <summary>A spark as the feed and the post page show it.</summary>
 /// <param name="ImageUrl">The attached image's path under the API; null when there's none.</param>
+/// <param name="TopComment">The most-liked comment (the earliest, among equals), for a preview in lists.</param>
 public sealed record PostResponse(
     long Id,
     SparkKind Kind,
@@ -19,7 +20,15 @@ public sealed record PostResponse(
     UserSummary Author,
     int LikeCount,
     int CommentCount,
-    bool LikedByMe);
+    bool LikedByMe,
+    CommentPreview? TopComment);
+
+/// <summary>A comment shown under a spark in a list: who said it, and the start of what they said.</summary>
+/// <param name="Body">Up to <see cref="ExcerptLength"/> characters of it.</param>
+public sealed record CommentPreview(long Id, string Body, UserSummary Author)
+{
+    public const int ExcerptLength = 280;
+}
 
 public sealed record CreatePostRequest
 {
