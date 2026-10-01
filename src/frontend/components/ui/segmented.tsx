@@ -18,11 +18,20 @@ type SegmentedProps<V extends string> = {
   value: V;
   options: readonly SegmentedOption<V>[];
   onChange: (value: V) => void;
+  /** On phones, name only the chosen option; the others show their icon. */
+  compactOnPhones?: boolean;
   className?: string;
 };
 
 /** One choice of a few, as a radio group: Tab reaches the chosen one, arrows move between them. */
-export function Segmented<V extends string>({ label, value, options, onChange, className }: SegmentedProps<V>) {
+export function Segmented<V extends string>({
+  label,
+  value,
+  options,
+  onChange,
+  compactOnPhones = false,
+  className,
+}: SegmentedProps<V>) {
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const chosen = Math.max(
     0,
@@ -44,6 +53,7 @@ export function Segmented<V extends string>({ label, value, options, onChange, c
       {options.map((option, index) => {
         const checked = index === chosen;
         const Icon = option.icon;
+        const iconOnly = compactOnPhones && Icon && !checked;
         return (
           <button
             key={option.value}
@@ -68,7 +78,9 @@ export function Segmented<V extends string>({ label, value, options, onChange, c
             )}
           >
             {Icon && <Icon className="size-3.5" aria-hidden />}
-            {option.short ? (
+            {iconOnly ? (
+              <span className="max-sm:sr-only">{option.label}</span>
+            ) : option.short ? (
               <>
                 <span className="max-sm:hidden">{option.label}</span>
                 <span className="sm:hidden">{option.short}</span>

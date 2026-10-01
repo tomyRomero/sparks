@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { ComposerPrompt } from "@/components/posts/composer-prompt";
+import { FeedScope } from "@/components/posts/feed-scope";
 import { HomeFeed } from "@/components/posts/home-feed";
 import { FeedBarSkeleton, FeedSkeleton } from "@/components/posts/post-skeletons";
 import { PageHeader } from "@/components/shell/page-header";
@@ -9,14 +10,14 @@ import { getViewer } from "@/lib/auth/viewer";
 import { type FeedFilter, feedHref, feedPath, readFeedFilter } from "@/lib/feed";
 
 export default async function HomePage({ searchParams }: PageProps<"/">) {
-  const filter = readFeedFilter(await searchParams);
   const viewer = await getViewer();
+  const filter = readFeedFilter(await searchParams, viewer !== null);
 
   // Changes made on the page don't come back here; a link to another
   // filter does, and gets a fresh feed under its own key.
   return (
     <>
-      <PageHeader title="Home" />
+      <PageHeader title="Home">{viewer && <FeedScope />}</PageHeader>
       {viewer && <ComposerPrompt viewer={viewer} />}
       <Suspense
         key={feedHref(filter)}

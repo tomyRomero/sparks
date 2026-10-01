@@ -10,7 +10,7 @@ import { requireViewer } from "@/lib/auth/viewer";
 export const metadata: Metadata = { title: "Activity" };
 
 export default async function ActivityPage({ searchParams }: PageProps<"/activity">) {
-  await requireViewer("/activity");
+  const viewer = await requireViewer("/activity");
   const filter = readActivityFilter(await searchParams);
   const first = await serverGet<OpaquePage<ActivityItem>>(`/api/v1${activityPath(filter)}`);
 
@@ -19,7 +19,12 @@ export default async function ActivityPage({ searchParams }: PageProps<"/activit
       <PageHeader title="Activity">
         <MarkAllRead />
       </PageHeader>
-      <ActivityList initialFilter={filter} initial={first} now={new Date().toISOString()} />
+      <ActivityList
+        initialFilter={filter}
+        initial={first}
+        now={new Date().toISOString()}
+        viewerUsername={viewer.username}
+      />
     </>
   );
 }

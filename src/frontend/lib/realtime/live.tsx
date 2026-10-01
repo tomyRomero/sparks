@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/ui/avatar";
-import { activityHref, activityVerbs, withoutTitleLabel } from "@/lib/activity";
+import { activityVerbs, noticeHref, withoutTitleLabel } from "@/lib/activity";
 import { api, refreshSession } from "@/lib/api/client";
 import type { ActivityNotice, Conversation, Message, MessagesReadEvent, Presence, TypingEvent } from "@/lib/api/types";
 import { queryKeys } from "@/lib/queries/keys";
@@ -121,12 +121,12 @@ export function LiveProvider({ viewerId, children }: { viewerId: number; childre
       void queryClient.invalidateQueries({ queryKey: queryKeys.unreadActivity });
       void queryClient.invalidateQueries({ queryKey: queryKeys.activity });
       // The activity page shows it arriving; anywhere else gets a toast.
-      // One per spark or comment, so a burst of likes updates one toast.
+      // One per spark, comment or follower, so a burst of likes updates one toast.
       if (here.current.pathname !== "/activity") {
-        const href = activityHref(notice);
+        const href = noticeHref(notice);
         toast(`${notice.actor.displayName} ${activityVerbs[notice.kind]}`, {
           id: `activity:${href}`,
-          description: excerpt(withoutTitleLabel(notice.excerpt), 80),
+          description: notice.excerpt === null ? undefined : excerpt(withoutTitleLabel(notice.excerpt), 80),
           icon: <Avatar name={notice.actor.displayName} src={notice.actor.avatarUrl} size={24} />,
           action: { label: "View", onClick: () => here.current.router.push(href) },
         });

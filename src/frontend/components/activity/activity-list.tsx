@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { CornerDownRight, Heart, type LucideIcon, MessageCircle } from "lucide-react";
+import { CornerDownRight, Heart, type LucideIcon, MessageCircle, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
@@ -36,6 +36,7 @@ const looks: Record<ActivityKind, { icon: LucideIcon; tone: string }> = {
   commentLike: like,
   comment: { ...answer, icon: MessageCircle },
   reply: { ...answer, icon: CornerDownRight },
+  follow: { icon: UserPlus, tone: "bg-success/12 text-success" },
 };
 
 const filterOptions = [
@@ -43,6 +44,7 @@ const filterOptions = [
   { value: "likes", label: "Likes", icon: Heart },
   { value: "comments", label: "Comments", icon: MessageCircle },
   { value: "replies", label: "Replies", icon: CornerDownRight },
+  { value: "follows", label: "Follows", icon: UserPlus },
 ] as const;
 
 const emptyTitles: Record<ActivityFilter | "all", string> = {
@@ -50,6 +52,7 @@ const emptyTitles: Record<ActivityFilter | "all", string> = {
   likes: "No likes yet",
   comments: "No comments yet",
   replies: "No replies yet",
+  follows: "No new followers yet",
 };
 
 type ActivityListProps = {
@@ -58,6 +61,8 @@ type ActivityListProps = {
   initial: OpaquePage<ActivityItem>;
   /** When the server rendered the page, so both sides put items in the same sections. */
   now: string;
+  /** Where several new followers lead: the viewer's followers. */
+  viewerUsername: string;
 };
 
 /**
@@ -65,7 +70,7 @@ type ActivityListProps = {
  * Opening the page marks what it shows as read, but new items stay
  * highlighted for this visit.
  */
-export function ActivityList({ initialFilter, initial, now }: ActivityListProps) {
+export function ActivityList({ initialFilter, initial, now, viewerUsername }: ActivityListProps) {
   const queryClient = useQueryClient();
   const params = useSearchParams();
   const [filter, setFilter] = useState(() => readActivityFilter(params));
@@ -92,14 +97,23 @@ export function ActivityList({ initialFilter, initial, now }: ActivityListProps)
   const stale = query.isPlaceholderData;
   return (
     <>
-      <Segmented label="Show" value={filter ?? "all"} options={filterOptions} onChange={change} className="mb-4" />
+      <Segmented
+        label="Show"
+        value={filter ?? "all"}
+        options={filterOptions}
+        onChange={change}
+        compactOnPhones
+        className="mb-4"
+      />
       <Panel>
         {query.isPending ? (
           <ActivitySkeleton />
         ) : items.length === 0 ? (
           <div className={cn("px-6 py-16 text-center transition-opacity", stale && "opacity-50")}>
             <p className="font-display text-lg font-semibold">{emptyTitles[filter ?? "all"]}</p>
-            <p className="mt-1 text-muted">When someone likes or comments on your sparks, it shows up here.</p>
+            <p className="mt-1 text-muted">
+              When someone likes or comments on your sparks, or follows you, it shows up here.
+            </p>
           </div>
         ) : (
           <div
@@ -116,8 +130,8 @@ export function ActivityList({ initialFilter, initial, now }: ActivityListProps)
                 </h2>
                 <ul>
                   {inSection.map((item) => (
-                    <li key={`${item.kind}:${item.commentId ?? item.postId}`}>
-                      <ActivityRow item={item} />
+                    <li key={`${item.kind}:${item.commentId ?? item.postId ?? item.at}`}>
+                      <ActivityRow item={item} viewerUsername={viewerUsername} />
                     </li>
                   ))}
                 </ul>
@@ -140,11 +154,11 @@ export function ActivityList({ initialFilter, initial, now }: ActivityListProps)
   );
 }
 
-function ActivityRow({ item }: { item: ActivityItem }) {
+function ActivityRow({ item, viewerUsername }: { item: ActivityItem; viewerUsername: string }) {
   const { icon: Icon, tone } = looks[item.kind];
   return (
     <Link
-      href={activityHref(item)}
+      href={activityHref(item, viewerUsername)}
       className={cn(
         "relative flex gap-3.5 border-b border-line px-4 py-4 transition-colors hover:bg-raised/50 sm:px-6",
         item.unread && "bg-brand-soft/40 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-brand",
@@ -176,7 +190,9 @@ function ActivityRow({ item }: { item: ActivityItem }) {
             </time>
           </span>
         </span>
-        <span className="mt-1 line-clamp-2 block text-sm text-muted">“{withoutTitleLabel(item.excerpt)}”</span>
+        {item.excerpt !== null && (
+          <span className="mt-1 line-clamp-2 block text-sm text-muted">“{withoutTitleLabel(item.excerpt)}”</span>
+        )}
       </span>
     </Link>
   );

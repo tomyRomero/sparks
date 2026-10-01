@@ -8,17 +8,28 @@ describe("readFeedFilter", () => {
 
   it("keeps known kinds once each, in the kinds list's order", () => {
     const params = { kind: ["joke", "haiku", "nonsense", "joke"], sort: "top", pictures: "1" };
-    expect(readFeedFilter(params)).toEqual({ kinds: ["haiku", "joke"], sort: "top", pictures: true });
+    expect(readFeedFilter(params)).toEqual({ kinds: ["haiku", "joke"], sort: "top", pictures: true, following: false });
   });
 
   it("reads the browser's search params the same way", () => {
     const params = new URLSearchParams("kind=quote&kind=artwork&sort=newest&pictures=yes");
-    expect(readFeedFilter(params)).toEqual({ kinds: ["artwork", "quote"], sort: "newest", pictures: false });
+    expect(readFeedFilter(params)).toEqual({
+      kinds: ["artwork", "quote"],
+      sort: "newest",
+      pictures: false,
+      following: false,
+    });
+  });
+
+  it("reads Following for members only", () => {
+    expect(readFeedFilter({ feed: "following" }).following).toBe(true);
+    expect(readFeedFilter({ feed: "following" }, false).following).toBe(false);
+    expect(readFeedFilter({ feed: "everyone" }).following).toBe(false);
   });
 });
 
 describe("feedHref and feedPath", () => {
-  const filter = { kinds: ["haiku" as const, "joke" as const], sort: "top" as const, pictures: true };
+  const filter = { kinds: ["haiku" as const, "joke" as const], sort: "top" as const, pictures: true, following: true };
 
   it("leaves the plain feed's URL bare", () => {
     expect(feedHref(unfiltered)).toBe("/");
@@ -26,11 +37,11 @@ describe("feedHref and feedPath", () => {
   });
 
   it("puts every filter in the page URL", () => {
-    expect(feedHref(filter)).toBe("/?kind=haiku&kind=joke&sort=top&pictures=1");
+    expect(feedHref(filter)).toBe("/?feed=following&kind=haiku&kind=joke&sort=top&pictures=1");
   });
 
   it("asks the top endpoint for the Top sort, with the API's parameter names", () => {
-    expect(feedPath(filter)).toBe("/posts/top?kind=haiku&kind=joke&pictures=true");
+    expect(feedPath(filter)).toBe("/posts/top?kind=haiku&kind=joke&pictures=true&following=true");
   });
 
   it("round-trips through the URL", () => {

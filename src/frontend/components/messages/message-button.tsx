@@ -8,8 +8,17 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/problem";
 import type { Conversation } from "@/lib/api/types";
+import { cn } from "@/lib/utils";
 
-export function MessageButton({ username, compact = false }: { username: string; compact?: boolean }) {
+type MessageButtonProps = {
+  username: string;
+  /** A small text button, for lists. */
+  compact?: boolean;
+  /** Just the icon on phones, where it shares a row with other buttons. */
+  iconOnPhones?: boolean;
+};
+
+export function MessageButton({ username, compact = false, iconOnPhones = false }: MessageButtonProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -40,9 +49,15 @@ export function MessageButton({ username, compact = false }: { username: string;
   }
 
   return (
-    <Button variant="secondary" size="sm" onClick={open} disabled={pending}>
+    <Button
+      variant="secondary"
+      size="sm"
+      onClick={open}
+      disabled={pending}
+      className={cn(iconOnPhones && "max-sm:px-2")}
+    >
       <MessageCircle aria-hidden />
-      {pending ? "Opening…" : "Message"}
+      <span className={cn(iconOnPhones && "max-sm:sr-only")}>{pending ? "Opening…" : "Message"}</span>
     </Button>
   );
 }

@@ -6,6 +6,7 @@ import {
   actorPhrase,
   byRecency,
   namedActors,
+  noticeHref,
   readActivityFilter,
   withoutTitleLabel,
 } from "./activity";
@@ -60,9 +61,27 @@ describe("byRecency", () => {
 });
 
 describe("activityHref", () => {
+  const nova = member(1, "Nova");
+  const kai = member(2, "Kai");
+
   it("leads to the comment when there is one, otherwise the spark", () => {
-    expect(activityHref({ postId: 4, commentId: null })).toBe("/p/4");
-    expect(activityHref({ postId: 4, commentId: 9 })).toBe("/c/9");
+    const like = { kind: "postLike" as const, actors: [nova], count: 1 };
+    expect(activityHref({ ...like, postId: 4, commentId: null }, "me")).toBe("/p/4");
+    expect(activityHref({ ...like, postId: 4, commentId: 9 }, "me")).toBe("/c/9");
+  });
+
+  it("leads to a new follower's profile, or to my followers when there were several", () => {
+    const follow = { kind: "follow" as const, postId: null, commentId: null };
+    expect(activityHref({ ...follow, actors: [nova], count: 1 }, "me")).toBe("/u/nova");
+    expect(activityHref({ ...follow, actors: [kai, nova], count: 2 }, "me")).toBe("/u/me/followers");
+  });
+});
+
+describe("noticeHref", () => {
+  it("leads a live follow to the follower and anything else to what it's about", () => {
+    const nova = member(1, "Nova");
+    expect(noticeHref({ kind: "follow", actor: nova, postId: null, commentId: null, excerpt: null })).toBe("/u/nova");
+    expect(noticeHref({ kind: "reply", actor: nova, postId: 4, commentId: 9, excerpt: "Hi" })).toBe("/c/9");
   });
 });
 
@@ -73,10 +92,11 @@ describe("withoutTitleLabel", () => {
 });
 
 describe("readActivityFilter", () => {
-  it("knows likes, comments and replies, and shows everything otherwise", () => {
+  it("knows likes, comments, replies and follows, and shows everything otherwise", () => {
     expect(readActivityFilter({ filter: "replies" })).toBe("replies");
     expect(readActivityFilter(new URLSearchParams("filter=likes"))).toBe("likes");
-    expect(readActivityFilter({ filter: "follows" })).toBeUndefined();
+    expect(readActivityFilter({ filter: "follows" })).toBe("follows");
+    expect(readActivityFilter({ filter: "mentions" })).toBeUndefined();
     expect(activityPath(undefined)).toBe("/activity");
     expect(activityPath("comments")).toBe("/activity?filter=comments");
   });

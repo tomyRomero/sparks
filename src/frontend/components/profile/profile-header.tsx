@@ -6,9 +6,10 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { Profile } from "@/lib/api/types";
 import { PresenceLine } from "./presence-line";
+import { ProfileFollow, ProfileFollowButton } from "./profile-follow";
+import { ProfileStats } from "./profile-stats";
 
 const joined = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" });
-const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
 
 type ProfileHeaderProps = {
   profile: Profile;
@@ -16,49 +17,47 @@ type ProfileHeaderProps = {
 };
 
 export function ProfileHeader({ profile, viewer }: ProfileHeaderProps) {
-  const stats = [
-    { label: profile.postCount === 1 ? "Spark" : "Sparks", value: profile.postCount },
-    { label: profile.likesReceived === 1 ? "Like received" : "Likes received", value: profile.likesReceived },
-    { label: profile.pictureCount === 1 ? "Picture" : "Pictures", value: profile.pictureCount },
-    { label: profile.commentCount === 1 ? "Comment" : "Comments", value: profile.commentCount },
-  ];
-
   return (
-    <section
-      aria-label="Profile"
-      className="mb-4 overflow-hidden rounded-[18px] border border-line bg-surface pb-5 shadow-card"
-    >
-      <Cover profile={profile} />
-      <div className="px-5 sm:px-6">
-        <div className="relative -mt-12 flex items-end justify-between gap-4">
-          <Avatar name={profile.displayName} src={profile.avatarUrl} size={96} className="ring-4 ring-surface" />
-          {viewer === "self" && (
-            <Button asChild variant="secondary" size="sm">
-              <Link href="/settings/profile">Edit profile</Link>
-            </Button>
-          )}
-          {viewer === "member" && <MessageButton username={profile.username} />}
+    <ProfileFollow profile={profile} signedIn={viewer !== "guest"}>
+      <section
+        aria-label="Profile"
+        className="mb-4 overflow-hidden rounded-[18px] border border-line bg-surface pb-5 shadow-card"
+      >
+        <Cover profile={profile} />
+        <div className="px-5 sm:px-6">
+          <div className="relative -mt-12 flex items-end justify-between gap-4">
+            <Avatar name={profile.displayName} src={profile.avatarUrl} size={96} className="ring-4 ring-surface" />
+            {viewer === "self" ? (
+              <Button asChild variant="secondary" size="sm">
+                <Link href="/settings/profile">Edit profile</Link>
+              </Button>
+            ) : (
+              // Guests see Follow too; it takes them to sign in.
+              <div className="flex flex-wrap justify-end gap-2">
+                {viewer === "member" && <MessageButton username={profile.username} iconOnPhones />}
+                <ProfileFollowButton username={profile.username} />
+              </div>
+            )}
+          </div>
+          <p className="mt-4 font-display text-2xl leading-tight font-semibold tracking-tight">{profile.displayName}</p>
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="label-mono">@{profile.username}</span>
+            {profile.followsMe && (
+              <span className="rounded-md bg-raised px-1.5 py-0.5 font-mono text-[11px] text-ink-soft">
+                Follows you
+              </span>
+            )}
+          </p>
+          {viewer === "member" && <PresenceLine userId={profile.id} />}
+          {profile.bio && <p className="mt-3 max-w-prose leading-relaxed whitespace-pre-line">{profile.bio}</p>}
+          <p className="mt-3 flex items-center gap-1.5 text-sm text-muted">
+            <CalendarDays className="size-4" aria-hidden />
+            Joined {joined.format(new Date(profile.joinedAt))}
+          </p>
+          <ProfileStats profile={profile} />
         </div>
-        <p className="mt-4 font-display text-2xl leading-tight font-semibold tracking-tight">{profile.displayName}</p>
-        <p className="label-mono">@{profile.username}</p>
-        {viewer === "member" && <PresenceLine userId={profile.id} />}
-        {profile.bio && <p className="mt-3 max-w-prose leading-relaxed whitespace-pre-line">{profile.bio}</p>}
-        <p className="mt-3 flex items-center gap-1.5 text-sm text-muted">
-          <CalendarDays className="size-4" aria-hidden />
-          Joined {joined.format(new Date(profile.joinedAt))}
-        </p>
-        <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-[14px] border border-line bg-line sm:grid-cols-4">
-          {stats.map(({ label, value }) => (
-            <div key={label} className="flex flex-col-reverse gap-0.5 bg-surface px-4 py-3">
-              <dt className="label-mono">{label}</dt>
-              <dd className="font-display text-xl font-bold tabular-nums" title={value.toLocaleString("en")}>
-                {compact.format(value)}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
+      </section>
+    </ProfileFollow>
   );
 }
 

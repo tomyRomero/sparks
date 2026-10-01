@@ -7,7 +7,7 @@ export const queryKeys = {
   posts: ["posts"] as const,
   post: (id: number) => ["posts", "detail", id] as const,
   /** The home feed's filter, or a search's term and kinds. */
-  feed: (filter: { kinds?: readonly string[]; sort?: string; pictures?: boolean; q?: string }) =>
+  feed: (filter: { kinds?: readonly string[]; sort?: string; pictures?: boolean; following?: boolean; q?: string }) =>
     ["posts", "feed", filter] as const,
   /** The week's most liked sparks, for the right rail. */
   trending: ["posts", "trending"] as const,
@@ -20,6 +20,10 @@ export const queryKeys = {
   profileComments: (username: string) => ["comments", "profile", username] as const,
 
   members: (q: string) => ["members", q] as const,
+  /** Everything under "people" lists members with a follow button. */
+  people: ["people"] as const,
+  followList: (username: string, list: "followers" | "following") => ["people", list, username] as const,
+  suggestions: ["people", "suggestions"] as const,
   searchCounts: (q: string) => ["search-counts", q] as const,
   /** A quick lookup for pickers (one page, not a paged list). */
   memberLookup: (q: string) => ["member-lookup", q] as const,

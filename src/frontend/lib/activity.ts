@@ -1,4 +1,4 @@
-import type { ActivityFilter, ActivityKind, UserSummary } from "@/lib/api/types";
+import type { ActivityFilter, ActivityItem, ActivityKind, ActivityNotice, UserSummary } from "@/lib/api/types";
 import { type ParamSource, paramValues } from "@/lib/feed";
 
 /** What each kind says after the names: "Nova liked your spark". */
@@ -7,10 +7,32 @@ export const activityVerbs: Record<ActivityKind, string> = {
   commentLike: "liked your comment",
   comment: "commented on your spark",
   reply: "replied to your comment",
+  follow: "followed you",
 };
 
-/** Where an item leads: the comment for anything about one, otherwise the spark. */
-export function activityHref({ postId, commentId }: { postId: number; commentId: number | null }): string {
+/**
+ * Where an item leads: a new follower's profile, or the member's own
+ * followers when there were several; the comment for anything about one;
+ * otherwise the spark.
+ */
+export function activityHref(
+  item: Pick<ActivityItem, "kind" | "actors" | "count" | "postId" | "commentId">,
+  viewerUsername: string,
+): string {
+  if (item.kind === "follow") {
+    return item.count === 1 && item.actors.length > 0
+      ? `/u/${item.actors[0].username}`
+      : `/u/${viewerUsername}/followers`;
+  }
+  return contentHref(item);
+}
+
+/** Where a live notice leads: the follower's profile, the comment, or the spark. */
+export function noticeHref(notice: ActivityNotice): string {
+  return notice.kind === "follow" ? `/u/${notice.actor.username}` : contentHref(notice);
+}
+
+function contentHref({ postId, commentId }: { postId: number | null; commentId: number | null }): string {
   return commentId === null ? `/p/${postId}` : `/c/${commentId}`;
 }
 
@@ -46,7 +68,7 @@ export function actorPhrase(actors: readonly UserSummary[], count: number): stri
     .join("");
 }
 
-const filters: readonly ActivityFilter[] = ["likes", "comments", "replies"];
+const filters: readonly ActivityFilter[] = ["likes", "comments", "replies", "follows"];
 
 /** The activity page's filter from its URL; everything when there's none it knows. */
 export function readActivityFilter(params: ParamSource): ActivityFilter | undefined {

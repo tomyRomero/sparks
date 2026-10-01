@@ -10,9 +10,11 @@ export type FeedFilter = {
   sort: FeedSort;
   /** Only sparks with a picture. */
   pictures: boolean;
+  /** Only sparks from the people the viewer follows, and their own. Members only. */
+  following: boolean;
 };
 
-export const unfiltered: FeedFilter = { kinds: [], sort: "newest", pictures: false };
+export const unfiltered: FeedFilter = { kinds: [], sort: "newest", pictures: false, following: false };
 
 /** A page's search params, from the server (a record) or the browser. */
 export type ParamSource = Record<string, string | string[] | undefined> | URLSearchParams;
@@ -28,18 +30,23 @@ export function readKinds(params: ParamSource): SparkKind[] {
   return kinds.map((info) => info.kind).filter((kind) => wanted.has(kind));
 }
 
-/** The feed's filter from the page URL; anything it doesn't know is dropped. */
-export function readFeedFilter(params: ParamSource): FeedFilter {
+/**
+ * The feed's filter from the page URL; anything it doesn't know is dropped,
+ * and so is Following for a guest, who follows no one.
+ */
+export function readFeedFilter(params: ParamSource, signedIn = true): FeedFilter {
   return {
     kinds: readKinds(params),
     sort: paramValues(params, "sort")[0] === "top" ? "top" : "newest",
     pictures: paramValues(params, "pictures")[0] === "1",
+    following: signedIn && paramValues(params, "feed")[0] === "following",
   };
 }
 
-/** The page URL for a filter: "/", or "/?kind=haiku&kind=joke&sort=top". */
+/** The page URL for a filter: "/", or "/?feed=following&kind=haiku&kind=joke&sort=top". */
 export function feedHref(filter: FeedFilter): string {
   const search = new URLSearchParams();
+  if (filter.following) search.set("feed", "following");
   appendKinds(search, filter.kinds);
   if (filter.sort === "top") search.set("sort", "top");
   if (filter.pictures) search.set("pictures", "1");
@@ -52,6 +59,7 @@ export function feedPath(filter: FeedFilter): string {
   const search = new URLSearchParams();
   appendKinds(search, filter.kinds);
   if (filter.pictures) search.set("pictures", "true");
+  if (filter.following) search.set("following", "true");
   const base = filter.sort === "top" ? "/posts/top" : "/posts";
   const query = search.toString();
   return query ? `${base}?${query}` : base;

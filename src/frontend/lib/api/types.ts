@@ -81,34 +81,55 @@ export type Profile = {
   pictureCount: number;
   /** The picture of their most liked spark that has one, for the top of the page. */
   coverUrl: string | null;
+  followerCount: number;
+  followingCount: number;
+  /** Whether the viewer follows them; always false for guests and on your own profile. */
+  followedByMe: boolean;
+  /** Whether they follow the viewer. */
+  followsMe: boolean;
 };
 
-export type ActivityKind = "postLike" | "commentLike" | "comment" | "reply";
+/** The viewer's follow of a member, after a follow or unfollow. */
+export type FollowState = { following: boolean; followerCount: number };
 
-/** Something others did to the member's sparks or comments; likes on one thing come as one item. */
+/** A member in a list of people: followers, following, and who to follow. */
+export type Member = UserSummary & {
+  bio: string | null;
+  /** Whether the viewer follows them; always false for guests. */
+  followedByMe: boolean;
+};
+
+export type ActivityKind = "postLike" | "commentLike" | "comment" | "reply" | "follow";
+
+/**
+ * Something others did to the member's sparks or comments, or to the member.
+ * Likes on one thing come as one item, and so do a day's new followers.
+ */
 export type ActivityItem = {
   kind: ActivityKind;
   /** When the latest of it happened. */
   at: string;
   /** Who did it, latest first, up to three. */
   actors: UserSummary[];
-  /** How many did it: one for a comment or reply, every liker for a like. */
+  /** How many did it: one for a comment or reply, every liker for a like, a day's new followers for a follow. */
   count: number;
-  postId: number;
+  /** Null for a follow. */
+  postId: number | null;
   commentId: number | null;
-  excerpt: string;
+  /** The start of what was liked or said; null for a follow. */
+  excerpt: string | null;
   unread: boolean;
 };
 
-export type ActivityFilter = "likes" | "comments" | "replies";
+export type ActivityFilter = "likes" | "comments" | "replies" | "follows";
 
-/** Pushed live (ActivityReceived) when someone likes or answers the member's spark or comment. */
+/** Pushed live (ActivityReceived) when someone likes or answers the member's spark or comment, or follows them. */
 export type ActivityNotice = {
   kind: ActivityKind;
   actor: UserSummary;
-  postId: number;
+  postId: number | null;
   commentId: number | null;
-  excerpt: string;
+  excerpt: string | null;
 };
 
 export type Message = {

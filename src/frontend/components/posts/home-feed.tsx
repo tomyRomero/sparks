@@ -2,7 +2,8 @@
 
 import { Clock, Flame, ImageIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { WhoToFollow } from "@/components/profile/who-to-follow";
 import { Button } from "@/components/ui/button";
 import { chipStyle } from "@/components/ui/chip";
 import { Segmented } from "@/components/ui/segmented";
@@ -33,10 +34,10 @@ type HomeFeedProps = {
  * a navigation so a reload or a shared link shows the same thing.
  */
 export function HomeFeed({ initialFilter, initial, signedIn }: HomeFeedProps) {
-  const params = useSearchParams();
-  // From the URL rather than the props: going Back can land on a URL this
-  // page rewrote, with the props of the one it started from.
-  const [filter, setFilter] = useState(() => readFeedFilter(params));
+  // From the URL, which every filter control rewrites (FeedScope too), rather
+  // than the props: going Back can land on a URL this page rewrote, with the
+  // props of the one it started from.
+  const filter = readFeedFilter(useSearchParams(), signedIn);
   const { query, items } = usePagedList<Post, number | string>(
     feedPath(filter),
     queryKeys.feed(filter),
@@ -47,14 +48,19 @@ export function HomeFeed({ initialFilter, initial, signedIn }: HomeFeedProps) {
   const bar = useRef<HTMLDivElement>(null);
   const stuck = useStuck(anchor, bar);
 
-  function change(next: Partial<FeedFilter>) {
-    const changed = { ...filter, ...next };
-    setFilter(changed);
-    window.history.replaceState(null, "", feedHref(changed));
-    // Deep in the list, start the new one from its top, just under the bar.
+  // Deep in the list, start a new one from its top, just under the bar.
+  const href = feedHref(filter);
+  const shown = useRef(href);
+  useLayoutEffect(() => {
+    if (shown.current === href) return;
+    shown.current = href;
     const top = anchor.current?.getBoundingClientRect().top;
     const barTop = bar.current ? parseFloat(getComputedStyle(bar.current).top) : 0;
     if (top !== undefined && top < barTop) window.scrollBy({ top: top - barTop });
+  }, [href]);
+
+  function change(next: Partial<FeedFilter>) {
+    window.history.replaceState(null, "", feedHref({ ...filter, ...next }));
   }
 
   const filtered = filter.kinds.length > 0 || filter.pictures;
@@ -108,9 +114,13 @@ export function HomeFeed({ initialFilter, initial, signedIn }: HomeFeedProps) {
               <p className="font-display text-lg font-semibold">
                 {filtered
                   ? "No sparks match these filters"
-                  : filter.sort === "top"
-                    ? "Nothing's been liked this week"
-                    : "No sparks yet"}
+                  : filter.following
+                    ? filter.sort === "top"
+                      ? "Nothing from the people you follow was liked this week"
+                      : "Nothing from the people you follow yet"
+                    : filter.sort === "top"
+                      ? "Nothing's been liked this week"
+                      : "No sparks yet"}
               </p>
               {filtered ? (
                 <Button
@@ -121,6 +131,11 @@ export function HomeFeed({ initialFilter, initial, signedIn }: HomeFeedProps) {
                 >
                   Clear filters
                 </Button>
+              ) : filter.following ? (
+                <>
+                  <p className="mt-1 text-muted">Follow a few people and their sparks show up here.</p>
+                  <WhoToFollow />
+                </>
               ) : (
                 <p className="mt-1 text-muted">
                   {filter.sort === "top" ? "Like a spark and it shows up here." : "Be the first to share one."}
