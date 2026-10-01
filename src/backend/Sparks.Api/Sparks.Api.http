@@ -163,6 +163,15 @@ Content-Type: application/json
   "body": "Hello!"
 }
 
+### Share a spark in a message (the text can be left out)
+POST {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}/messages
+Content-Type: application/json
+
+{
+  "body": "You'll like this one",
+  "sharedPostId": {{createPost.response.body.$.id}}
+}
+
 ### The conversation's messages, newest first
 GET {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}/messages
 
@@ -179,6 +188,15 @@ GET {{api}}/api/v1/conversations
 
 ### Unread messages, for a badge
 GET {{api}}/api/v1/conversations/unread-count
+
+# Presence: who's online (needs sign-in). Arrivals and departures are also
+# pushed live over the hub as PresenceChanged.
+
+### Whether these members are online, and when they last were
+GET {{api}}/api/v1/presence?ids=1&ids=2
+
+### A few members who are around: online first, then the most recently seen
+GET {{api}}/api/v1/presence/around?limit=5
 
 # AI: drafts and pictures (needs sign-in; limited per member per hour).
 # Sample providers answer by default; set Ai:TextProvider=Gemini and

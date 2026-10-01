@@ -22,6 +22,12 @@ internal sealed class MessageEntityConfiguration : IEntityTypeConfiguration<Mess
             .HasForeignKey(message => message.SenderId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Deleting a spark keeps the messages that shared it, without it.
+        builder.HasOne(message => message.SharedPost)
+            .WithMany()
+            .HasForeignKey(message => message.SharedPostId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // A conversation's history in order, paged by id.
         builder.HasIndex(message => new { message.ConversationId, message.Id });
     }

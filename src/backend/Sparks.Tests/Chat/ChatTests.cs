@@ -1,12 +1,14 @@
 using System.Net;
+using System.Text.Json;
 using FluentAssertions;
 using Sparks.Api.Chat.Models;
 using Sparks.Api.Common.Models;
+using Sparks.Api.Posts.Data;
 using Sparks.Tests.Infrastructure;
 
 namespace Sparks.Tests.Chat;
 
-/// <summary>Private conversations: opening them, messages, the inbox and read state.</summary>
+/// <summary>Private conversations: opening them, messages, sharing sparks, the inbox and read state.</summary>
 public sealed class ChatTests(SparksApiFactory factory)
 {
     private const string ConversationsPath = "/api/v1/conversations";
@@ -85,6 +87,75 @@ public sealed class ChatTests(SparksApiFactory factory)
         var response = await alice.PostJsonAsync(MessagesPath(conversationId), new SendMessageRequest { Body = "  " }, Ct);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var problem = await response.ReadAsync<JsonElement>(Ct);
+        problem.GetProperty("errors").EnumerateObject().Select(error => error.Name).Should().Equal("body");
+    }
+
+    [Fact]
+    public async Task A_message_can_share_a_spark_with_or_without_words()
+    {
+        var (alice, bob, conversationId) = await ConversationAsync();
+        var (author, authorUser) = await factory.SignedInClientAsync(Ct);
+        var spark = await author.CreatePostAsync(
+            "Title: The Last Signal\n\nA lighthouse keeper hears a station that went off air.", SparkKind.MovieScript, Ct);
+
+        var bare = await SendAsync(alice, conversationId, new SendMessageRequest { SharedPostId = spark.Id });
+        var withWords = await SendAsync(
+            alice, conversationId, new SendMessageRequest { Body = "You'll love this", SharedPostId = spark.Id });
+
+        bare.Body.Should().BeEmpty();
+        bare.SharedPost.Should().BeEquivalentTo(new
+        {
+            spark.Id,
+            Kind = SparkKind.MovieScript,
+            spark.Body,
+            Author = new { authorUser.Id, authorUser.Username },
+        });
+        withWords.Body.Should().Be("You'll love this");
+        withWords.SharedPost!.Id.Should().Be(spark.Id);
+        var messages = await bob.GetJsonAsync<CursorPage<MessageResponse>>(MessagesPath(conversationId), Ct);
+        messages.Items.Should().OnlyContain(message => message.SharedPost!.Id == spark.Id);
+        var inbox = await bob.GetJsonAsync<OpaqueCursorPage<ConversationResponse>>(ConversationsPath, Ct);
+        inbox.Items.Single(conversation => conversation.Id == conversationId).LastMessage!.SharedPost!.Id
+            .Should().Be(spark.Id);
+    }
+
+    [Fact]
+    public async Task A_long_shared_spark_comes_as_its_opening()
+    {
+        var (alice, _, conversationId) = await ConversationAsync();
+        var spark = await alice.CreatePostAsync(new string('a', 400) + new string('b', 100), Ct);
+
+        var message = await SendAsync(alice, conversationId, new SendMessageRequest { SharedPostId = spark.Id });
+
+        message.SharedPost!.Body.Should().Be(new string('a', SharedSparkResponse.ExcerptLength));
+    }
+
+    [Fact]
+    public async Task Sharing_a_spark_that_doesnt_exist_is_refused()
+    {
+        var (alice, _, conversationId) = await ConversationAsync();
+
+        var response = await alice.PostJsonAsync(
+            MessagesPath(conversationId), new SendMessageRequest { SharedPostId = long.MaxValue }, Ct);
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await response.ProblemCodeAsync(Ct)).Should().Be("POST_NOT_FOUND");
+    }
+
+    [Fact]
+    public async Task Deleting_a_shared_spark_keeps_the_message_without_it()
+    {
+        var (alice, bob, conversationId) = await ConversationAsync();
+        var spark = await alice.CreatePostAsync("Soon to be gone.", Ct);
+        var shared = await SendAsync(alice, conversationId, new SendMessageRequest { SharedPostId = spark.Id });
+
+        (await alice.DeleteAsync($"/api/v1/posts/{spark.Id}", Ct)).EnsureSuccessStatusCode();
+
+        var messages = await bob.GetJsonAsync<CursorPage<MessageResponse>>(MessagesPath(conversationId), Ct);
+        messages.Items.Should().ContainSingle().Which.Should().BeEquivalentTo(
+            new { shared.Id, Body = "", SharedPost = (SharedSparkResponse?)null },
+            "an empty message with no spark tells the app the shared spark is gone");
     }
 
     [Fact]
@@ -208,9 +279,12 @@ public sealed class ChatTests(SparksApiFactory factory)
 
     private static string MessagesPath(long conversationId) => $"{ConversationsPath}/{conversationId}/messages";
 
-    private static async Task<MessageResponse> SendAsync(HttpClient sender, long conversationId, string body)
+    private static Task<MessageResponse> SendAsync(HttpClient sender, long conversationId, string body) =>
+        SendAsync(sender, conversationId, new SendMessageRequest { Body = body });
+
+    private static async Task<MessageResponse> SendAsync(HttpClient sender, long conversationId, SendMessageRequest message)
     {
-        var response = await sender.PostJsonAsync(MessagesPath(conversationId), new SendMessageRequest { Body = body }, Ct);
+        var response = await sender.PostJsonAsync(MessagesPath(conversationId), message, Ct);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         return await response.ReadAsync<MessageResponse>(Ct);
     }

@@ -1,4 +1,5 @@
 using Sparks.Api.Chat.Models;
+using Sparks.Api.Presence.Models;
 
 namespace Sparks.Api.Realtime;
 
@@ -13,6 +14,9 @@ public interface IRealtimeClient
 
     /// <summary>The other participant is typing.</summary>
     Task Typing(TypingEvent typing);
+
+    /// <summary>A member came online or went offline; sent to every signed-in member.</summary>
+    Task PresenceChanged(PresenceResponse presence);
 }
 
 /// <param name="ReaderId">Who read them.</param>

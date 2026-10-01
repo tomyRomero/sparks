@@ -1,6 +1,5 @@
 using System.Net;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
 using Sparks.Api.Chat.Models;
 using Sparks.Api.Realtime;
@@ -11,18 +10,16 @@ namespace Sparks.Tests.Realtime;
 /// <summary>What the live connection pushes: messages, read receipts and typing.</summary>
 public sealed class RealtimeTests(SparksApiFactory factory)
 {
-    private static readonly TimeSpan EventTimeout = TimeSpan.FromSeconds(10);
-
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
     public async Task A_message_reaches_the_recipient_and_the_senders_other_tabs()
     {
         var chat = await ChatAsync();
-        await using var bobLive = await ConnectAsync(chat.BobToken);
-        await using var aliceOtherTab = await ConnectAsync(chat.AliceToken);
-        var toBob = NextAsync<MessageResponse>(bobLive, nameof(IRealtimeClient.MessageReceived));
-        var toAlice = NextAsync<MessageResponse>(aliceOtherTab, nameof(IRealtimeClient.MessageReceived));
+        await using var bobLive = await factory.ConnectLiveAsync(chat.BobToken, Ct);
+        await using var aliceOtherTab = await factory.ConnectLiveAsync(chat.AliceToken, Ct);
+        var toBob = bobLive.NextAsync<MessageResponse>(nameof(IRealtimeClient.MessageReceived), Ct);
+        var toAlice = aliceOtherTab.NextAsync<MessageResponse>(nameof(IRealtimeClient.MessageReceived), Ct);
 
         var sent = await SendAsync(chat.Alice, chat.ConversationId, "Are you there?");
 
@@ -35,8 +32,8 @@ public sealed class RealtimeTests(SparksApiFactory factory)
     {
         var chat = await ChatAsync();
         var sent = await SendAsync(chat.Alice, chat.ConversationId, "Did you read this?");
-        await using var aliceLive = await ConnectAsync(chat.AliceToken);
-        var receipt = NextAsync<MessagesReadEvent>(aliceLive, nameof(IRealtimeClient.MessagesRead));
+        await using var aliceLive = await factory.ConnectLiveAsync(chat.AliceToken, Ct);
+        var receipt = aliceLive.NextAsync<MessagesReadEvent>(nameof(IRealtimeClient.MessagesRead), Ct);
 
         (await chat.Bob.PostJsonAsync(
                 $"/api/v1/conversations/{chat.ConversationId}/read", new MarkMessagesReadRequest { UpToMessageId = sent.Id }, Ct))
@@ -50,10 +47,10 @@ public sealed class RealtimeTests(SparksApiFactory factory)
     {
         var chat = await ChatAsync();
         var (_, _, outsiderToken) = await factory.SignedInWithTokenAsync(Ct);
-        await using var aliceLive = await ConnectAsync(chat.AliceToken);
-        await using var bobLive = await ConnectAsync(chat.BobToken);
-        await using var outsiderLive = await ConnectAsync(outsiderToken);
-        var bobSees = NextAsync<TypingEvent>(bobLive, nameof(IRealtimeClient.Typing));
+        await using var aliceLive = await factory.ConnectLiveAsync(chat.AliceToken, Ct);
+        await using var bobLive = await factory.ConnectLiveAsync(chat.BobToken, Ct);
+        await using var outsiderLive = await factory.ConnectLiveAsync(outsiderToken, Ct);
+        var bobSees = bobLive.NextAsync<TypingEvent>(nameof(IRealtimeClient.Typing), Ct);
 
         // The outsider's call finishes before Alice's starts, so if it had
         // reached Bob, its event would come first.
@@ -66,7 +63,7 @@ public sealed class RealtimeTests(SparksApiFactory factory)
     [Fact]
     public async Task Connecting_requires_sign_in()
     {
-        await using var connection = Connection(accessToken: null);
+        await using var connection = factory.LiveConnection(accessToken: null);
 
         var connect = () => connection.StartAsync(Ct);
 
@@ -84,35 +81,6 @@ public sealed class RealtimeTests(SparksApiFactory factory)
         response.EnsureSuccessStatusCode();
         var conversation = await response.ReadAsync<ConversationResponse>(Ct);
         return new Chat(alice, aliceUser.Id, aliceToken, bob, bobUser.Id, bobToken, conversation.Id);
-    }
-
-    private async Task<HubConnection> ConnectAsync(string accessToken)
-    {
-        var connection = Connection(accessToken);
-        await connection.StartAsync(Ct);
-        return connection;
-    }
-
-    /// <summary>
-    /// A hub connection through the in-memory test server. Long polling,
-    /// because the test server's handler carries plain HTTP requests only.
-    /// </summary>
-    private HubConnection Connection(string? accessToken) =>
-        new HubConnectionBuilder()
-            .WithUrl(new Uri(factory.Server.BaseAddress, RealtimeHub.Path), options =>
-            {
-                options.Transports = HttpTransportType.LongPolling;
-                options.HttpMessageHandlerFactory = _ => factory.Server.CreateHandler();
-                options.AccessTokenProvider = () => Task.FromResult(accessToken);
-            })
-            .Build();
-
-    /// <summary>The next event of one kind the connection receives.</summary>
-    private static Task<T> NextAsync<T>(HubConnection connection, string eventName)
-    {
-        var received = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        connection.On<T>(eventName, payload => received.TrySetResult(payload));
-        return received.Task.WaitAsync(EventTimeout, Ct);
     }
 
     private static async Task<MessageResponse> SendAsync(HttpClient sender, long conversationId, string body)

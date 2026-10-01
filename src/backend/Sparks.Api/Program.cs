@@ -17,6 +17,7 @@ using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Health;
 using Sparks.Api.Common.Security;
 using Sparks.Api.Posts.Services;
+using Sparks.Api.Presence;
 using Sparks.Api.Realtime;
 using Sparks.Api.Seeding;
 using Sparks.Api.Storage;
@@ -108,6 +109,7 @@ try
     // ── Realtime ─────────────────────────────────────────────────────────────
     builder.Services.AddSignalR();
     builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
+    builder.Services.AddSparksPresence();
 
     var app = builder.Build();
 

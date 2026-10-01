@@ -6,6 +6,7 @@ using Sparks.Api.Chat.Models;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
+using Sparks.Api.Posts.Services;
 using Sparks.Api.Realtime;
 using Sparks.Api.Storage;
 using Sparks.Api.Users.Models;
@@ -15,8 +16,9 @@ namespace Sparks.Api.Chat.Services;
 
 /// <summary>
 /// Private conversations between two members: the inbox, opening a
-/// conversation, and sending and reading messages. New messages and read
-/// receipts are pushed live to both participants once they're saved.
+/// conversation, and sending and reading messages, which can share a spark.
+/// New messages and read receipts are pushed live to both participants once
+/// they're saved.
 /// </summary>
 public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubContext<RealtimeHub, IRealtimeClient> hub)
 {
@@ -135,19 +137,26 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
         long conversationId, long senderId, SendMessageRequest request, CancellationToken ct)
     {
         var recipientId = await FindOtherParticipantAsync(conversationId, senderId, ct);
+        if (request.SharedPostId is { } postId && !await db.Posts.AnyAsync(post => post.Id == postId, ct))
+        {
+            throw PostErrors.PostNotFound();
+        }
+
         var message = new MessageEntity
         {
             ConversationId = conversationId,
             SenderId = senderId,
             Body = request.Body.Trim(),
+            SharedPostId = request.SharedPostId,
             CreatedAt = time.GetUtcNow().UtcDateTime,
         };
 
         // The message and the inbox order change together. The inbox time
         // only moves forward, in case a message sent a moment later commits
         // first.
-        await using (var transaction = await db.Database.BeginTransactionAsync(ct))
+        try
         {
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
             db.Messages.Add(message);
             await db.SaveChangesAsync(ct);
             await db.Conversations
@@ -155,8 +164,16 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
                 .ExecuteUpdateAsync(set => set.SetProperty(conversation => conversation.LastMessageAt, message.CreatedAt), ct);
             await transaction.CommitAsync(ct);
         }
+        catch (DbUpdateException ex) when (request.SharedPostId is not null && ex.IsForeignKeyViolation())
+        {
+            // The spark was deleted since the check above.
+            throw PostErrors.PostNotFound();
+        }
 
-        var response = MessageResponseOf(message);
+        var response = await db.Messages.AsNoTracking()
+            .Where(saved => saved.Id == message.Id)
+            .Select(ToMessageResponse)
+            .SingleAsync(ct);
         await hub.Clients.Members(senderId, recipientId).MessageReceived(response);
         return response;
     }
@@ -219,20 +236,35 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
                 conversation.UserAId == viewerId ? conversation.UserB.Username : conversation.UserA.Username,
                 conversation.UserAId == viewerId ? conversation.UserB.DisplayName : conversation.UserA.DisplayName,
                 FileUrls.Of(conversation.UserAId == viewerId ? conversation.UserB.AvatarKey : conversation.UserA.AvatarKey)),
-            conversation.Messages
+            conversation.Messages.AsQueryable()
                 .OrderByDescending(message => message.Id)
-                .Select(message => new MessageResponse(
-                    message.Id, message.ConversationId, message.SenderId, message.Body, message.CreatedAt, message.ReadAt))
+                .Select(ToMessageResponse)
                 .FirstOrDefault(),
             conversation.Messages.Count(message => message.SenderId != viewerId && message.ReadAt == null),
             conversation.LastMessageAt);
 
+    /// <summary>A message, with a preview of the spark it shares.</summary>
     private static readonly Expression<Func<MessageEntity, MessageResponse>> ToMessageResponse =
         message => new MessageResponse(
-            message.Id, message.ConversationId, message.SenderId, message.Body, message.CreatedAt, message.ReadAt);
-
-    /// <summary>The same mapping for a message already in memory, compiled once.</summary>
-    private static readonly Func<MessageEntity, MessageResponse> MessageResponseOf = ToMessageResponse.Compile();
+            message.Id,
+            message.ConversationId,
+            message.SenderId,
+            message.Body,
+            message.SharedPost == null
+                ? null
+                : new SharedSparkResponse(
+                    message.SharedPost.Id,
+                    message.SharedPost.Kind,
+                    message.SharedPost.Body.Substring(0, SharedSparkResponse.ExcerptLength),
+                    FileUrls.Of(message.SharedPost.ImageKey),
+                    new UserSummary(
+                        message.SharedPost.Author.Id,
+                        message.SharedPost.Author.Username,
+                        message.SharedPost.Author.DisplayName,
+                        FileUrls.Of(message.SharedPost.Author.AvatarKey)),
+                    message.SharedPost.CreatedAt),
+            message.CreatedAt,
+            message.ReadAt);
 
     private static ApiException ConversationNotFound() =>
         ApiException.NotFound("CONVERSATION_NOT_FOUND", "That conversation doesn't exist.");

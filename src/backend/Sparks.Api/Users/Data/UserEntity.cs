@@ -30,4 +30,11 @@ public class UserEntity : IHasId
     /// their posts after this moment count as unread.
     /// </summary>
     public DateTime? ActivityReadAt { get; set; }
+
+    /// <summary>
+    /// When the user's live connection last closed, or last opened while
+    /// they're online; null if they've never connected. Whether they're
+    /// online right now is kept in memory, not here.
+    /// </summary>
+    public DateTime? LastSeenAt { get; set; }
 }

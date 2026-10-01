@@ -9,6 +9,7 @@ using Sparks.Api.Auth.Services;
 using Sparks.Api.Common;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Security;
+using Sparks.Api.Presence;
 using Sparks.Api.Storage;
 using Testcontainers.MsSql;
 
@@ -80,6 +81,11 @@ public sealed class SparksApiFactory : WebApplicationFactory<Program>, IAsyncLif
         builder.UseSetting($"{RateLimitOptions.SectionName}:{nameof(RateLimitOptions.PassivePerMinute)}", "10000");
         builder.UseSetting($"{RateLimitOptions.SectionName}:{nameof(RateLimitOptions.UploadsPerHour)}", "10000");
         builder.UseSetting($"{RateLimitOptions.SectionName}:{nameof(RateLimitOptions.AiPerHour)}", "10000");
+
+        // Members go offline within half a second of their last tab closing,
+        // so tests of it don't wait for the real grace period.
+        builder.UseSetting($"{PresenceOptions.SectionName}:{nameof(PresenceOptions.OfflineAfter)}", "00:00:00.3");
+        builder.UseSetting($"{PresenceOptions.SectionName}:{nameof(PresenceOptions.SweepEvery)}", "00:00:00.1");
     }
 
     public override async ValueTask DisposeAsync()
