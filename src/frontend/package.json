@@ -6,9 +6,9 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "next dev -p 3100",
+    "dev": "next dev -p 3100 -H localhost",
     "build": "next build",
-    "start": "next start -p 3100",
+    "start": "next start -p 3100 -H localhost",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
