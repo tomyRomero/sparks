@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import { Agbalumo, Bricolage_Grotesque, Courier_Prime, Instrument_Sans, JetBrains_Mono } from "next/font/google";
+import { siteUrl } from "@/lib/api/config";
 import { THEME_COOKIE, toTheme } from "@/lib/preferences";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -19,8 +20,12 @@ const courierPrime = Courier_Prime({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: { default: "Sparks", template: "%s · Sparks" },
   description: "Share short creative sparks, write them with AI, and talk them over.",
+  openGraph: { siteName: "Sparks", type: "website" },
+  // The preview images are wide, so X shows them large.
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
