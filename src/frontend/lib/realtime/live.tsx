@@ -5,11 +5,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Avatar } from "@/components/ui/avatar";
+import { activityHref, activityVerbs, withoutTitleLabel } from "@/lib/activity";
 import { api, refreshSession } from "@/lib/api/client";
-import type { Conversation, Message, MessagesReadEvent, Presence, TypingEvent } from "@/lib/api/types";
+import type { ActivityNotice, Conversation, Message, MessagesReadEvent, Presence, TypingEvent } from "@/lib/api/types";
 import { queryKeys } from "@/lib/queries/keys";
 import { addCachedMessage, markCachedMessagesRead, messagePreview } from "@/lib/queries/messages";
 import { applyPresence } from "@/lib/queries/presence";
+import { excerpt } from "@/lib/text";
 
 /** The events the API pushes (IRealtimeClient.cs), by name. */
 type LiveEvents = {
@@ -17,6 +20,7 @@ type LiveEvents = {
   MessagesRead: MessagesReadEvent;
   Typing: TypingEvent;
   PresenceChanged: Presence;
+  ActivityReceived: ActivityNotice;
 };
 type LiveEvent = keyof LiveEvents;
 type Handler<E extends LiveEvent> = (payload: LiveEvents[E]) => void;
@@ -71,6 +75,8 @@ export function LiveProvider({ viewerId, children }: { viewerId: number; childre
 
     // Anything could have happened while the connection was down.
     const catchUp = () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.unreadActivity });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.activity });
       void queryClient.invalidateQueries({ queryKey: queryKeys.unreadMessages });
       void queryClient.invalidateQueries({ queryKey: queryKeys.inbox });
       void queryClient.invalidateQueries({ queryKey: ["messages"] });
@@ -110,6 +116,22 @@ export function LiveProvider({ viewerId, children }: { viewerId: number; childre
     hub.on("PresenceChanged", (presence: Presence) => {
       applyPresence(queryClient, presence);
       dispatch("PresenceChanged", presence);
+    });
+    hub.on("ActivityReceived", (notice: ActivityNotice) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.unreadActivity });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.activity });
+      // The activity page shows it arriving; anywhere else gets a toast.
+      // One per spark or comment, so a burst of likes updates one toast.
+      if (here.current.pathname !== "/activity") {
+        const href = activityHref(notice);
+        toast(`${notice.actor.displayName} ${activityVerbs[notice.kind]}`, {
+          id: `activity:${href}`,
+          description: excerpt(withoutTitleLabel(notice.excerpt), 80),
+          icon: <Avatar name={notice.actor.displayName} src={notice.actor.avatarUrl} size={24} />,
+          action: { label: "View", onClick: () => here.current.router.push(href) },
+        });
+      }
+      dispatch("ActivityReceived", notice);
     });
 
     let stopped = false;

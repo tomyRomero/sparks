@@ -34,6 +34,7 @@ export const queryKeys = {
   presenceAround: ["presence", "around"] as const,
 
   activity: ["activity"] as const,
+  activityList: (filter: string | undefined) => ["activity", filter ?? "all"] as const,
   inbox: ["inbox"] as const,
   /** The latest few conversations, one page, for "send to"; refreshed with the inbox. */
   recentConversations: ["inbox", "recent"] as const,

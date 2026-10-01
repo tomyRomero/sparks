@@ -79,14 +79,30 @@ export type Profile = {
 
 export type ActivityKind = "postLike" | "commentLike" | "comment" | "reply";
 
+/** Something others did to the member's sparks or comments; likes on one thing come as one item. */
 export type ActivityItem = {
   kind: ActivityKind;
+  /** When the latest of it happened. */
   at: string;
-  actor: UserSummary;
+  /** Who did it, latest first, up to three. */
+  actors: UserSummary[];
+  /** How many did it: one for a comment or reply, every liker for a like. */
+  count: number;
   postId: number;
   commentId: number | null;
   excerpt: string;
   unread: boolean;
+};
+
+export type ActivityFilter = "likes" | "comments" | "replies";
+
+/** Pushed live (ActivityReceived) when someone likes or answers the member's spark or comment. */
+export type ActivityNotice = {
+  kind: ActivityKind;
+  actor: UserSummary;
+  postId: number;
+  commentId: number | null;
+  excerpt: string;
 };
 
 export type Message = {
