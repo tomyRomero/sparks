@@ -8,7 +8,10 @@ import { useSignOut } from "@/lib/auth/use-sign-out";
 export function SignOutSection() {
   const { signingOut, signOut } = useSignOut();
   return (
-    <section aria-labelledby="account-heading" className="grid gap-3 border-t border-line px-4 py-6 sm:px-6">
+    <section
+      aria-labelledby="account-heading"
+      className="mt-4 grid gap-3 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-6"
+    >
       <h2 id="account-heading" className="font-display text-lg font-semibold">
         Account
       </h2>

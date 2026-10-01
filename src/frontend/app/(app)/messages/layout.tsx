@@ -1,0 +1,41 @@
+import { Suspense } from "react";
+import { Inbox } from "@/components/messages/inbox";
+import { Messenger } from "@/components/messages/messenger";
+import { InboxSkeleton } from "@/components/messages/message-skeletons";
+import { Sidebar } from "@/components/shell/sidebar";
+import { serverGet } from "@/lib/api/server";
+import type { Conversation, CurrentUser, OpaquePage } from "@/lib/api/types";
+import { getViewer } from "@/lib/auth/viewer";
+
+/**
+ * The messenger: the navigation narrowed to icons, then the inbox and the
+ * open conversation side by side. The inbox stays put while conversations
+ * change, and streams in so opening Messages never waits for it.
+ */
+export default async function MessagesLayout({ children }: { children: React.ReactNode }) {
+  // The pages send guests to sign in, each with its own way back.
+  const viewer = await getViewer();
+  return (
+    <div className="flex h-dvh">
+      <Sidebar viewer={viewer} compact />
+      {viewer ? (
+        <Messenger
+          inbox={
+            <Suspense fallback={<InboxSkeleton />}>
+              <InboxPane viewer={viewer} />
+            </Suspense>
+          }
+        >
+          {children}
+        </Messenger>
+      ) : (
+        children
+      )}
+    </div>
+  );
+}
+
+async function InboxPane({ viewer }: { viewer: CurrentUser }) {
+  const first = await serverGet<OpaquePage<Conversation>>("/api/v1/conversations");
+  return <Inbox initial={first} viewerId={viewer.id} />;
+}

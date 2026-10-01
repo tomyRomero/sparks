@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Agbalumo, Bricolage_Grotesque, Instrument_Sans, JetBrains_Mono } from "next/font/google";
+import { Agbalumo, Bricolage_Grotesque, Courier_Prime, Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -8,6 +8,13 @@ const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-br
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono" });
 // The wordmark only; not a variable font, so its one weight is named.
 const agbalumo = Agbalumo({ subsets: ["latin"], weight: "400", variable: "--font-agbalumo" });
+// Movie scripts only, so it isn't preloaded on every page.
+const courierPrime = Courier_Prime({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-courier-prime",
+  preload: false,
+});
 
 export const metadata: Metadata = {
   title: { default: "Sparks", template: "%s · Sparks" },
@@ -16,8 +23,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f7fc" },
-    { media: "(prefers-color-scheme: dark)", color: "#080d17" },
+    { media: "(prefers-color-scheme: light)", color: "#f2f5fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#070c16" },
   ],
 };
 
@@ -25,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
-      className={`${instrumentSans.variable} ${bricolage.variable} ${jetbrainsMono.variable} ${agbalumo.variable}`}
+      className={`${instrumentSans.variable} ${bricolage.variable} ${jetbrainsMono.variable} ${agbalumo.variable} ${courierPrime.variable}`}
     >
       <body>
         <Providers>{children}</Providers>

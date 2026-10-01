@@ -8,13 +8,15 @@ export type NavItem = {
   badge?: "activity" | "messages";
   /** Shown to signed-in members only. */
   membersOnly?: boolean;
+  /** The sidebar shows it as its main button rather than in the list. */
+  action?: boolean;
 };
 
 export function navItems(username: string | null): NavItem[] {
   const items: NavItem[] = [
     { href: "/", label: "Home", icon: House },
     { href: "/search", label: "Search", icon: Search },
-    { href: "/create", label: "Create", icon: SquarePen, membersOnly: true },
+    { href: "/create", label: "New spark", icon: SquarePen, membersOnly: true, action: true },
     { href: "/activity", label: "Activity", icon: Bell, badge: "activity", membersOnly: true },
     { href: "/messages", label: "Messages", icon: MessageCircle, badge: "messages", membersOnly: true },
     ...(username ? [{ href: `/u/${username}`, label: "Profile", icon: UserRound, membersOnly: true }] : []),

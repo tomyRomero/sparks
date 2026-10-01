@@ -1,10 +1,12 @@
 import { MobileNav } from "@/components/shell/mobile-nav";
-import { RightRail } from "@/components/shell/right-rail";
-import { Sidebar } from "@/components/shell/sidebar";
 import { getViewer } from "@/lib/auth/viewer";
 import { LiveProvider } from "@/lib/realtime/live";
 
-/** Every page after sign-in (and the public ones guests can read). */
+/**
+ * Every page after sign-in (and the public ones guests can read). The
+ * frame around each page comes from its group: (main) for most, the
+ * messenger's own for messages.
+ */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const viewer = await getViewer();
   const page = (
@@ -15,13 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       >
         Skip to content
       </a>
-      <div className="mx-auto flex min-h-dvh max-w-[1240px]">
-        <Sidebar viewer={viewer} />
-        <main id="main" className="min-w-0 flex-1 border-line pb-20 md:border-x md:pb-0">
-          {children}
-        </main>
-        <RightRail viewer={viewer} />
-      </div>
+      {children}
       <MobileNav viewer={viewer} />
     </>
   );

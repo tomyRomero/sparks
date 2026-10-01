@@ -9,20 +9,29 @@ import type { CurrentUser } from "@/lib/api/types";
 import { useSignOut } from "@/lib/auth/use-sign-out";
 import { cn } from "@/lib/utils";
 
-/** The signed-in member, with their profile, settings and sign-out. */
-export function ViewerMenu({ viewer }: { viewer: CurrentUser }) {
+/** The signed-in member, with their profile, settings and sign-out. Compact shows the picture alone. */
+export function ViewerMenu({ viewer, compact = false }: { viewer: CurrentUser; compact?: boolean }) {
   const { signingOut, signOut } = useSignOut();
 
   return (
     <Menu.Root>
-      <Menu.Trigger className="flex w-full items-center gap-3 rounded-md p-2 text-left hover:bg-raised">
-        <Avatar name={viewer.displayName} src={viewer.avatarUrl} size={36} />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold">{viewer.displayName}</span>
-          <span className="block truncate label-mono">@{viewer.username}</span>
-        </span>
-        <Ellipsis className="size-4 text-muted" aria-hidden />
-      </Menu.Trigger>
+      {compact ? (
+        <Menu.Trigger
+          aria-label={`${viewer.displayName}: account menu`}
+          className="rounded-full p-1 hover:bg-raised data-[state=open]:bg-raised"
+        >
+          <Avatar name={viewer.displayName} src={viewer.avatarUrl} size={40} />
+        </Menu.Trigger>
+      ) : (
+        <Menu.Trigger className="flex w-full items-center gap-3 rounded-[14px] p-2.5 text-left hover:bg-raised data-[state=open]:bg-raised">
+          <Avatar name={viewer.displayName} src={viewer.avatarUrl} size={40} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[15px] font-semibold">{viewer.displayName}</span>
+            <span className="block truncate label-mono">@{viewer.username}</span>
+          </span>
+          <Ellipsis className="size-4 text-muted" aria-hidden />
+        </Menu.Trigger>
+      )}
       <Menu.Portal>
         <Menu.Content side="top" align="start" sideOffset={8} className={cn(menuContentStyle, "min-w-52")}>
           <Menu.Item asChild className={menuItemStyle}>

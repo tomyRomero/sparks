@@ -7,7 +7,7 @@ import Form from "next/form";
  */
 export function SearchForm({ q, tab }: { q: string; tab: "sparks" | "members" }) {
   return (
-    <Form action="/search" role="search" className="border-b border-line px-4 py-4 sm:px-6">
+    <Form action="/search" role="search" className="mb-4">
       <div className="relative">
         <Search
           className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted"
@@ -22,7 +22,7 @@ export function SearchForm({ q, tab }: { q: string; tab: "sparks" | "members" })
           maxLength={100}
           placeholder="Search sparks and members"
           aria-label="Search sparks and members"
-          className="h-11 w-full rounded-full border border-line bg-surface pr-4 pl-11 text-ink placeholder:text-muted focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/25 focus-visible:outline-none"
+          className="h-12 w-full rounded-[14px] border border-line bg-surface pr-4 pl-11 text-[15px] text-ink shadow-card placeholder:text-muted focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/25 focus-visible:outline-none"
         />
       </div>
       {tab === "members" && <input type="hidden" name="type" value="members" />}

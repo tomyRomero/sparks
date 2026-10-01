@@ -11,9 +11,17 @@ export function Skeleton({ className }: { className?: string }) {
  * Each route's loading.tsx renders one, so a click shows the next page's
  * shape straight away instead of freezing on the old one.
  */
-export function PageSkeleton({ label, children }: { label: string; children: React.ReactNode }) {
+export function PageSkeleton({
+  label,
+  className,
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div aria-busy="true">
+    <div aria-busy="true" className={className}>
       <div aria-hidden className="fixed inset-x-0 top-0 z-50 h-0.5 overflow-hidden">
         <div className="h-full w-1/3 animate-progress bg-brand shadow-[0_0_8px_var(--charge-bright)]" />
       </div>

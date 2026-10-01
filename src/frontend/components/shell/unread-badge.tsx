@@ -1,16 +1,24 @@
 import { cn } from "@/lib/utils";
 
-/** A count on a nav icon; hidden at zero, capped at 99+. */
-export function UnreadBadge({ count, className }: { count: number | undefined; className?: string }) {
+type UnreadBadgeProps = {
+  count: number | undefined;
+  /** Adds " unread" for screen readers, where the badge is part of a link's name. */
+  spoken?: boolean;
+  className?: string;
+};
+
+/** A count on a nav item; hidden at zero, capped at 99+. */
+export function UnreadBadge({ count, spoken = false, className }: UnreadBadgeProps) {
   if (!count) return null;
   return (
     <span
       className={cn(
-        "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand px-1 font-mono text-[10px] font-semibold text-brand-ink",
+        "inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand px-1.5 font-mono text-[10px] font-semibold text-brand-ink",
         className,
       )}
     >
       {count > 99 ? "99+" : count}
+      {spoken && <span className="sr-only"> unread</span>}
     </span>
   );
 }

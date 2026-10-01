@@ -29,15 +29,15 @@ export function KindFilter({ active }: { active: SparkKind | undefined }) {
   }, [active]);
 
   const chip =
-    "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm transition-colors";
+    "inline-flex h-[34px] items-center gap-1.5 whitespace-nowrap rounded-full border px-[13px] text-[13.5px] font-medium transition-colors";
   const idle = "border-line bg-surface text-ink-soft hover:border-line-strong hover:text-ink";
-  const current = "border-brand bg-brand text-brand-ink";
+  const current = "border-ink bg-ink text-canvas";
   return (
-    <nav aria-label="Filter by kind" className="border-b border-line">
+    <nav aria-label="Filter by kind" className="-mx-3 mb-4 sm:-mx-4 md:mx-0">
       {/* One scrolling row; the faded edges say there are more kinds. */}
       <ul
         ref={list}
-        className="relative flex [scrollbar-width:none] gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_1rem,black_calc(100%-3rem),transparent)] py-3 ps-4 pe-12 sm:ps-6"
+        className="relative flex [scrollbar-width:none] gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,transparent,black_0.75rem,black_calc(100%-3rem),transparent)] py-0.5 ps-3 pe-12 sm:ps-4 md:ps-0.5"
       >
         <li className="shrink-0">
           <Link href="/" className={cn(chip, active ? idle : current)} aria-current={active ? undefined : "page"}>

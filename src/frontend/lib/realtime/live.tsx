@@ -6,16 +6,17 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api, refreshSession } from "@/lib/api/client";
-import type { Conversation, Message, MessagesReadEvent, TypingEvent } from "@/lib/api/types";
+import type { Conversation, Message, MessagesReadEvent, Presence, TypingEvent } from "@/lib/api/types";
 import { queryKeys } from "@/lib/queries/keys";
-import { addCachedMessage, markCachedMessagesRead } from "@/lib/queries/messages";
-import { excerpt } from "@/lib/text";
+import { addCachedMessage, markCachedMessagesRead, messagePreview } from "@/lib/queries/messages";
+import { applyPresence } from "@/lib/queries/presence";
 
 /** The events the API pushes (IRealtimeClient.cs), by name. */
 type LiveEvents = {
   MessageReceived: Message;
   MessagesRead: MessagesReadEvent;
   Typing: TypingEvent;
+  PresenceChanged: Presence;
 };
 type LiveEvent = keyof LiveEvents;
 type Handler<E extends LiveEvent> = (payload: LiveEvents[E]) => void;
@@ -77,6 +78,7 @@ export function LiveProvider({ viewerId, children }: { viewerId: number; childre
       void queryClient.invalidateQueries({ queryKey: queryKeys.unreadMessages });
       void queryClient.invalidateQueries({ queryKey: queryKeys.inbox });
       void queryClient.invalidateQueries({ queryKey: ["messages"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.presence });
     };
 
     /** A toast for a message that arrives while its conversation isn't open. */
@@ -91,7 +93,7 @@ export function LiveProvider({ viewerId, children }: { viewerId: number; childre
         })
         .catch(() => null);
       toast(conversation?.with.displayName ?? "New message", {
-        description: excerpt(message.body, 80),
+        description: messagePreview(message, 80),
         action: { label: "Open", onClick: () => here.current.router.push(path) },
       });
     };
@@ -110,6 +112,10 @@ export function LiveProvider({ viewerId, children }: { viewerId: number; childre
       dispatch("MessagesRead", read);
     });
     hub.on("Typing", (typing: TypingEvent) => dispatch("Typing", typing));
+    hub.on("PresenceChanged", (presence: Presence) => {
+      applyPresence(queryClient, presence);
+      dispatch("PresenceChanged", presence);
+    });
 
     let stopped = false;
     let attempt = 0;

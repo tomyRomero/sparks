@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { PenLine, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CharacterCount } from "@/components/ui/character-count";
@@ -21,10 +21,24 @@ import { PictureField } from "./picture-field";
 /** The kind AI drafting starts on when none was asked for. */
 const FIRST_AI_KIND = kinds.find((info) => info.kind !== "regular")!.kind;
 
+/**
+ * How to write a kind by hand so it's laid out like an AI draft of it (see
+ * splitSpark): a title line for the long kinds, a held-back punchline for jokes.
+ */
+const formatHints: Partial<Record<SparkKind, string>> = {
+  movieScript: "Start with “Title: …” on its own line, and the title goes over the poster.",
+  bookPlot: "Start with “Title: …” on its own line, and the title goes beside the cover.",
+  artwork: "Start with “Title: …” on its own line to name the piece.",
+  joke: "Put the punchline after a blank line, and readers tap to reveal it.",
+  haiku: "Three lines: five, seven and five syllables.",
+};
+
 type ComposerProps = {
   /** Open with the AI drafting panel, as the "Draft with AI" links do. */
   startWithAi: boolean;
   initialKind?: SparkKind;
+  /** An idea to draft from straight away, from the right rail's quick draft. */
+  initialIdea?: string;
 };
 
 /**
@@ -32,7 +46,7 @@ type ComposerProps = {
  * edits it. Visual kinds can have their picture painted too. A spark drafted
  * with AI carries the prompt it came from, so readers can see it.
  */
-export function Composer({ startWithAi, initialKind }: ComposerProps) {
+export function Composer({ startWithAi, initialKind, initialIdea }: ComposerProps) {
   const id = useId();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -40,7 +54,7 @@ export function Composer({ startWithAi, initialKind }: ComposerProps) {
   const [kind, setKind] = useState<SparkKind>(
     initialKind && !(startWithAi && initialKind === "regular") ? initialKind : startWithAi ? FIRST_AI_KIND : "regular",
   );
-  const [idea, setIdea] = useState("");
+  const [idea, setIdea] = useState(startWithAi ? (initialIdea ?? "") : "");
   const [draftedFrom, setDraftedFrom] = useState<string | null>(null);
   const [body, setBody] = useState("");
   const [imagePrompt, setImagePrompt] = useState("");
@@ -84,6 +98,16 @@ export function Composer({ startWithAi, initialKind }: ComposerProps) {
     });
   }
 
+  // An idea that came with the link is drafted once, as soon as the page opens.
+  const draftedOnOpen = useRef(false);
+  useEffect(() => {
+    if (draftedOnOpen.current || !startWithAi || !initialIdea?.trim()) return;
+    draftedOnOpen.current = true;
+    draft();
+    // Only on opening; later drafts come from the button.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function share(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const text = body.trim();
@@ -107,7 +131,7 @@ export function Composer({ startWithAi, initialKind }: ComposerProps) {
   const segment =
     "inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium text-ink-soft transition-colors has-focus-visible:ring-2 has-focus-visible:ring-brand/40";
   return (
-    <form onSubmit={share} className="grid gap-7 px-4 py-6 sm:px-6">
+    <form onSubmit={share} className="grid gap-7 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-6">
       <fieldset disabled={busy} className="flex">
         <legend className="sr-only">How to write it</legend>
         <div className="inline-flex rounded-full border border-line bg-surface p-1">
@@ -201,8 +225,16 @@ export function Composer({ startWithAi, initialKind }: ComposerProps) {
           aria-busy={drafting}
           disabled={busy}
           aria-invalid={shareError ? true : undefined}
-          aria-describedby={shareError ? `${id}-body-error` : undefined}
+          aria-describedby={
+            [shareError && `${id}-body-error`, formatHints[kind] && `${id}-body-hint`].filter(Boolean).join(" ") ||
+            undefined
+          }
         />
+        {formatHints[kind] && (
+          <p id={`${id}-body-hint`} className="text-xs text-muted">
+            {formatHints[kind]}
+          </p>
+        )}
         {shareError && (
           <p id={`${id}-body-error`} role="alert" className="text-sm text-danger">
             {shareError}

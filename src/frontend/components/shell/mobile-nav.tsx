@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { isActive, navItems } from "./nav-items";
 import { UnreadBadge } from "./unread-badge";
 
-/** The phone navigation: icons along the bottom edge. */
+/** The phone navigation: icons along the bottom edge. A conversation has the whole screen. */
 export function MobileNav({ viewer }: { viewer: CurrentUser | null }) {
   const pathname = usePathname();
   const signedIn = viewer !== null;
@@ -17,6 +17,7 @@ export function MobileNav({ viewer }: { viewer: CurrentUser | null }) {
   const { data: unreadMessages } = useUnreadMessages(signedIn);
   const counts = { activity: unreadActivity, messages: unreadMessages };
 
+  if (/^\/messages\/[^/]+/.test(pathname)) return null;
   return (
     <nav
       aria-label="Main"
@@ -25,16 +26,17 @@ export function MobileNav({ viewer }: { viewer: CurrentUser | null }) {
       <ul className="flex justify-around">
         {navItems(viewer?.username ?? null).map((item) => {
           const active = isActive(item.href, pathname);
+          const count = item.badge ? counts[item.badge] : undefined;
           return (
             <li key={item.href}>
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                aria-label={item.label}
+                aria-label={count ? `${item.label}, ${count} unread` : item.label}
                 className={cn("relative flex size-14 items-center justify-center text-muted", active && "text-brand")}
               >
                 <PendingIcon icon={item.icon} className="size-6" />
-                {item.badge && <UnreadBadge count={counts[item.badge]} className="absolute top-2 right-2" />}
+                <UnreadBadge count={count} className="absolute top-2 right-1.5 border-2 border-surface" />
               </Link>
             </li>
           );

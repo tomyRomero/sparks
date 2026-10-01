@@ -25,7 +25,7 @@ export function Feed({ initial, path, queryKey, signedIn, empty }: FeedProps) {
   const firstPicture = posts.find((post) => post.imageUrl)?.id;
   return (
     <div>
-      <ul>
+      <ul className="flex flex-col gap-4">
         {posts.map((post) => (
           <li key={post.id}>
             <PostCard post={post} signedIn={signedIn} eagerImage={post.id === firstPicture} />

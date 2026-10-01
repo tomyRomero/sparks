@@ -68,7 +68,7 @@ export function ProfileForm({ profile: initial }: { profile: Profile }) {
     displayName.error ?? (values.displayName === displayName.value.trim() ? fieldErrors.displayName : undefined);
   const bioError = values.bio === bio.value.trim() ? fieldErrors.bio : undefined;
   return (
-    <div className="grid gap-8 px-4 py-6 sm:px-6">
+    <div className="grid gap-8 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-6">
       <AvatarField profile={profile} onChanged={changed} />
 
       <form

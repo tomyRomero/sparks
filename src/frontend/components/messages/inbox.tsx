@@ -1,17 +1,25 @@
 "use client";
 
+import { Search, SquarePen } from "lucide-react";
 import Link from "next/link";
+import { useSelectedLayoutSegment } from "next/navigation";
+import { useId, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
+import { Hint } from "@/components/ui/hint";
 import { ListFooter } from "@/components/ui/list-footer";
 import type { Conversation, OpaquePage } from "@/lib/api/types";
 import { queryKeys } from "@/lib/queries/keys";
+import { messagePreview } from "@/lib/queries/messages";
+import { usePresence } from "@/lib/queries/presence";
 import { usePagedList } from "@/lib/queries/use-paged-list";
 import { fullDate, timeAgo } from "@/lib/time";
 import { cn } from "@/lib/utils";
+import { NewMessageDialog } from "./new-message-dialog";
 
 /**
- * The member's conversations, latest message first. New messages reorder it
- * live: the live connection refreshes this list whenever one arrives.
+ * The member's conversations, latest message first, beside the open chat on
+ * wide screens. New messages reorder it live: the live connection refreshes
+ * this list whenever one arrives.
  */
 export function Inbox({ initial, viewerId }: { initial: OpaquePage<Conversation>; viewerId: number }) {
   const { query, items: conversations } = usePagedList<Conversation, string>(
@@ -19,69 +27,146 @@ export function Inbox({ initial, viewerId }: { initial: OpaquePage<Conversation>
     queryKeys.inbox,
     initial,
   );
-  if (conversations.length === 0) {
-    return (
-      <div className="px-6 py-16 text-center">
-        <p className="font-display text-lg font-semibold">No messages yet</p>
-        <p className="mt-1 text-muted">Start a conversation from anyone&apos;s profile.</p>
-      </div>
-    );
-  }
+  const presence = usePresence(conversations.map((conversation) => conversation.with.id));
+  const openId = useSelectedLayoutSegment();
+  const [composing, setComposing] = useState(false);
+  const [filter, setFilter] = useState("");
+  const filterId = useId();
+
+  const needle = filter.trim().toLowerCase();
+  const shown = needle
+    ? conversations.filter(
+        ({ with: other }) =>
+          other.displayName.toLowerCase().includes(needle) || other.username.toLowerCase().includes(needle),
+      )
+    : conversations;
 
   return (
-    <div>
-      <ul>
-        {conversations.map((conversation) => {
-          const last = conversation.lastMessage;
-          const unread = conversation.unreadCount > 0;
-          return (
-            <li key={conversation.id}>
-              <Link
-                href={`/messages/${conversation.id}`}
-                className="flex items-center gap-3 border-b border-line px-4 py-4 transition-colors hover:bg-surface/60 sm:px-6"
-              >
-                <Avatar name={conversation.with.displayName} src={conversation.with.avatarUrl} size={48} />
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-baseline gap-2">
-                    <span className={cn("truncate", unread ? "font-bold" : "font-semibold")}>
-                      {conversation.with.displayName}
-                    </span>
-                    <span className="label-mono">@{conversation.with.username}</span>
-                    <time
-                      dateTime={conversation.lastMessageAt}
-                      title={fullDate(conversation.lastMessageAt)}
-                      className="ml-auto shrink-0 label-mono"
-                      suppressHydrationWarning
-                    >
-                      {timeAgo(conversation.lastMessageAt)}
-                    </time>
-                  </span>
-                  <span className="mt-0.5 flex items-center gap-2">
-                    <span className={cn("truncate text-sm", unread ? "text-ink" : "text-muted")}>
-                      {last && last.senderId === viewerId && "You: "}
-                      {last?.body}
-                    </span>
-                    {unread && (
-                      <span className="ml-auto inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-brand px-1.5 font-mono text-[10px] font-semibold text-brand-ink">
-                        {conversation.unreadCount}
-                        <span className="sr-only"> unread</span>
-                      </span>
+    <section aria-labelledby="inbox-title" className="flex min-h-0 flex-1 flex-col">
+      <header className="flex items-center justify-between gap-3 px-5 pt-5 pb-3.5">
+        <h1 id="inbox-title" className="font-display text-[26px] font-bold tracking-tight">
+          Messages
+        </h1>
+        <Hint label="New message" side="bottom">
+          <button
+            type="button"
+            onClick={() => setComposing(true)}
+            aria-label="New message"
+            className="inline-flex size-10 items-center justify-center rounded-xl text-ink-soft transition-colors hover:bg-raised hover:text-ink"
+          >
+            <SquarePen className="size-5" aria-hidden />
+          </button>
+        </Hint>
+      </header>
+
+      {conversations.length > 0 && (
+        <div className="relative px-4 pb-3">
+          <label htmlFor={filterId} className="sr-only">
+            Search conversations
+          </label>
+          <Search
+            className="pointer-events-none absolute top-[21px] left-8 size-4 -translate-y-1/2 text-muted"
+            aria-hidden
+          />
+          <input
+            id={filterId}
+            type="search"
+            value={filter}
+            onChange={(event) => setFilter(event.target.value)}
+            placeholder="Search conversations"
+            autoComplete="off"
+            className="h-[42px] w-full rounded-xl border border-line bg-canvas ps-10 pe-3.5 text-sm placeholder:text-muted focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/25 focus-visible:outline-none"
+          />
+        </div>
+      )}
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-24 md:pb-4">
+        {conversations.length === 0 ? (
+          <div className="px-6 py-16 text-center">
+            <p className="font-display text-lg font-semibold">No messages yet</p>
+            <p className="mt-1 text-muted">Start a conversation with anyone on Sparks.</p>
+            <button
+              type="button"
+              onClick={() => setComposing(true)}
+              className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-ink hover:bg-brand-hover"
+            >
+              <SquarePen className="size-4" aria-hidden /> New message
+            </button>
+          </div>
+        ) : shown.length === 0 ? (
+          <p className="px-6 py-10 text-center text-sm text-muted">No conversation with “{filter.trim()}”.</p>
+        ) : (
+          <ul className="flex flex-col gap-0.5">
+            {shown.map((conversation) => {
+              const { with: other, lastMessage: last } = conversation;
+              const unread = conversation.unreadCount > 0;
+              const online = presence?.get(other.id)?.online ?? false;
+              const open = openId === String(conversation.id);
+              return (
+                <li key={conversation.id}>
+                  <Link
+                    href={`/messages/${conversation.id}`}
+                    aria-current={open ? "page" : undefined}
+                    className={cn(
+                      "flex items-center gap-3 rounded-[14px] px-3.5 py-3 transition-colors hover:bg-raised",
+                      open && "bg-brand-soft hover:bg-brand-soft",
                     )}
-                  </span>
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-      <ListFooter
-        hasNextPage={query.hasNextPage}
-        isFetchingNextPage={query.isFetchingNextPage}
-        failed={query.isFetchNextPageError}
-        error={query.error}
-        fetchNextPage={query.fetchNextPage}
-        loadingLabel="Loading earlier conversations"
-      />
-    </div>
+                  >
+                    <Avatar name={other.displayName} src={other.avatarUrl} size={48} online={online} />
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="flex items-baseline gap-2">
+                        <span
+                          className={cn("min-w-0 flex-1 truncate text-[15px]", unread ? "font-bold" : "font-semibold")}
+                        >
+                          {other.displayName}
+                          {online && <span className="sr-only">, online</span>}
+                        </span>
+                        <time
+                          dateTime={conversation.lastMessageAt}
+                          title={fullDate(conversation.lastMessageAt)}
+                          className={cn("shrink-0 label-mono", unread && "font-semibold text-brand")}
+                          suppressHydrationWarning
+                        >
+                          {timeAgo(conversation.lastMessageAt)}
+                        </time>
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "min-w-0 flex-1 truncate text-[13.5px]",
+                            unread ? "font-semibold text-ink" : "text-ink-soft",
+                          )}
+                        >
+                          {last && last.senderId === viewerId && "You: "}
+                          {last && messagePreview(last, 80)}
+                        </span>
+                        {unread && (
+                          <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-brand px-1.5 font-mono text-[10.5px] font-semibold text-brand-ink">
+                            {conversation.unreadCount}
+                            <span className="sr-only"> unread</span>
+                          </span>
+                        )}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {!needle && (
+          <ListFooter
+            hasNextPage={query.hasNextPage}
+            isFetchingNextPage={query.isFetchingNextPage}
+            failed={query.isFetchNextPageError}
+            error={query.error}
+            fetchNextPage={query.fetchNextPage}
+            loadingLabel="Loading earlier conversations"
+          />
+        )}
+      </div>
+
+      <NewMessageDialog open={composing} onOpenChange={setComposing} />
+    </section>
   );
 }

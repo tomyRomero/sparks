@@ -1,6 +1,20 @@
 import type { InfiniteData, QueryClient } from "@tanstack/react-query";
 import type { CursorPage, Message, MessagesReadEvent } from "@/lib/api/types";
+import { sparkPreview } from "@/lib/spark-text";
+import { excerpt } from "@/lib/text";
 import { queryKeys } from "./keys";
+
+/**
+ * A message on one line, for the inbox and toasts. A shared spark shows as
+ * its title or opening; one that was deleted since says so.
+ */
+export function messagePreview(message: Pick<Message, "body" | "sharedPost">, max: number): string {
+  if (message.body) return excerpt(message.body, max);
+  if (message.sharedPost) {
+    return excerpt(`Shared a spark: ${sparkPreview(message.sharedPost.kind, message.sharedPost.body, max)}`, max);
+  }
+  return "Shared a spark that's since been deleted";
+}
 
 /** A conversation's messages as cached: pages newest first, each page newest first. */
 type MessagePages = InfiniteData<CursorPage<Message>>;

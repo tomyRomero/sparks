@@ -32,8 +32,12 @@ export function CommentSection({ postId, initial, viewer }: CommentSectionProps)
   }
 
   return (
-    <section id="comments" aria-labelledby="comments-heading" className="scroll-mt-14">
-      <h2 id="comments-heading" className="sr-only">
+    <section
+      id="comments"
+      aria-labelledby="comments-heading"
+      className="mt-4 scroll-mt-20 overflow-hidden rounded-[18px] border border-line bg-surface shadow-card"
+    >
+      <h2 id="comments-heading" className="px-4 pt-4 font-display text-lg font-semibold sm:px-6">
         Comments
       </h2>
       <div className="flex gap-3 border-b border-line px-4 py-4 sm:px-6">
@@ -58,19 +62,21 @@ export function CommentSection({ postId, initial, viewer }: CommentSectionProps)
           </div>
         )}
       </div>
-      <CommentList
-        path={`/posts/${postId}/comments`}
-        queryKey={queryKeys.thread(postId)}
-        initial={initial}
-        viewer={viewer}
-        depth={0}
-        empty={
-          <div className="px-6 py-12 text-center">
-            <p className="font-display text-lg font-semibold">No comments yet</p>
-            <p className="mt-1 text-muted">Say what it made you think of.</p>
-          </div>
-        }
-      />
+      <div className="-mb-px">
+        <CommentList
+          path={`/posts/${postId}/comments`}
+          queryKey={queryKeys.thread(postId)}
+          initial={initial}
+          viewer={viewer}
+          depth={0}
+          empty={
+            <div className="px-6 py-12 text-center">
+              <p className="font-display text-lg font-semibold">No comments yet</p>
+              <p className="mt-1 text-muted">Say what it made you think of.</p>
+            </div>
+          }
+        />
+      </div>
     </section>
   );
 }

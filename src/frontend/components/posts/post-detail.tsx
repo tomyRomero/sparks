@@ -1,8 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, Zap } from "lucide-react";
-import Image from "next/image";
+import { Zap } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -17,9 +16,9 @@ import { forgetPostLists, updateCachedPost } from "@/lib/queries/cache";
 import { queryKeys } from "@/lib/queries/keys";
 import { fullDate } from "@/lib/time";
 import { ItemMenu } from "./item-menu";
-import { KindLabel } from "./kind-label";
-import { LikeButton } from "./like-button";
-import { PostBody } from "./post-body";
+import { AiChip, KindChip } from "./kind-label";
+import { PostActions } from "./post-actions";
+import { SparkContent } from "./spark-content";
 import { TextForm } from "./text-form";
 
 /**
@@ -58,60 +57,41 @@ export function PostDetail({ initial, viewer }: { initial: Post; viewer: Current
   }
 
   return (
-    <article className="border-b border-line px-4 py-5 sm:px-6">
+    <article className="flex flex-col gap-4 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-6">
       <header className="flex items-center gap-3">
-        <Link href={`/u/${post.author.username}`} className="shrink-0" tabIndex={-1} aria-hidden>
+        <Link href={`/u/${post.author.username}`} className="shrink-0 rounded-full" tabIndex={-1} aria-hidden>
           <Avatar name={post.author.displayName} src={post.author.avatarUrl} size={48} />
         </Link>
         <div className="min-w-0 flex-1">
           <Link href={`/u/${post.author.username}`} className="block truncate font-semibold hover:underline">
             {post.author.displayName}
           </Link>
-          <span className="label-mono">@{post.author.username}</span>
+          <span className="block truncate label-mono">@{post.author.username}</span>
         </div>
+        {post.aiPrompt && <AiChip />}
+        <KindChip kind={post.kind} />
         {mine && !editing && (
           <ItemMenu label="Spark options" onEdit={() => setEditing(true)} onDelete={() => setConfirmingDelete(true)} />
         )}
       </header>
 
-      <div className="mt-4">
-        <KindLabel kind={post.kind} aiPrompt={post.aiPrompt} />
-      </div>
-
-      <div className="mt-3">
-        {editing ? (
-          <TextForm
-            label="Edit your spark"
-            placeholder="Your spark"
-            maxLength={limits.postBodyMax}
-            submitLabel="Save"
-            initialValue={post.body}
-            focusOnOpen
-            onSubmit={save}
-            onCancel={() => setEditing(false)}
-          />
-        ) : (
-          <div className="text-lg">
-            <PostBody kind={post.kind} body={post.body} />
-          </div>
-        )}
-      </div>
-
-      {post.imageUrl && (
-        <div className="relative mt-4 aspect-[4/3] overflow-hidden rounded-lg border border-line bg-raised">
-          <Image
-            src={post.imageUrl}
-            alt=""
-            fill
-            loading="eager"
-            sizes="(min-width: 768px) 640px, 100vw"
-            className="object-cover"
-          />
-        </div>
+      {editing ? (
+        <TextForm
+          label="Edit your spark"
+          placeholder="Your spark"
+          maxLength={limits.postBodyMax}
+          submitLabel="Save"
+          initialValue={post.body}
+          focusOnOpen
+          onSubmit={save}
+          onCancel={() => setEditing(false)}
+        />
+      ) : (
+        <SparkContent post={post} variant="page" />
       )}
 
       {post.aiPrompt && (
-        <aside className="mt-4 rounded-md border border-charge/25 bg-charge-soft px-4 py-3">
+        <aside className="rounded-xl border border-charge/25 bg-charge-soft px-4 py-3">
           <p className="flex items-center gap-1.5 font-mono text-[11px] tracking-wide text-charge uppercase">
             <Zap className="size-3.5 fill-current" aria-hidden />
             Drafted with AI from
@@ -120,7 +100,7 @@ export function PostDetail({ initial, viewer }: { initial: Post; viewer: Current
         </aside>
       )}
 
-      <p className="mt-4 label-mono">
+      <p className="label-mono">
         <time dateTime={post.createdAt} suppressHydrationWarning>
           {fullDate(post.createdAt)}
         </time>
@@ -132,21 +112,8 @@ export function PostDetail({ initial, viewer }: { initial: Post; viewer: Current
         )}
       </p>
 
-      <footer className="mt-3 -ml-2 flex items-center gap-2 border-t border-line pt-3">
-        <LikeButton
-          target={{ kind: "post", id: post.id }}
-          liked={post.likedByMe}
-          count={post.likeCount}
-          signedIn={viewer !== null}
-        />
-        <a
-          href="#comments"
-          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-xs text-muted hover:bg-brand/10 hover:text-brand"
-        >
-          <MessageCircle className="size-4" aria-hidden />
-          {post.commentCount}
-          <span className="sr-only">{post.commentCount === 1 ? " comment" : " comments"}</span>
-        </a>
+      <footer className="border-t border-line pt-3">
+        <PostActions post={post} signedIn={viewer !== null} commentsHref="#comments" />
       </footer>
 
       <ConfirmDialog

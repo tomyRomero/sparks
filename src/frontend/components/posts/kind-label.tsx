@@ -1,25 +1,41 @@
 import { Zap } from "lucide-react";
 import type { SparkKind } from "@/lib/api/types";
 import { kindInfo } from "@/lib/kinds";
+import { cn } from "@/lib/utils";
 
-/** The kind of a spark as a mono label, with the bolt when AI drafted it. */
-export function KindLabel({ kind, aiPrompt }: { kind: SparkKind; aiPrompt: string | null }) {
+const chip =
+  "inline-flex h-[26px] shrink-0 items-center gap-1.5 rounded-full px-2.5 font-mono text-[11px] whitespace-nowrap";
+
+/** The kind of a spark as a small outlined chip. Phones show the icon alone. */
+export function KindChip({ kind }: { kind: SparkKind }) {
   const { label, icon: Icon } = kindInfo(kind);
   return (
-    <span className="inline-flex items-center gap-2">
-      <span className="inline-flex items-center gap-1 label-mono">
-        <Icon className="size-3.5" aria-hidden />
-        {label.toLowerCase()}
-      </span>
-      {aiPrompt && (
-        <span
-          className="inline-flex items-center gap-1 rounded-sm bg-charge-soft px-1.5 py-0.5 font-mono text-[10px] text-charge"
-          title={`Drafted with AI from: ${aiPrompt}`}
-        >
-          <Zap className="size-3 fill-current" aria-hidden />
-          ai draft
-        </span>
-      )}
+    <span className={cn(chip, "border border-line bg-surface text-muted max-sm:px-2")}>
+      <Icon className="size-3.5" aria-hidden />
+      <span className="max-sm:sr-only">{label}</span>
     </span>
+  );
+}
+
+/** Marks a spark drafted with AI, in the cyan reserved for AI. */
+export function AiChip() {
+  return (
+    <span className={cn(chip, "bg-charge-soft text-charge")}>
+      <Zap className="size-3 fill-current" aria-hidden />
+      <span className="max-sm:hidden">AI draft</span>
+      <span className="sm:hidden">AI</span>
+    </span>
+  );
+}
+
+/** The idea an AI draft was written from, in a quiet strip under the spark. */
+export function AiPrompt({ prompt }: { prompt: string }) {
+  return (
+    <p className="flex items-start gap-2 rounded-[10px] bg-raised px-3 py-2 font-mono text-xs leading-relaxed text-muted">
+      <Zap className="mt-0.5 size-3.5 shrink-0 fill-current text-charge" aria-hidden />
+      <span>
+        <span className="text-ink-soft">Prompt</span> {prompt}
+      </span>
+    </p>
   );
 }

@@ -7,44 +7,50 @@
  */
 :root {
   color-scheme: light;
-  --canvas: #f4f7fc;
+  --canvas: #f2f5fb;
   --surface: #ffffff;
-  --raised: #eef3fb;
-  --line: #dbe3ef;
-  --line-strong: #c3cfe0;
-  --ink: #0b1526;
-  --ink-soft: #334259;
-  --muted: #5d6d86;
+  --raised: #eaf0f9;
+  --line: #d9e2ef;
+  --line-strong: #bccadf;
+  --ink: #0a1424;
+  --ink-soft: #2f3e57;
+  --muted: #56667f;
   --brand: #0060d4;
   --brand-hover: #004fb0;
   --brand-ink: #ffffff;
-  --brand-soft: #e3eeff;
-  --charge: #0891b2;
+  --brand-soft: #e2edff;
+  --charge: #0a7894;
   --charge-bright: #22d3ee;
-  --charge-soft: #dff8fd;
-  --like: #e11d74;
+  --charge-soft: #dcf6fb;
+  --like: #d61a6c;
   --danger: #c62b3b;
   --danger-soft: #fdecee;
   --success: #0b7a53;
   --warn: #8a5a00;
+  --online: #12b76a;
   --focus: #0060d4;
+  /* The dark panel a movie script plays on, in either mode. */
+  --screen: #0b1224;
+  --screen-ink: #e8eef8;
+  --screen-muted: #8fa3c2;
+  --card-shadow: 0 1px 2px rgb(10 20 36 / 0.05), 0 10px 28px -16px rgb(10 20 36 / 0.18);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --canvas: #080d17;
-    --surface: #0f1624;
-    --raised: #151f31;
-    --line: #1f2b40;
-    --line-strong: #2c3b55;
+    --canvas: #070c16;
+    --surface: #0e1523;
+    --raised: #141d2f;
+    --line: #1e2a3f;
+    --line-strong: #2b3a54;
     --ink: #e8eef8;
     --ink-soft: #c2cde0;
-    --muted: #8595ae;
-    --brand: #3d8bff;
-    --brand-hover: #62a2ff;
+    --muted: #8a9ab2;
+    --brand: #4a92ff;
+    --brand-hover: #6ea8ff;
     --brand-ink: #04101f;
-    --brand-soft: #0f2442;
+    --brand-soft: #10264a;
     --charge: #22d3ee;
     --charge-bright: #67e8f9;
     --charge-soft: #0b2a33;
@@ -53,7 +59,12 @@
     --danger-soft: #2d1116;
     --success: #34d399;
     --warn: #f5c451;
-    --focus: #62a2ff;
+    --online: #34d399;
+    --focus: #6ea8ff;
+    --screen: #04070e;
+    --screen-ink: #e8eef8;
+    --screen-muted: #8fa3c2;
+    --card-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 28px -16px rgb(0 0 0 / 0.7);
   }
 }
 
@@ -78,11 +89,19 @@
   --color-danger-soft: var(--danger-soft);
   --color-success: var(--success);
   --color-warn: var(--warn);
+  --color-online: var(--online);
+  --color-screen: var(--screen);
+  --color-screen-ink: var(--screen-ink);
+  --color-screen-muted: var(--screen-muted);
+
+  --shadow-card: var(--card-shadow);
 
   --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-bricolage), var(--font-instrument-sans), ui-sans-serif, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
   --font-wordmark: var(--font-agbalumo), var(--font-bricolage), sans-serif;
+  /* A typewriter face for movie scripts. */
+  --font-script: var(--font-courier-prime), "Courier New", ui-monospace, monospace;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -90,6 +109,8 @@
 
   --animate-shimmer: shimmer 1.4s linear infinite;
   --animate-progress: progress 1.2s ease-in-out infinite;
+  --animate-pop: pop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  --animate-typing: typing 1.2s ease-in-out infinite;
 }
 
 @layer base {
@@ -150,6 +171,32 @@
   }
   to {
     transform: translateX(300%);
+  }
+}
+
+/* A joke's punchline arriving. */
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* The three dots while someone types. */
+@keyframes typing {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
   }
 }
 

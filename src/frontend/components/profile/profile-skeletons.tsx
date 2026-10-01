@@ -4,25 +4,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function ProfileHeaderSkeleton() {
   return (
     <>
-      <div className="px-4 pt-6 pb-4 sm:px-6">
-        <Skeleton className="size-[88px] rounded-full" />
-        <Skeleton className="mt-5 h-6 w-44" />
-        <Skeleton className="mt-2.5 h-3 w-24" />
-        <div className="mt-4 grid max-w-prose gap-2">
-          <Skeleton className="h-3.5 w-full" />
-          <Skeleton className="h-3.5 w-2/3" />
-        </div>
-        <Skeleton className="mt-4 h-3.5 w-36" />
-        <div className="mt-4 flex gap-5">
-          <Skeleton className="h-3.5 w-20" />
-          <Skeleton className="h-3.5 w-28" />
+      <div className="mb-4 overflow-hidden rounded-[18px] border border-line bg-surface pb-5 shadow-card">
+        <div className="h-24 bg-raised" />
+        <div className="px-5 sm:px-6">
+          <Skeleton className="-mt-11 size-[88px] rounded-full ring-4 ring-surface" />
+          <Skeleton className="mt-5 h-6 w-44" />
+          <Skeleton className="mt-2.5 h-3 w-24" />
+          <div className="mt-4 grid max-w-prose gap-2">
+            <Skeleton className="h-3.5 w-full" />
+            <Skeleton className="h-3.5 w-2/3" />
+          </div>
+          <Skeleton className="mt-4 h-3.5 w-36" />
+          <div className="mt-4 flex gap-5">
+            <Skeleton className="h-3.5 w-20" />
+            <Skeleton className="h-3.5 w-28" />
+          </div>
         </div>
       </div>
-      <div className="flex gap-2 border-b border-line px-6 py-4">
-        <Skeleton className="h-4 w-16" />
-        <Skeleton className="ml-6 h-4 w-20" />
-        <Skeleton className="ml-6 h-4 w-12" />
-      </div>
+      <Skeleton className="mb-4 h-11 w-64 rounded-xl" />
     </>
   );
 }
@@ -48,7 +47,7 @@ export function MemberListSkeleton({ count = 5 }: { count?: number }) {
 /** The profile settings form on its way: picture, then name and bio. */
 export function ProfileFormSkeleton() {
   return (
-    <div className="grid gap-8 px-4 py-6 sm:px-6">
+    <div className="grid gap-8 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-6">
       <div className="flex items-center gap-5">
         <Skeleton className="size-20 shrink-0 rounded-full" />
         <div className="grid gap-2">

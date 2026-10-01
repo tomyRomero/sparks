@@ -43,7 +43,12 @@ export type Post = {
   likeCount: number;
   commentCount: number;
   likedByMe: boolean;
+  /** The most-liked comment on the spark itself, for a preview in lists. */
+  topComment: CommentPreview | null;
 };
+
+/** The start of a comment, with who wrote it. */
+export type CommentPreview = { id: number; body: string; author: UserSummary };
 
 export type Comment = {
   id: number;
@@ -93,9 +98,22 @@ export type Message = {
   id: number;
   conversationId: number;
   senderId: number;
+  /** Empty when the message only shares a spark. */
   body: string;
+  /** The spark the message shares. An empty body with none means the spark was deleted. */
+  sharedPost: SharedSpark | null;
   createdAt: string;
   readAt: string | null;
+};
+
+/** A spark shared in a message: its opening, enough for a preview that links to it. */
+export type SharedSpark = {
+  id: number;
+  kind: SparkKind;
+  body: string;
+  imageUrl: string | null;
+  author: UserSummary;
+  createdAt: string;
 };
 
 /** Pushed live when the other participant reads the member's messages up to a point. */
@@ -108,6 +126,12 @@ export type MessagesReadEvent = {
 
 /** Pushed live while the other participant types. */
 export type TypingEvent = { conversationId: number; userId: number };
+
+/** Whether a member is online; also pushed live (PresenceChanged) when it changes. */
+export type Presence = { userId: number; online: boolean; lastSeenAt: string | null };
+
+/** GET /presence/around: members who are around, online first. */
+export type MemberPresence = { user: UserSummary; online: boolean; lastSeenAt: string | null };
 
 export type Conversation = {
   id: number;

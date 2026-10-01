@@ -1,12 +1,11 @@
-import { MessageCircle } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import type { Post } from "@/lib/api/types";
+import { kindInfo } from "@/lib/kinds";
 import { fullDate, timeAgo } from "@/lib/time";
-import { KindLabel } from "./kind-label";
-import { LikeButton } from "./like-button";
-import { PostBody } from "./post-body";
+import { AiChip, AiPrompt, KindChip } from "./kind-label";
+import { PostActions } from "./post-actions";
+import { SparkContent } from "./spark-content";
 
 type PostCardProps = {
   post: Post;
@@ -15,69 +14,54 @@ type PostCardProps = {
   eagerImage?: boolean;
 };
 
-/** A spark in a list: who, when, what kind, the spark itself, and its counts. */
+/** A spark in a list, as a card: who and when, the spark laid out for its kind, and what to do with it. */
 export function PostCard({ post, signedIn, eagerImage = false }: PostCardProps) {
   const href = `/p/${post.id}`;
+  const profile = `/u/${post.author.username}`;
   return (
-    <article className="relative border-b border-line px-4 py-5 transition-colors hover:bg-surface/60 sm:px-6">
-      <div className="flex gap-3">
-        <Link href={`/u/${post.author.username}`} className="shrink-0" tabIndex={-1} aria-hidden>
+    <article
+      aria-label={`${kindInfo(post.kind).label} by ${post.author.displayName}`}
+      className="flex flex-col gap-3.5 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-5"
+    >
+      <header className="flex items-center gap-3">
+        <Link href={profile} className="shrink-0 rounded-full" tabIndex={-1} aria-hidden>
           <Avatar name={post.author.displayName} src={post.author.avatarUrl} size={44} />
         </Link>
-        <div className="min-w-0 flex-1">
-          <header className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <Link href={`/u/${post.author.username}`} className="font-semibold hover:underline">
-              {post.author.displayName}
-            </Link>
-            <span className="label-mono">@{post.author.username}</span>
-            <Link href={href} className="label-mono hover:underline">
+        <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2">
+          <Link href={profile} className="truncate text-[15.5px] font-semibold hover:underline">
+            {post.author.displayName}
+          </Link>
+          <span className="truncate font-mono text-xs text-muted">
+            @{post.author.username} ·{" "}
+            <Link href={href} className="hover:underline">
               <time dateTime={post.createdAt} title={fullDate(post.createdAt)} suppressHydrationWarning>
                 {timeAgo(post.createdAt)}
               </time>
             </Link>
-          </header>
-          <div className="mt-1">
-            <KindLabel kind={post.kind} aiPrompt={post.aiPrompt} />
-          </div>
-          <Link href={href} className="mt-3 block">
-            <PostBody kind={post.kind} body={post.body} compact />
-          </Link>
-          {post.imageUrl && (
-            // The text above is the link for keyboards and screen readers; this one is for pointers.
-            <Link
-              href={href}
-              className="relative mt-4 block aspect-[4/3] overflow-hidden rounded-lg border border-line bg-raised"
-              tabIndex={-1}
-              aria-hidden
-            >
-              <Image
-                src={post.imageUrl}
-                alt=""
-                fill
-                loading={eagerImage ? "eager" : "lazy"}
-                sizes="(min-width: 768px) 560px, 100vw"
-                className="object-cover"
-              />
-            </Link>
-          )}
-          <footer className="mt-3 -ml-2 flex items-center gap-2">
-            <LikeButton
-              target={{ kind: "post", id: post.id }}
-              liked={post.likedByMe}
-              count={post.likeCount}
-              signedIn={signedIn}
-            />
-            <Link
-              href={href}
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-xs text-muted hover:bg-brand/10 hover:text-brand"
-              aria-label={`${post.commentCount} ${post.commentCount === 1 ? "comment" : "comments"}`}
-            >
-              <MessageCircle className="size-4" aria-hidden />
-              {post.commentCount}
-            </Link>
-          </footer>
+          </span>
         </div>
-      </div>
+        {post.aiPrompt && <AiChip />}
+        <KindChip kind={post.kind} />
+      </header>
+
+      <SparkContent post={post} variant="card" eagerImage={eagerImage} />
+
+      {post.topComment && (
+        <Link
+          href={`${href}#comments`}
+          className="flex items-start gap-2.5 rounded-xl bg-raised px-3.5 py-3 transition-colors hover:bg-line/60"
+        >
+          <Avatar name={post.topComment.author.displayName} src={post.topComment.author.avatarUrl} size={28} />
+          <span className="line-clamp-2 min-w-0 text-sm leading-normal">
+            <span className="font-semibold">{post.topComment.author.displayName}</span>{" "}
+            <span className="text-ink-soft">{post.topComment.body}</span>
+          </span>
+        </Link>
+      )}
+
+      {post.aiPrompt && <AiPrompt prompt={post.aiPrompt} />}
+
+      <PostActions post={post} signedIn={signedIn} commentsHref={`${href}#comments`} />
     </article>
   );
 }

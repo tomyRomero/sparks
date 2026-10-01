@@ -20,11 +20,22 @@ export const queryKeys = {
   profileComments: (username: string) => ["comments", "profile", username] as const,
 
   members: (q: string) => ["members", q] as const,
+  /** A quick lookup for pickers (one page, not a paged list). */
+  memberLookup: (q: string) => ["member-lookup", q] as const,
+  /** The viewer's own sparks or liked ones, one page, for sharing into a chat. */
+  sparkPicker: (username: string, list: "posts" | "liked") => ["posts", "picker", username, list] as const,
   /** Usernames compare without case, as the API does. */
   usernameFree: (username: string) => ["username-free", username.toLowerCase()] as const,
 
+  /** Everything under "presence" is patched by live PresenceChanged events. */
+  presence: ["presence"] as const,
+  presenceOf: (userIds: number[]) => ["presence", "of", userIds] as const,
+  presenceAround: ["presence", "around"] as const,
+
   activity: ["activity"] as const,
   inbox: ["inbox"] as const,
+  /** The latest few conversations, one page, for "send to"; refreshed with the inbox. */
+  recentConversations: ["inbox", "recent"] as const,
   conversation: (id: number) => ["conversation", id] as const,
   messages: (conversationId: number) => ["messages", conversationId] as const,
 };

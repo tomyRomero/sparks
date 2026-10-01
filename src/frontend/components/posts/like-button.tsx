@@ -76,14 +76,16 @@ export function LikeButton({
       onClick={toggle}
       aria-pressed={state.liked}
       className={cn(
-        "group inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-mono text-muted transition-colors hover:bg-like/10 hover:text-like",
+        "group inline-flex items-center font-mono text-muted transition-colors hover:bg-like/10 hover:text-like",
+        size === "sm"
+          ? "gap-1.5 rounded-md px-2 py-1 text-[11px]"
+          : "h-[34px] gap-[7px] rounded-[9px] px-2.5 text-[12.5px]",
         state.liked && "text-like",
-        size === "sm" ? "text-[11px]" : "text-xs",
       )}
     >
       <Heart
         className={cn(
-          size === "sm" ? "size-3.5" : "size-4",
+          size === "sm" ? "size-3.5" : "size-[18px]",
           "transition-transform group-active:scale-90",
           state.liked && "fill-current",
         )}

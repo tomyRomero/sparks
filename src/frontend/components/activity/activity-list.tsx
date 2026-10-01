@@ -92,7 +92,9 @@ export function ActivityList({ initial }: { initial: OpaquePage<ActivityItem> })
                       </time>
                     </span>
                   </span>
-                  <span className="mt-1 line-clamp-2 block text-sm text-muted">“{item.excerpt}”</span>
+                  <span className="mt-1 line-clamp-2 block text-sm text-muted">
+                    “{withoutTitleLabel(item.excerpt)}”
+                  </span>
                 </span>
               </Link>
             </li>
@@ -109,4 +111,12 @@ export function ActivityList({ initial }: { initial: OpaquePage<ActivityItem> })
       />
     </div>
   );
+}
+
+/**
+ * Activity excerpts are a spark's or comment's opening words, of any kind,
+ * so a titled spark's "Title: " label is dropped there.
+ */
+function withoutTitleLabel(text: string) {
+  return text.replace(/^Title:[ \t]*/, "");
 }
