@@ -1,6 +1,7 @@
 "use client";
 
 import * as Tooltip from "@radix-ui/react-tooltip";
+import { useState } from "react";
 
 type HintProps = {
   label: string;
@@ -12,8 +13,11 @@ type HintProps = {
 };
 
 export function Hint({ label, side = "right", children, disabled = false }: HintProps) {
+  // Always controlled: \`disabled\` can change after mount (the sidebar
+  // collapsing), and Radix warns when a tooltip switches modes.
+  const [open, setOpen] = useState(false);
   return (
-    <Tooltip.Root open={disabled ? false : undefined}>
+    <Tooltip.Root open={open && !disabled} onOpenChange={setOpen}>
       <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content

@@ -37,16 +37,20 @@ export function Avatar({ name, src, size = 40, online, className }: AvatarProps)
     </span>
   );
 
-  if (!online) return face;
+  if (online === undefined) return face;
+  // Where presence shows, the picture keeps this wrapper either way, so
+  // coming online adds the dot without loading the picture again.
   const dot = Math.max(10, Math.round(size * 0.28));
   return (
     <span className="relative inline-flex shrink-0">
       {face}
-      <span
-        aria-hidden
-        className="absolute -right-px -bottom-px rounded-full border-2 border-surface bg-online"
-        style={{ width: dot, height: dot }}
-      />
+      {online && (
+        <span
+          aria-hidden
+          className="absolute -right-px -bottom-px rounded-full border-2 border-surface bg-online"
+          style={{ width: dot, height: dot }}
+        />
+      )}
     </span>
   );
 }

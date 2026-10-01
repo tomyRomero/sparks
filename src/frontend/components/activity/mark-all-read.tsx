@@ -8,13 +8,18 @@ import { Button } from "@/components/ui/button";
 import { errorMessage } from "@/lib/api/problem";
 import { markAllActivityRead } from "@/lib/queries/activity";
 import { useUnreadActivity } from "@/lib/queries/unread";
+import { useHydrated } from "@/lib/use-hydrated";
 
 /** Shown while anything is unread: activity that arrived live while the page was open. */
 export function MarkAllRead() {
   const queryClient = useQueryClient();
   const { data: unread } = useUnreadActivity(true);
   const [marking, setMarking] = useState(false);
-  if (!unread) return null;
+  // The count is fetched in the browser, and the shell around this page can
+  // have it before this part hydrates; wait, so the first render matches
+  // the server's.
+  const hydrated = useHydrated();
+  if (!hydrated || !unread) return null;
 
   async function markAll() {
     setMarking(true);
