@@ -79,6 +79,7 @@ try
     builder.Services.AddScoped<PostService>();
     builder.Services.AddScoped<CommentService>();
     builder.Services.AddScoped<UserService>();
+    builder.Services.AddScoped<FollowService>();
     builder.Services.AddScoped<ActivityService>();
     builder.Services.AddScoped<ActivityNotifier>();
     builder.Services.AddScoped<ChatService>();

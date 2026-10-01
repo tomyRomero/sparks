@@ -7,4 +7,7 @@ internal static class UserErrors
 {
     public static ApiException UserNotFound() =>
         ApiException.NotFound("USER_NOT_FOUND", "There's no member with that username.");
+
+    public static ApiException CannotFollowYourself() =>
+        ApiException.BadRequest("CANNOT_FOLLOW_YOURSELF", "You can't follow yourself.");
 }

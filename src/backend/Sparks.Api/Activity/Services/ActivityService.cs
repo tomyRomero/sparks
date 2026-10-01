@@ -9,21 +9,26 @@ using Sparks.Api.Users.Models;
 namespace Sparks.Api.Activity.Services;
 
 /// <summary>
-/// Likes, comments and replies on a member's posts and comments, newest first.
-/// Queried from those tables rather than stored, so an unlike or a deleted
-/// comment just disappears. Unread is anything after one per-member timestamp.
+/// Likes, comments and replies on a member's posts and comments, and new
+/// followers, newest first. Queried from those tables rather than stored, so
+/// an unlike, an unfollow or a deleted comment just disappears. Unread is
+/// anything after one per-member timestamp.
 /// </summary>
 public sealed class ActivityService(SparksDbContext db, TimeProvider time)
 {
     /// <summary>How much of a post or comment an activity item quotes.</summary>
     private const int ExcerptLength = 140;
 
-    /// <summary>The most recent likers shown on a grouped item.</summary>
+    /// <summary>The most recent likers or followers shown on a grouped item.</summary>
     private const int ActorsShown = 3;
+
+    /// <summary>Follows fold by the UTC day they happened on, counted from here.</summary>
+    private static readonly DateTime FollowDayZero = new(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     /// <summary>
     /// Newest first. Likes on the same post or comment fold into one item
-    /// with the latest likers and a count; each comment and reply is its own.
+    /// with the latest likers and a count, and so do a day's new followers;
+    /// each comment and reply is its own.
     /// </summary>
     public async Task<OpaqueCursorPage<ActivityItem>> GetAsync(long userId, ActivityQuery query, CancellationToken ct)
     {
@@ -89,8 +94,8 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
 
     /// <summary>
     /// Every activity row for the member, as one query: likes on their posts,
-    /// likes on their comments, and comments on their posts or replies to
-    /// their comments. Their own actions are left out.
+    /// likes on their comments, comments on their posts or replies to their
+    /// comments, and follows. Their own actions are left out.
     /// </summary>
     private IQueryable<ActivityRow> Rows(long userId, ActivityFilter? filter)
     {
@@ -101,6 +106,7 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
                 row.Kind == (int)ActivityKind.PostLike || row.Kind == (int)ActivityKind.CommentLike),
             ActivityFilter.Comments => rows.Where(row => row.Kind == (int)ActivityKind.Comment),
             ActivityFilter.Replies => rows.Where(row => row.Kind == (int)ActivityKind.Reply),
+            ActivityFilter.Follows => rows.Where(row => row.Kind == (int)ActivityKind.Follow),
             _ => rows,
         };
     }
@@ -148,7 +154,20 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
                 CommentId = comment.Id,
             });
 
-        return postLikes.Concat(commentLikes).Concat(comments);
+        // The subject is the day, so each day's new followers are one item.
+        var follows = db.Follows
+            .Where(follow => follow.FolloweeId == userId)
+            .Select(follow => new ActivityRow
+            {
+                Kind = (int)ActivityKind.Follow,
+                At = follow.CreatedAt,
+                SubjectId = EF.Functions.DateDiffDay(FollowDayZero, follow.CreatedAt),
+                ActorId = follow.FollowerId,
+                PostId = null,
+                CommentId = null,
+            });
+
+        return postLikes.Concat(commentLikes).Concat(comments).Concat(follows);
     }
 
     /// <summary>
@@ -177,7 +196,11 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
                 group => group.OrderByDescending(row => row.At).Select(row => row.ActorId).Take(ActorsShown).ToList());
 
         var actorIds = actorIdsByGroup.Values.SelectMany(ids => ids).Distinct().ToList();
-        var postIds = groups.Where(group => group.CommentId is null).Select(group => group.PostId).Distinct().ToList();
+        var postIds = groups
+            .Where(group => group.CommentId is null && group.PostId is not null)
+            .Select(group => group.PostId!.Value)
+            .Distinct()
+            .ToList();
         var commentIds = groups.Where(group => group.CommentId is not null).Select(group => group.CommentId!.Value).Distinct().ToList();
 
         var actors = await db.Users
@@ -199,12 +222,13 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
         var items = new List<ActivityItem>(groups.Count);
         foreach (var group in groups)
         {
+            var follow = group.Kind == (int)ActivityKind.Follow;
             var excerpt = group.CommentId is { } commentId
                 ? commentExcerpts.GetValueOrDefault(commentId)
-                : postExcerpts.GetValueOrDefault(group.PostId);
+                : group.PostId is { } postId ? postExcerpts.GetValueOrDefault(postId) : null;
             var who = actorIdsByGroup.GetValueOrDefault((group.Kind, group.SubjectId)) ?? [];
             var known = who.Select(id => actors.GetValueOrDefault(id)).OfType<UserSummary>().ToList();
-            if (known.Count > 0 && excerpt is not null)
+            if (known.Count > 0 && (follow || excerpt is not null))
             {
                 items.Add(new ActivityItem(
                     (ActivityKind)group.Kind,
@@ -232,7 +256,7 @@ internal sealed class ActivityRow
     public DateTime At { get; init; }
     public long SubjectId { get; init; }
     public long ActorId { get; init; }
-    public long PostId { get; init; }
+    public long? PostId { get; init; }
     public long? CommentId { get; init; }
 }
 
@@ -241,7 +265,7 @@ internal sealed class ActivityGroup
 {
     public int Kind { get; init; }
     public long SubjectId { get; init; }
-    public long PostId { get; init; }
+    public long? PostId { get; init; }
     public long? CommentId { get; init; }
     public DateTime At { get; init; }
     public int Count { get; init; }

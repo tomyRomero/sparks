@@ -10,6 +10,9 @@ public sealed class ApiException(int statusCode, string code, string title) : Ex
     public int StatusCode { get; } = statusCode;
     public string Code { get; } = code;
 
+    public static ApiException Unauthorized(string code, string title) =>
+        new(StatusCodes.Status401Unauthorized, code, title);
+
     public static ApiException NotFound(string code, string title) =>
         new(StatusCodes.Status404NotFound, code, title);
 

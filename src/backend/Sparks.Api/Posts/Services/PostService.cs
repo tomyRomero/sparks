@@ -15,9 +15,12 @@ namespace Sparks.Api.Posts.Services;
 public sealed class PostService(
     SparksDbContext db, TimeProvider time, IFileStorage storage, ActivityNotifier activity, ILogger<PostService> logger)
 {
-    /// <summary>Newest posts first, of some kinds, with pictures, or matching a search.</summary>
-    public Task<CursorPage<PostResponse>> GetFeedAsync(PostFeedQuery query, long? viewerId, CancellationToken ct) =>
-        PageAsync(Filter(db.Posts.AsNoTracking(), query.Kind, query.Pictures, query.Q), query, viewerId, ct);
+    /// <summary>Newest posts first, of some kinds, with pictures, from followed members, or matching a search.</summary>
+    public Task<CursorPage<PostResponse>> GetFeedAsync(PostFeedQuery query, long? viewerId, CancellationToken ct)
+    {
+        var posts = Filter(db.Posts.AsNoTracking(), query.Kind, query.Pictures, query.Q);
+        return PageAsync(query.Following ? FromFollowed(posts, viewerId) : posts, query, viewerId, ct);
+    }
 
     /// <summary>How many posts a search finds, for the tab that shows them.</summary>
     public Task<int> CountMatchingAsync(string q, CancellationToken ct) =>
@@ -32,6 +35,11 @@ public sealed class PostService(
     {
         var since = time.GetUtcNow().UtcDateTime - TimeSpan.FromDays(query.Days);
         var posts = Filter(db.Posts.AsNoTracking().Where(post => post.CreatedAt >= since), query.Kind, query.Pictures, q: null);
+        if (query.Following)
+        {
+            posts = FromFollowed(posts, viewerId);
+        }
+
         if (query.Cursor is not null)
         {
             if (OpaqueCursor.Decode(query.Cursor, partCount: 2) is not [var likes, var id])
@@ -257,6 +265,21 @@ public sealed class PostService(
         }
 
         return posts;
+    }
+
+    /// <summary>
+    /// Posts by the members the viewer follows, and their own, as a
+    /// timeline of the people you follow includes what you shared.
+    /// </summary>
+    private IQueryable<PostEntity> FromFollowed(IQueryable<PostEntity> posts, long? viewerId)
+    {
+        if (viewerId is not { } me)
+        {
+            throw PostErrors.SignInForFollowing();
+        }
+
+        return posts.Where(post =>
+            post.AuthorId == me || db.Follows.Any(follow => follow.FollowerId == me && follow.FolloweeId == post.AuthorId));
     }
 
     private static async Task<CursorPage<PostResponse>> PageAsync(

@@ -14,12 +14,13 @@ namespace Sparks.Api.Users.Controllers;
 
 /// <summary>
 /// Members: finding them, their profile pages and the lists on them (posts,
-/// comments, liked posts), and editing your own profile. Everything but the
-/// edit is public.
+/// comments, liked posts, followers and following), following them, and
+/// editing your own profile. Reading is public; the rest needs a signed-in user.
 /// </summary>
 [ApiController]
 [Route("api/v1/users")]
-public sealed class UsersController(UserService users, PostService posts, CommentService comments) : ControllerBase
+public sealed class UsersController(UserService users, FollowService follows, PostService posts, CommentService comments)
+    : ControllerBase
 {
     [HttpGet]
     [AllowAnonymous]
@@ -29,7 +30,7 @@ public sealed class UsersController(UserService users, PostService posts, Commen
     [HttpGet("{username}")]
     [AllowAnonymous]
     public Task<ProfileResponse> GetProfile(string username, CancellationToken ct) =>
-        users.GetProfileAsync(username, ct);
+        users.GetProfileAsync(username, User.FindUserId(), ct);
 
     [HttpGet("{username}/posts")]
     [AllowAnonymous]
@@ -55,6 +56,31 @@ public sealed class UsersController(UserService users, PostService posts, Commen
         var userId = await users.GetIdAsync(username, ct);
         return await posts.GetLikedByAsync(userId, page, User.FindUserId(), ct);
     }
+
+    [HttpGet("{username}/followers")]
+    [AllowAnonymous]
+    public Task<OpaqueCursorPage<MemberResponse>> GetFollowers(
+        string username, [FromQuery] OpaquePageRequest page, CancellationToken ct) =>
+        follows.GetFollowersAsync(username, page, User.FindUserId(), ct);
+
+    [HttpGet("{username}/following")]
+    [AllowAnonymous]
+    public Task<OpaqueCursorPage<MemberResponse>> GetFollowing(
+        string username, [FromQuery] OpaquePageRequest page, CancellationToken ct) =>
+        follows.GetFollowingAsync(username, page, User.FindUserId(), ct);
+
+    [HttpPut("{username}/follow")]
+    public Task<FollowState> Follow(string username, CancellationToken ct) =>
+        follows.FollowAsync(User.GetUserId(), username, ct);
+
+    [HttpDelete("{username}/follow")]
+    public Task<FollowState> Unfollow(string username, CancellationToken ct) =>
+        follows.UnfollowAsync(User.GetUserId(), username, ct);
+
+    /// <summary>Members the signed-in user might follow, for an empty Following feed.</summary>
+    [HttpGet("me/suggestions")]
+    public Task<IReadOnlyList<MemberResponse>> GetSuggestions([FromQuery] SuggestionsQuery query, CancellationToken ct) =>
+        follows.SuggestAsync(User.GetUserId(), query.Limit, ct);
 
     [HttpPatch("me")]
     public Task<ProfileResponse> UpdateProfile(UpdateProfileRequest request, CancellationToken ct) =>

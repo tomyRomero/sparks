@@ -32,6 +32,12 @@ public sealed class DemoSeederTests(SparksApiFactory factory)
         var profile = await nova.GetJsonAsync<ProfileResponse>($"/api/v1/users/{DemoSeeder.MainUsername}", Ct);
         profile.AvatarUrl.Should().NotBeNull();
         profile.PostCount.Should().BePositive();
+        profile.Should().BeEquivalentTo(new { FollowerCount = 7, FollowingCount = 5 });
+        var following = await nova.GetJsonAsync<CursorPage<PostResponse>>("/api/v1/posts?following=true&limit=50", Ct);
+        following.Items.Should().NotBeEmpty();
+        following.Items.Should().NotContain(
+            post => post.Author.Username == "amara_okafor" || post.Author.Username == "omar_haddad",
+            "Nova doesn't follow them, so her Following feed differs from the full one");
         (await nova.GetJsonAsync<UnreadActivity>("/api/v1/activity/unread-count", Ct)).Count.Should().BePositive();
         (await nova.GetJsonAsync<UnreadMessages>("/api/v1/conversations/unread-count", Ct)).Count.Should().BePositive();
         var inbox = await nova.GetJsonAsync<OpaqueCursorPage<ConversationResponse>>("/api/v1/conversations", Ct);
@@ -51,6 +57,12 @@ public sealed class DemoSeederTests(SparksApiFactory factory)
             .Distinct()
             .ToListAsync(Ct);
         seededKinds.Should().BeEquivalentTo(Enum.GetValues<SparkKind>(), "the demo shows every kind of spark");
+
+        // A database seeded before members could follow each other gets the follows on the next run.
+        await db.Follows.Where(follow => follow.Follower.Username == DemoSeeder.MainUsername).ExecuteDeleteAsync(Ct);
+        (await SeedAsync()).Should().BeTrue();
+        (await nova.GetJsonAsync<ProfileResponse>($"/api/v1/users/{DemoSeeder.MainUsername}", Ct))
+            .FollowingCount.Should().Be(5);
     }
 
     private async Task<bool> SeedAsync()

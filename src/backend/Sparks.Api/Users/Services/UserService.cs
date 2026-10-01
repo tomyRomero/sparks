@@ -12,21 +12,16 @@ namespace Sparks.Api.Users.Services;
 public sealed class UserService(
     SparksDbContext db, ImageUploadService images, IFileStorage storage, ILogger<UserService> logger)
 {
-    /// <summary>A profile by username, matched without regard to case.</summary>
-    public async Task<ProfileResponse> GetProfileAsync(string username, CancellationToken ct) =>
+    /// <summary>A profile by username, matched without regard to case, with whether the viewer and the member follow each other.</summary>
+    public async Task<ProfileResponse> GetProfileAsync(string username, long? viewerId, CancellationToken ct) =>
         await db.Users.AsNoTracking()
             .Where(user => user.Username == username)
-            .Select(ToProfile())
+            .Select(ToProfile(viewerId))
             .SingleOrDefaultAsync(ct)
         ?? throw UserErrors.UserNotFound();
 
     /// <summary>The id behind a username, for the lists on a profile page.</summary>
-    public async Task<long> GetIdAsync(string username, CancellationToken ct) =>
-        await db.Users
-            .Where(user => user.Username == username)
-            .Select(user => (long?)user.Id)
-            .SingleOrDefaultAsync(ct)
-        ?? throw UserErrors.UserNotFound();
+    public Task<long> GetIdAsync(string username, CancellationToken ct) => db.Users.IdOfAsync(username, ct);
 
     public async Task<ProfileResponse> UpdateProfileAsync(long userId, UpdateProfileRequest request, CancellationToken ct)
     {
@@ -68,7 +63,7 @@ public sealed class UserService(
     private async Task<ProfileResponse> GetOwnProfileAsync(long userId, CancellationToken ct) =>
         await db.Users.AsNoTracking()
             .Where(user => user.Id == userId)
-            .Select(ToProfile())
+            .Select(ToProfile(userId))
             .SingleOrDefaultAsync(ct)
         ?? throw UserErrors.UserNotFound();
 
@@ -106,7 +101,7 @@ public sealed class UserService(
     }
 
     /// <summary>The profile projection, with its counts computed in SQL.</summary>
-    private Expression<Func<UserEntity, ProfileResponse>> ToProfile() => user => new ProfileResponse(
+    private Expression<Func<UserEntity, ProfileResponse>> ToProfile(long? viewerId) => user => new ProfileResponse(
         user.Id,
         user.Username,
         user.DisplayName,
@@ -122,5 +117,9 @@ public sealed class UserService(
             .OrderByDescending(post => post.Likes.Count)
             .ThenByDescending(post => post.Id)
             .Select(post => post.ImageKey)
-            .FirstOrDefault()));
+            .FirstOrDefault()),
+        db.Follows.Count(follow => follow.FolloweeId == user.Id),
+        db.Follows.Count(follow => follow.FollowerId == user.Id),
+        viewerId != null && db.Follows.Any(follow => follow.FollowerId == viewerId && follow.FolloweeId == user.Id),
+        viewerId != null && db.Follows.Any(follow => follow.FollowerId == user.Id && follow.FolloweeId == viewerId));
 }

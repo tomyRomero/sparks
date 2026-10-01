@@ -63,6 +63,9 @@ public sealed record PostFeedQuery : PageRequest
     /// <summary>Only posts with a picture.</summary>
     public bool Pictures { get; init; }
 
+    /// <summary>Only posts by members the viewer follows, and their own. Needs a signed-in user.</summary>
+    public bool Following { get; init; }
+
     /// <summary>Matches the post text or the author's name.</summary>
     [StringLength(PostFilters.MaxQueryLength)]
     public string? Q { get; init; }
@@ -75,6 +78,9 @@ public sealed record TopPostsQuery : OpaquePageRequest
     public SparkKind[] Kind { get; init; } = [];
 
     public bool Pictures { get; init; }
+
+    /// <summary>Only posts by members the viewer follows, and their own. Needs a signed-in user.</summary>
+    public bool Following { get; init; }
 
     [Range(1, 30)]
     public int Days { get; init; } = 7;

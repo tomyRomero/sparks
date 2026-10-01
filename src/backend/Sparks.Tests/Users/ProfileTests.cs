@@ -69,6 +69,8 @@ public sealed class ProfileTests(SparksApiFactory factory)
     [InlineData("/posts")]
     [InlineData("/comments")]
     [InlineData("/liked")]
+    [InlineData("/followers")]
+    [InlineData("/following")]
     public async Task An_unknown_username_is_a_404_with_a_code(string list)
     {
         var response = await factory.CreateClient().GetAsync($"{UsersPath}/{TestData.UniqueUsername()}{list}", Ct);

@@ -80,8 +80,11 @@ public sealed class ActivityNotifier(
             }
         });
 
+    public Task FollowedAsync(long followerId, long followeeId, CancellationToken ct) =>
+        TryAsync(() => SendAsync(followeeId, ActivityKind.Follow, followerId, postId: null, commentId: null, excerpt: null, ct));
+
     private async Task SendAsync(
-        long recipientId, ActivityKind kind, long actorId, long postId, long? commentId, string excerpt, CancellationToken ct)
+        long recipientId, ActivityKind kind, long actorId, long? postId, long? commentId, string? excerpt, CancellationToken ct)
     {
         var actor = await db.Users.AsNoTracking()
             .Where(user => user.Id == actorId)

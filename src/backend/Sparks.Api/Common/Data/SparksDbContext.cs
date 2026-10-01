@@ -12,6 +12,7 @@ namespace Sparks.Api.Common.Data;
 public sealed class SparksDbContext(DbContextOptions<SparksDbContext> options) : DbContext(options)
 {
     public DbSet<UserEntity> Users => Set<UserEntity>();
+    public DbSet<FollowEntity> Follows => Set<FollowEntity>();
     public DbSet<SessionEntity> Sessions => Set<SessionEntity>();
     public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
     public DbSet<PasswordResetTokenEntity> PasswordResetTokens => Set<PasswordResetTokenEntity>();

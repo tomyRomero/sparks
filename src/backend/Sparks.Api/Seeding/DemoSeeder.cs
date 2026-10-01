@@ -13,11 +13,12 @@ using Sparks.Api.Posts.Services;
 using Sparks.Api.Realtime;
 using Sparks.Api.Storage;
 using Sparks.Api.Users.Data;
+using Sparks.Api.Users.Services;
 
 namespace Sparks.Api.Seeding;
 
 /// <summary>
-/// Two weeks of demo members, sparks, threads, likes and chats for a
+/// Two weeks of demo members, sparks, threads, likes, follows and chats for a
 /// development database. Content goes through the real services, with a
 /// movable clock to spread it over time.
 /// </summary>
@@ -38,12 +39,57 @@ public sealed class DemoSeeder(
     private PostService Posts => new(db, _clock, storage, Activity, NullLogger<PostService>.Instance);
     private CommentService Comments => new(db, _clock, Activity);
     private ChatService Chat => new(db, _clock, hub);
+    private FollowService Follows => new(db, _clock, Activity);
+
+    /// <summary>
+    /// Who follows whom, and when: mostly in the days after everyone joined.
+    /// Nova follows five of the seven, so her Following feed differs from
+    /// the full one; three follow her recently, so it's in her unread activity.
+    /// </summary>
+    private static readonly Followed[] FollowGraph =
+    [
+        new("nova_reyes", "theo_park", TimeSpan.FromDays(29)),
+        new("nova_reyes", "isla_novak", TimeSpan.FromDays(29) - TimeSpan.FromHours(2)),
+        new("theo_park", "nova_reyes", TimeSpan.FromDays(28.5)),
+        new("theo_park", "kenji_mori", TimeSpan.FromDays(28.4)),
+        new("amara_okafor", "kenji_mori", TimeSpan.FromDays(28)),
+        new("kenji_mori", "amara_okafor", TimeSpan.FromDays(27.9)),
+        new("isla_novak", "nova_reyes", TimeSpan.FromDays(27.5)),
+        new("isla_novak", "kenji_mori", TimeSpan.FromDays(27.4)),
+        new("lucas_meyer", "omar_haddad", TimeSpan.FromDays(27)),
+        new("omar_haddad", "lucas_meyer", TimeSpan.FromDays(26.9)),
+        new("nova_reyes", "sofia_ruiz", TimeSpan.FromDays(26.5)),
+        new("sofia_ruiz", "nova_reyes", TimeSpan.FromDays(26.4)),
+        new("amara_okafor", "theo_park", TimeSpan.FromDays(26)),
+        new("kenji_mori", "theo_park", TimeSpan.FromDays(25.5)),
+        new("nova_reyes", "kenji_mori", TimeSpan.FromDays(25)),
+        new("lucas_meyer", "nova_reyes", TimeSpan.FromDays(24.5)),
+        new("sofia_ruiz", "lucas_meyer", TimeSpan.FromDays(24)),
+        new("isla_novak", "amara_okafor", TimeSpan.FromDays(23)),
+        new("kenji_mori", "isla_novak", TimeSpan.FromDays(22)),
+        new("amara_okafor", "isla_novak", TimeSpan.FromDays(21)),
+        new("omar_haddad", "isla_novak", TimeSpan.FromDays(20)),
+        new("lucas_meyer", "sofia_ruiz", TimeSpan.FromDays(18)),
+        new("theo_park", "amara_okafor", TimeSpan.FromDays(16)),
+        new("nova_reyes", "lucas_meyer", TimeSpan.FromDays(10)),
+        new("amara_okafor", "nova_reyes", TimeSpan.FromDays(1.5)),
+        new("kenji_mori", "nova_reyes", TimeSpan.FromHours(4.5)),
+        new("omar_haddad", "nova_reyes", TimeSpan.FromHours(4)),
+    ];
 
     /// <summary>Seeds once; returns false when the demo members are already there.</summary>
     public async Task<bool> RunAsync(string password, CancellationToken ct)
     {
         if (await db.Users.AnyAsync(user => user.Username == MainUsername, ct))
         {
+            // Seeded before members could follow each other: add the follows.
+            if (!await db.Follows.AnyAsync(follow => follow.Follower.Username == MainUsername, ct))
+            {
+                await FollowAsync(ct);
+                logger.LogInformation("Added follows to the demo data already in this database");
+                return true;
+            }
+
             logger.LogInformation("The demo data is already in this database");
             return false;
         }
@@ -223,6 +269,8 @@ public sealed class DemoSeeder(
         await LikeAsync(tableRead, ct, sofia, theo, isla, kenji);
         await LikeAsync(secondDraft, ct, amara);
 
+        await FollowAsync(ct);
+
         // Chats with Nova
         await ConversationAsync(nova, theo, ct,
             new Said(TimeSpan.FromDays(5), theo, "Found three lighthouses within an hour of the city. Want location photos?"),
@@ -250,7 +298,7 @@ public sealed class DemoSeeder(
         await LastSeenAsync(amara, TimeSpan.FromHours(5), ct);
         await LastSeenAsync(omar, TimeSpan.FromDays(1), ct);
 
-        logger.LogInformation("Seeded demo data: 8 members with posts, threads, likes and chats");
+        logger.LogInformation("Seeded demo data: 8 members with posts, threads, likes, follows and chats");
         return true;
     }
 
@@ -314,6 +362,23 @@ public sealed class DemoSeeder(
         }
     }
 
+    /// <summary>
+    /// Everyone in <see cref="FollowGraph"/> follows, each at their time.
+    /// Following is idempotent, so follows already there are left as they are.
+    /// </summary>
+    private async Task FollowAsync(CancellationToken ct)
+    {
+        var usernames = FollowGraph.Select(follow => follow.Follower).Distinct().ToList();
+        var ids = await db.Users
+            .Where(user => usernames.Contains(user.Username))
+            .ToDictionaryAsync(user => user.Username, user => user.Id, StringComparer.OrdinalIgnoreCase, ct);
+        foreach (var (follower, followee, ago) in FollowGraph)
+        {
+            _clock.Ago(ago);
+            await Follows.FollowAsync(ids[follower], followee, ct);
+        }
+    }
+
     private async Task LastSeenAsync(Member member, TimeSpan ago, CancellationToken ct)
     {
         DateTime? seenAt = (realTime.GetUtcNow() - ago).UtcDateTime;
@@ -362,6 +427,9 @@ public sealed class DemoSeeder(
     }
 
     private sealed record Member(long Id, string Username);
+
+    /// <summary>One member following another, this long before the real now.</summary>
+    private sealed record Followed(string Follower, string Followee, TimeSpan Ago);
 
     /// <summary>One message in a seeded chat, optionally sharing a spark.</summary>
     private sealed record Said(TimeSpan Ago, Member From, string Body, long? Shares = null);

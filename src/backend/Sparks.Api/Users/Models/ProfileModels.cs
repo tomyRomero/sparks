@@ -10,6 +10,8 @@ namespace Sparks.Api.Users.Models;
 /// <param name="CommentCount">Comments and replies the member wrote.</param>
 /// <param name="PictureCount">The member's posts that have a picture.</param>
 /// <param name="CoverUrl">The picture of the member's most liked post that has one, for the top of the page; null when there's none.</param>
+/// <param name="FollowedByMe">Whether the viewer follows them; always false for guests and on your own profile.</param>
+/// <param name="FollowsMe">Whether they follow the viewer.</param>
 public sealed record ProfileResponse(
     long Id,
     string Username,
@@ -21,7 +23,11 @@ public sealed record ProfileResponse(
     int LikesReceived,
     int CommentCount,
     int PictureCount,
-    string? CoverUrl);
+    string? CoverUrl,
+    int FollowerCount,
+    int FollowingCount,
+    bool FollowedByMe,
+    bool FollowsMe);
 
 /// <summary>A member's posts, on top of paging.</summary>
 public sealed record UserPostsQuery : PageRequest
