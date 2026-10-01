@@ -47,16 +47,32 @@ export function PostCard({ post, signedIn, eagerImage = false }: PostCardProps) 
       <SparkContent post={post} variant="card" eagerImage={eagerImage} />
 
       {post.topComment && (
-        <Link
-          href={`${href}#comments`}
-          className="flex items-start gap-2.5 rounded-xl bg-raised px-3.5 py-3 transition-colors hover:bg-line/60"
-        >
-          <Avatar name={post.topComment.author.displayName} src={post.topComment.author.avatarUrl} size={28} />
-          <span className="line-clamp-2 min-w-0 text-sm leading-normal">
-            <span className="font-semibold">{post.topComment.author.displayName}</span>{" "}
-            <span className="text-ink-soft">{post.topComment.body}</span>
-          </span>
-        </Link>
+        // The commenter's face and name go to their profile; anywhere else
+        // opens the spark's comments.
+        <div className="relative flex items-start gap-2.5 rounded-xl bg-raised px-3.5 py-3 transition-colors has-[a:hover]:bg-line/60">
+          <Link
+            href={`/u/${post.topComment.author.username}`}
+            className="relative z-10 shrink-0 rounded-full"
+            tabIndex={-1}
+            aria-hidden
+          >
+            <Avatar name={post.topComment.author.displayName} src={post.topComment.author.avatarUrl} size={28} />
+          </Link>
+          <p className="line-clamp-2 min-w-0 text-sm leading-normal">
+            <Link
+              href={`/u/${post.topComment.author.username}`}
+              className="relative z-10 font-semibold hover:underline"
+            >
+              {post.topComment.author.displayName}
+            </Link>{" "}
+            <Link
+              href={`${href}#comments`}
+              className="text-ink-soft after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand/50"
+            >
+              {post.topComment.body}
+            </Link>
+          </p>
+        </div>
       )}
 
       {post.aiPrompt && <AiPrompt prompt={post.aiPrompt} />}

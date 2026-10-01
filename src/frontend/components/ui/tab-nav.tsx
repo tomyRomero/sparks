@@ -13,6 +13,8 @@ export function TabNav({ label, tabs }: { label: string; tabs: Tab[] }) {
           <li key={tab.href}>
             <Link
               href={tab.href}
+              // Switching tabs keeps your place on the page.
+              scroll={false}
               aria-current={tab.current ? "page" : undefined}
               className={cn(
                 "inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-medium whitespace-nowrap text-ink-soft transition-colors hover:text-ink max-sm:px-3",

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { CommentFeed } from "@/components/comments/comment-feed";
+import { PageTop } from "@/components/ui/page-top";
 import { Panel } from "@/components/ui/panel";
 import { serverGetOrNull } from "@/lib/api/server";
 import type { Comment, CursorPage } from "@/lib/api/types";
@@ -16,17 +17,20 @@ export default async function ProfileCommentsPage({ params }: PageProps<"/u/[use
   if (!first) notFound();
 
   return (
-    <Panel>
-      <CommentFeed
-        initial={first}
-        path={path}
-        queryKey={queryKeys.profileComments(profile.username)}
-        empty={
-          <p className="text-muted">
-            {viewer?.id === profile.id ? "You haven't" : `${profile.displayName} hasn't`} commented yet.
-          </p>
-        }
-      />
-    </Panel>
+    <>
+      <PageTop />
+      <Panel>
+        <CommentFeed
+          initial={first}
+          path={path}
+          queryKey={queryKeys.profileComments(profile.username)}
+          empty={
+            <p className="text-muted">
+              {viewer?.id === profile.id ? "You haven't" : `${profile.displayName} hasn't`} commented yet.
+            </p>
+          }
+        />
+      </Panel>
+    </>
   );
 }

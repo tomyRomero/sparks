@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PeopleList } from "@/components/profile/people-list";
+import { PageTop } from "@/components/ui/page-top";
 import { serverGetOrNull } from "@/lib/api/server";
 import type { Member, OpaquePage } from "@/lib/api/types";
 import { getViewer } from "@/lib/auth/viewer";
@@ -21,18 +22,21 @@ export default async function FollowingPage({ params }: PageProps<"/u/[username]
   if (!first) notFound();
 
   return (
-    <PeopleList
-      initial={first}
-      path={path}
-      queryKey={queryKeys.followList(profile.username, "following")}
-      viewerId={viewer?.id ?? null}
-      empty={
-        <p className="text-muted">
-          {viewer?.id === profile.id
-            ? "You don't follow anyone yet."
-            : `${profile.displayName} doesn't follow anyone yet.`}
-        </p>
-      }
-    />
+    <>
+      <PageTop />
+      <PeopleList
+        initial={first}
+        path={path}
+        queryKey={queryKeys.followList(profile.username, "following")}
+        viewerId={viewer?.id ?? null}
+        empty={
+          <p className="text-muted">
+            {viewer?.id === profile.id
+              ? "You don't follow anyone yet."
+              : `${profile.displayName} doesn't follow anyone yet.`}
+          </p>
+        }
+      />
+    </>
   );
 }
