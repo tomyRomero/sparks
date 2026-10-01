@@ -22,7 +22,7 @@ internal sealed class PostLikeEntityConfiguration : IEntityTypeConfiguration<Pos
             .HasForeignKey(like => like.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // "Posts I liked", newest first.
+        // A member's likes (the profile's Likes tab), and the user foreign key.
         builder.HasIndex(like => new { like.UserId, like.CreatedAt });
     }
 }

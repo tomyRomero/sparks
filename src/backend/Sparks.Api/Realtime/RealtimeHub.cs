@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using Sparks.Api.Auth.Services;
-using Sparks.Api.Common.Data;
+using Sparks.Api.Chat.Services;
 using Sparks.Api.Presence.Services;
 
 namespace Sparks.Api.Realtime;
@@ -13,7 +12,7 @@ namespace Sparks.Api.Realtime;
 /// there; connections also drive presence.
 /// </summary>
 [Authorize]
-public sealed class RealtimeHub(SparksDbContext db, PresenceService presence) : Hub<IRealtimeClient>
+public sealed class RealtimeHub(ChatService chat, PresenceService presence) : Hub<IRealtimeClient>
 {
     public const string Path = "/hubs/live";
 
@@ -37,13 +36,7 @@ public sealed class RealtimeHub(SparksDbContext db, PresenceService presence) : 
     public async Task Typing(long conversationId)
     {
         var userId = Context.User!.GetUserId();
-        var otherId = await db.Conversations
-            .Where(conversation => conversation.Id == conversationId
-                && (conversation.UserAId == userId || conversation.UserBId == userId))
-            .Select(conversation => (long?)(conversation.UserAId == userId ? conversation.UserBId : conversation.UserAId))
-            .SingleOrDefaultAsync(Context.ConnectionAborted);
-
-        if (otherId is { } recipient)
+        if (await chat.OtherParticipantAsync(conversationId, userId, Context.ConnectionAborted) is { } recipient)
         {
             await Clients.Member(recipient).Typing(new TypingEvent(conversationId, userId));
         }

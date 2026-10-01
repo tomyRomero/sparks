@@ -213,17 +213,17 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
             .Select(conversation => (long?)conversation.Id)
             .SingleOrDefaultAsync(ct);
 
-    /// <summary>
-    /// The other participant's id. Someone outside the conversation gets the
-    /// same 404 as for one that doesn't exist, so ids reveal nothing.
-    /// </summary>
-    private async Task<long> FindOtherParticipantAsync(long conversationId, long userId, CancellationToken ct) =>
-        await db.Conversations
+    /// <summary>The other participant's id, or null when the member isn't in the conversation.</summary>
+    public Task<long?> OtherParticipantAsync(long conversationId, long userId, CancellationToken ct) =>
+        db.Conversations
             .Where(conversation => conversation.Id == conversationId
                 && (conversation.UserAId == userId || conversation.UserBId == userId))
             .Select(conversation => (long?)(conversation.UserAId == userId ? conversation.UserBId : conversation.UserAId))
-            .SingleOrDefaultAsync(ct)
-        ?? throw ConversationNotFound();
+            .SingleOrDefaultAsync(ct);
+
+    /// <summary>Outsiders get the same 404 as for a missing conversation, so ids reveal nothing.</summary>
+    private async Task<long> FindOtherParticipantAsync(long conversationId, long userId, CancellationToken ct) =>
+        await OtherParticipantAsync(conversationId, userId, ct) ?? throw ConversationNotFound();
 
     /// <summary>A conversation from one participant's side, with counts computed in SQL.</summary>
     private static Expression<Func<ConversationEntity, ConversationResponse>> ToConversationResponse(long viewerId) =>
