@@ -112,7 +112,7 @@ To use the demo data, sign in as `nova_reyes` with the password stored as `Seed:
 
 ### AI providers
 
-Out of the box, drafts come from hand-written samples and pictures are gradients generated from the prompt, so everything works offline. To use real models, store the keys in user-secrets; both providers have free tiers.
+Out of the box, drafts come from hand-written samples and pictures are gradients generated from the prompt, so everything works offline. To use real models, store the keys in user-secrets (`src/backend/Sparks.Api/secrets.example.json` lists every setting it holds); both providers have free tiers.
 
 ```bash
 cd src/backend/Sparks.Api
