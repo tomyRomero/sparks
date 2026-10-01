@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Sparks.Api.Realtime;
 
 namespace Sparks.Tests.Infrastructure;
@@ -12,7 +13,8 @@ internal static class LiveConnections
     /// <summary>
     /// A hub connection through the in-memory test server, not yet started.
     /// Long polling, because the test server's handler carries plain HTTP
-    /// requests only.
+    /// requests only. It reads payloads as strictly as the web app does, so
+    /// an enum sent as a number fails.
     /// </summary>
     public static HubConnection LiveConnection(this SparksApiFactory factory, string? accessToken) =>
         new HubConnectionBuilder()
@@ -22,6 +24,7 @@ internal static class LiveConnections
                 options.HttpMessageHandlerFactory = _ => factory.Server.CreateHandler();
                 options.AccessTokenProvider = () => Task.FromResult(accessToken);
             })
+            .AddJsonProtocol(json => json.PayloadSerializerOptions = ApiJson.Options)
             .Build();
 
     /// <summary>A started connection for the member the token belongs to.</summary>

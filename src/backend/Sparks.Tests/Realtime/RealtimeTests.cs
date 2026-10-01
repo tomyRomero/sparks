@@ -2,6 +2,7 @@ using System.Net;
 using FluentAssertions;
 using Microsoft.AspNetCore.SignalR.Client;
 using Sparks.Api.Chat.Models;
+using Sparks.Api.Posts.Data;
 using Sparks.Api.Realtime;
 using Sparks.Tests.Infrastructure;
 
@@ -25,6 +26,20 @@ public sealed class RealtimeTests(SparksApiFactory factory)
 
         (await toBob).Should().BeEquivalentTo(sent);
         (await toAlice).Should().BeEquivalentTo(sent);
+    }
+
+    [Fact]
+    public async Task A_shared_spark_arrives_live_with_its_kind_by_name()
+    {
+        var chat = await ChatAsync();
+        var spark = await chat.Alice.CreatePostAsync("Title: Low Tide\n\nA town that floods on schedule.", SparkKind.MovieScript, Ct);
+        await using var bobLive = await factory.ConnectLiveAsync(chat.BobToken, Ct);
+        var toBob = bobLive.NextAsync<MessageResponse>(nameof(IRealtimeClient.MessageReceived), Ct);
+
+        await SendAsync(chat.Alice, chat.ConversationId, new SendMessageRequest { SharedPostId = spark.Id });
+
+        // The test connection, like the web app, reads an enum only by its name.
+        (await toBob).SharedPost.Should().BeEquivalentTo(new { spark.Id, Kind = SparkKind.MovieScript });
     }
 
     [Fact]
@@ -83,10 +98,12 @@ public sealed class RealtimeTests(SparksApiFactory factory)
         return new Chat(alice, aliceUser.Id, aliceToken, bob, bobUser.Id, bobToken, conversation.Id);
     }
 
-    private static async Task<MessageResponse> SendAsync(HttpClient sender, long conversationId, string body)
+    private static Task<MessageResponse> SendAsync(HttpClient sender, long conversationId, string body) =>
+        SendAsync(sender, conversationId, new SendMessageRequest { Body = body });
+
+    private static async Task<MessageResponse> SendAsync(HttpClient sender, long conversationId, SendMessageRequest message)
     {
-        var response = await sender.PostJsonAsync(
-            $"/api/v1/conversations/{conversationId}/messages", new SendMessageRequest { Body = body }, Ct);
+        var response = await sender.PostJsonAsync($"/api/v1/conversations/{conversationId}/messages", message, Ct);
         response.EnsureSuccessStatusCode();
         return await response.ReadAsync<MessageResponse>(Ct);
     }

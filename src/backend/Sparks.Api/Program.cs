@@ -73,10 +73,7 @@ try
     // Validation errors use the JSON field name ("email"), not "Email".
     builder.Services.AddControllers(mvc =>
             mvc.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider()))
-        .AddJsonOptions(json =>
-            // Enums as names only; a number could be an undefined value.
-            json.JsonSerializerOptions.Converters.Add(
-                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false)));
+        .AddJsonOptions(json => UseApiJson(json.JsonSerializerOptions));
     builder.Services.AddOpenApi();
 
     builder.Services.AddScoped<PostService>();
@@ -89,7 +86,8 @@ try
 
     builder.Services.AddSparksAi(builder.Configuration);
 
-    builder.Services.AddSignalR();
+    // Live events carry the same shapes as responses, so the same rules.
+    builder.Services.AddSignalR().AddJsonProtocol(json => UseApiJson(json.PayloadSerializerOptions));
     builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
     builder.Services.AddSparksPresence();
 
@@ -156,3 +154,7 @@ finally
 {
     await Log.CloseAndFlushAsync();
 }
+
+// Enums as names only; a number could be an undefined value.
+static void UseApiJson(JsonSerializerOptions json) =>
+    json.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false));
