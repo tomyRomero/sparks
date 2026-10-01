@@ -56,7 +56,7 @@ try
     builder.Services.AddSparksDatabase();
 
     // ── Storage ──────────────────────────────────────────────────────────────
-    builder.Services.AddSparksStorage();
+    builder.Services.AddSparksStorage(builder.Configuration);
 
     // ── Email ────────────────────────────────────────────────────────────────
     builder.Services.AddOptions<FrontendOptions>()

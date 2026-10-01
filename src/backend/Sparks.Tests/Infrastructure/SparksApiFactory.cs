@@ -72,6 +72,9 @@ public sealed class SparksApiFactory : WebApplicationFactory<Program>, IAsyncLif
             $"ConnectionStrings:{DatabaseServiceCollectionExtensions.ConnectionStringName}",
             ConnectionString);
         builder.UseSetting($"{JwtOptions.SectionName}:Secret", _jwtSecret);
+        // Uploads go to a temporary folder; the bucket storage has its own tests
+        // against a real S3 API (S3StorageTests).
+        builder.UseSetting($"{StorageOptions.SectionName}:{nameof(StorageOptions.Provider)}", nameof(StorageProvider.Local));
         builder.UseSetting($"{StorageOptions.SectionName}:{nameof(StorageOptions.LocalRoot)}", StorageRoot);
 
         // Every test shares one client address, so the real limits would trip
