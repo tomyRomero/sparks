@@ -19,7 +19,7 @@ public sealed class ImageTests(SparksApiFactory factory)
     private const string AvatarPath = "/api/v1/users/me/avatar";
     private const string ImagesPath = "/api/v1/images";
 
-    /// <summary>A real 1×1 PNG.</summary>
+    /// <summary>A real 1x1 PNG.</summary>
     private static readonly byte[] Png = Convert.FromBase64String(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
 

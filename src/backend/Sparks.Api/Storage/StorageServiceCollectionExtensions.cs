@@ -33,6 +33,8 @@ public static class StorageServiceCollectionExtensions
         }
 
         services.AddScoped<ImageUploadService>();
+        services.AddScoped<UploadSweep>();
+        services.AddHostedService<UploadSweeper>();
         return services;
     }
 }

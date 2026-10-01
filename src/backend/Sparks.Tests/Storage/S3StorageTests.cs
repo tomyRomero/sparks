@@ -10,7 +10,7 @@ namespace Sparks.Tests.Storage;
 /// <summary>Images in a bucket, against a real S3 API with signed requests.</summary>
 public sealed class S3StorageTests : IClassFixture<S3Bucket>, IDisposable
 {
-    /// <summary>A real 1×1 PNG.</summary>
+    /// <summary>A real 1x1 PNG.</summary>
     private static readonly byte[] Png = Convert.FromBase64String(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
 
@@ -47,6 +47,22 @@ public sealed class S3StorageTests : IClassFixture<S3Bucket>, IDisposable
 
         var stored = await _client.GetObjectMetadataAsync(S3Bucket.Name, key, Ct);
         stored.Headers.ContentType.Should().Be("image/png");
+    }
+
+    [Fact]
+    public async Task Listing_a_folder_finds_its_images_with_when_they_were_stored()
+    {
+        var key = NewKey();
+        await _storage.SaveAsync(key, new MemoryStream(Png), Ct);
+
+        List<StoredFile> files = [];
+        await foreach (var file in _storage.ListAsync(StorageKeys.Images, Ct))
+        {
+            files.Add(file);
+        }
+
+        files.Should().ContainSingle(file => file.Key == key)
+            .Which.StoredAt.Should().BeCloseTo(DateTimeOffset.UtcNow, TimeSpan.FromMinutes(5));
     }
 
     [Fact]

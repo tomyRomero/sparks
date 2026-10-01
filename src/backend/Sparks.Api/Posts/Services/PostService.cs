@@ -11,7 +11,7 @@ using Sparks.Api.Users.Models;
 namespace Sparks.Api.Posts.Services;
 
 /// <summary>Sparks: the feed, a single post, and writing, editing, deleting and liking posts.</summary>
-public sealed class PostService(SparksDbContext db, TimeProvider time, IFileStorage storage)
+public sealed class PostService(SparksDbContext db, TimeProvider time, IFileStorage storage, ILogger<PostService> logger)
 {
     /// <summary>Newest posts first, optionally of one kind or matching a search.</summary>
     public Task<CursorPage<PostResponse>> GetFeedAsync(PostFeedQuery query, long? viewerId, CancellationToken ct)
@@ -136,7 +136,7 @@ public sealed class PostService(SparksDbContext db, TimeProvider time, IFileStor
 
         if (imageKey is not null)
         {
-            await storage.DeleteAsync(imageKey, ct);
+            await storage.TryDeleteAsync(imageKey, logger);
         }
     }
 

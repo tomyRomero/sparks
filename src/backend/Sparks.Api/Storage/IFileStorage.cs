@@ -16,4 +16,9 @@ public interface IFileStorage
 
     /// <summary>Removes the file. Removing a file that isn't there is harmless.</summary>
     Task DeleteAsync(string key, CancellationToken ct);
+
+    /// <summary>Every file in a folder (<see cref="StorageKeys.Images"/>, say), with when it was stored.</summary>
+    IAsyncEnumerable<StoredFile> ListAsync(string folder, CancellationToken ct);
 }
+
+public sealed record StoredFile(string Key, DateTimeOffset StoredAt);

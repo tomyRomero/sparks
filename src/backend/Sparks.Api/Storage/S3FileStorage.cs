@@ -1,4 +1,5 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -75,6 +76,26 @@ public sealed class S3FileStorage(IAmazonS3 s3, IOptions<S3StorageOptions> optio
     }
 
     public Task DeleteAsync(string key, CancellationToken ct) => s3.DeleteObjectAsync(_bucket, Checked(key), ct);
+
+    public async IAsyncEnumerable<StoredFile> ListAsync(string folder, [EnumeratorCancellation] CancellationToken ct)
+    {
+        var request = new ListObjectsV2Request { BucketName = _bucket, Prefix = folder + "/" };
+        ListObjectsV2Response page;
+        do
+        {
+            page = await s3.ListObjectsV2Async(request, ct);
+            foreach (var item in page.S3Objects ?? [])
+            {
+                if (StorageKeys.IsValid(item.Key) && item.LastModified is { } storedAt)
+                {
+                    yield return new StoredFile(item.Key, storedAt.ToUniversalTime());
+                }
+            }
+
+            request.ContinuationToken = page.NextContinuationToken;
+        }
+        while (page.IsTruncated == true);
+    }
 
     private static string Checked(string key) =>
         StorageKeys.IsValid(key) ? key : throw new ArgumentException("Not a storage key.", nameof(key));

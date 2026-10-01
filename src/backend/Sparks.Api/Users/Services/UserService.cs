@@ -9,7 +9,8 @@ using Sparks.Api.Users.Models;
 namespace Sparks.Api.Users.Services;
 
 /// <summary>Members: profiles, editing your own, and finding others.</summary>
-public sealed class UserService(SparksDbContext db, ImageUploadService images, IFileStorage storage)
+public sealed class UserService(
+    SparksDbContext db, ImageUploadService images, IFileStorage storage, ILogger<UserService> logger)
 {
     /// <summary>A profile by username, matched without regard to case.</summary>
     public async Task<ProfileResponse> GetProfileAsync(string username, CancellationToken ct) =>
@@ -58,7 +59,7 @@ public sealed class UserService(SparksDbContext db, ImageUploadService images, I
         await me.ExecuteUpdateAsync(set => set.SetProperty(user => user.AvatarKey, key), ct);
         if (previous is not null)
         {
-            await storage.DeleteAsync(previous, ct);
+            await storage.TryDeleteAsync(previous, logger);
         }
 
         return await GetOwnProfileAsync(userId, ct);

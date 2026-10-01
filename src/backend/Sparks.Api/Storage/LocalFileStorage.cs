@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Options;
 
 namespace Sparks.Api.Storage;
@@ -38,6 +39,27 @@ public sealed class LocalFileStorage(IOptions<StorageOptions> options, IHostEnvi
     {
         File.Delete(PathOf(key));
         return Task.CompletedTask;
+    }
+
+    public async IAsyncEnumerable<StoredFile> ListAsync(string folder, [EnumeratorCancellation] CancellationToken ct)
+    {
+        var directory = Path.Combine(_root, folder);
+        if (!Directory.Exists(directory))
+        {
+            yield break;
+        }
+
+        foreach (var path in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories))
+        {
+            ct.ThrowIfCancellationRequested();
+            var key = Path.GetRelativePath(_root, path).Replace(Path.DirectorySeparatorChar, '/');
+            if (StorageKeys.IsValid(key))
+            {
+                yield return new StoredFile(key, File.GetLastWriteTimeUtc(path));
+            }
+        }
+
+        await Task.CompletedTask;
     }
 
     /// <summary>

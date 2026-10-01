@@ -16,6 +16,14 @@ public sealed class StorageOptions
     /// </summary>
     [Required]
     public string LocalRoot { get; set; } = "App_Data/files";
+
+    /// <summary>
+    /// How long an upload nothing uses is kept before the sweep deletes it,
+    /// so a draft being written keeps its picture.
+    /// </summary>
+    public TimeSpan KeepUnusedFor { get; set; } = TimeSpan.FromDays(1);
+
+    public TimeSpan SweepEvery { get; set; } = TimeSpan.FromHours(1);
 }
 
 public enum StorageProvider
