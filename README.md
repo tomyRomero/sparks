@@ -56,7 +56,7 @@ flowchart LR
 
 **Authentication.** BCrypt password hashes, short-lived JWT access tokens and 30-day refresh tokens that rotate on every use and are stored only as SHA-256 hashes. Reusing a rotated token signs the account out everywhere, with a short grace period so parallel server-side renders don't trip it. Sign-in has lockout and per-IP rate limits, error messages never reveal whether an account exists, and a missing account still costs a full BCrypt check so timing doesn't either. Every endpoint requires sign-in unless it opts out.
 
-**Browser security.** Both tokens live in HttpOnly `SameSite=Lax` cookies. CORS allows only the web app, and an Origin check refuses writes and WebSocket handshakes sent from other sites. Uploads are identified by their first bytes, not their name or declared type, and SVG is refused.
+**Browser security.** Both tokens live in HttpOnly `SameSite=Lax` cookies. CORS allows only the web app, and an Origin check refuses writes and WebSocket handshakes sent from other sites. Every page carries a Content Security Policy with a fresh nonce, so only scripts the app rendered itself can run, and no other site can frame it. Uploads are identified by their first bytes, not their name or declared type, and SVG is refused.
 
 **Schema.** Likes, comments and messages each have their own rows; the 2024 version kept them as comma-separated ids and JSON in text columns. A unique key makes a double like impossible, and a check constraint plus a unique index allow one conversation per pair of members and none with yourself. Like and comment counts are computed in queries, so they can't drift. Unread activity is a single timestamp per member rather than a flag on every row.
 

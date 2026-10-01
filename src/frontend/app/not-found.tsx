@@ -1,8 +1,12 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { BoltMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 
-export default function NotFound() {
+export default async function NotFound() {
+  // Rendered per request, like every other page, so its scripts carry the
+  // nonce the Content Security Policy asks for (see proxy.ts).
+  await connection();
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center">
       <BoltMark className="size-12" />
