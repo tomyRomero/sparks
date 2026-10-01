@@ -104,7 +104,7 @@ export function LikeToggle({ like, size = "md" }: { like: LikeControl; size?: "m
       <span className="relative inline-flex">
         <Heart
           // A new element per like, so the pop plays every time.
-          key={burst}
+          key={`heart-${burst}`}
           className={cn(
             size === "sm" ? "size-3.5" : "size-[18px]",
             "transition-transform duration-150 group-active:scale-[0.82]",
@@ -113,7 +113,7 @@ export function LikeToggle({ like, size = "md" }: { like: LikeControl; size?: "m
           )}
           aria-hidden
         />
-        {state.liked && burst > 0 && <LikeBurst key={burst} />}
+        {state.liked && burst > 0 && <LikeBurst key={`burst-${burst}`} />}
       </span>
       {/* A toggle keeps one name ("Like"); aria-pressed says whether it's on. */}
       <span className="sr-only">Like, </span>
