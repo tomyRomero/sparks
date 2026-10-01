@@ -5,7 +5,7 @@ import { PageSkeleton } from "@/components/ui/skeleton";
 export default function EditProfileLoading() {
   return (
     <PageSkeleton label="Loading your profile">
-      <PageHeader title="Edit profile" back="/" />
+      <PageHeader title="Settings" back="/" />
       <ProfileFormSkeleton />
     </PageSkeleton>
   );

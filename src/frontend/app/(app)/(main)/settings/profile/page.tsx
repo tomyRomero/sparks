@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AppearanceSection } from "@/components/profile/appearance-section";
 import { ProfileForm } from "@/components/profile/profile-form";
 import { SignOutSection } from "@/components/profile/sign-out-section";
 import { PageHeader } from "@/components/shell/page-header";
 import { requireViewer } from "@/lib/auth/viewer";
 import { getProfile } from "@/lib/profiles";
 
-export const metadata: Metadata = { title: "Edit profile" };
+export const metadata: Metadata = { title: "Settings" };
 
 export default async function EditProfilePage() {
   const viewer = await requireViewer("/settings/profile");
@@ -16,8 +17,9 @@ export default async function EditProfilePage() {
 
   return (
     <>
-      <PageHeader title="Edit profile" back={`/u/${viewer.username}`} />
+      <PageHeader title="Settings" back={`/u/${viewer.username}`} />
       <ProfileForm profile={profile} />
+      <AppearanceSection />
       <SignOutSection />
     </>
   );

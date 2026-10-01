@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { Agbalumo, Bricolage_Grotesque, Courier_Prime, Instrument_Sans, JetBrains_Mono } from "next/font/google";
+import { THEME_COOKIE, toTheme } from "@/lib/preferences";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -28,14 +30,16 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = toTheme((await cookies()).get(THEME_COOKIE)?.value);
   return (
     <html
       lang="en"
+      data-theme={theme === "system" ? undefined : theme}
       className={`${instrumentSans.variable} ${bricolage.variable} ${jetbrainsMono.variable} ${agbalumo.variable} ${courierPrime.variable}`}
     >
       <body>
-        <Providers>{children}</Providers>
+        <Providers theme={theme}>{children}</Providers>
       </body>
     </html>
   );

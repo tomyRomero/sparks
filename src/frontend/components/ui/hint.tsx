@@ -7,11 +7,13 @@ type HintProps = {
   side?: "top" | "right" | "bottom" | "left";
   /** One element that takes a ref, such as a link or a button. It keeps its own accessible name. */
   children: React.ReactElement;
+  /** Never shows, for when the label is already on screen. */
+  disabled?: boolean;
 };
 
-export function Hint({ label, side = "right", children }: HintProps) {
+export function Hint({ label, side = "right", children, disabled = false }: HintProps) {
   return (
-    <Tooltip.Root>
+    <Tooltip.Root open={disabled ? false : undefined}>
       <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Content

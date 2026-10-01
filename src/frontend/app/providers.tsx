@@ -4,8 +4,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { useState } from "react";
 import { Toaster } from "sonner";
+import type { Theme } from "@/lib/preferences";
+import { ThemeProvider, useTheme } from "@/lib/theme";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ theme, children }: { theme: Theme; children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -20,9 +22,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Tooltip.Provider delayDuration={300}>{children}</Tooltip.Provider>
-      <Toaster position="bottom-center" toastOptions={{ className: "font-sans" }} />
-    </QueryClientProvider>
+    <ThemeProvider initial={theme}>
+      <QueryClientProvider client={queryClient}>
+        <Tooltip.Provider delayDuration={300}>{children}</Tooltip.Provider>
+        <Toasts />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
+}
+
+function Toasts() {
+  const { theme } = useTheme();
+  return <Toaster position="bottom-center" theme={theme} toastOptions={{ className: "font-sans" }} />;
 }

@@ -6,7 +6,7 @@ import { WhosAround } from "./whos-around";
 
 export function RightRail({ viewer }: { viewer: CurrentUser | null }) {
   return (
-    <aside className="sticky top-0 hidden h-dvh w-[312px] shrink-0 flex-col gap-4 overflow-y-auto py-6 xl:flex">
+    <aside className="sticky top-0 hidden h-dvh w-[320px] shrink-0 [scrollbar-width:thin] flex-col gap-4 overflow-y-auto py-6 xl:flex 2xl:w-[360px]">
       {viewer ? (
         <QuickDraft />
       ) : (

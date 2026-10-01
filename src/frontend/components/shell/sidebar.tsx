@@ -1,26 +1,35 @@
 "use client";
 
+import { LogIn, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BoltMark, Logo } from "@/components/brand/logo";
+import { useState } from "react";
+import { BoltMark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Hint } from "@/components/ui/hint";
 import { PendingIcon } from "@/components/ui/pending-icon";
 import type { CurrentUser } from "@/lib/api/types";
+import { SIDEBAR_COOKIE, savePreference } from "@/lib/preferences";
 import { useUnreadActivity, useUnreadMessages } from "@/lib/queries/unread";
+import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 import { isActive, navItems } from "./nav-items";
+import { alignWhenExpanded, whenExpanded } from "./sidebar-styles";
+import { ThemeSwitch } from "./theme-switch";
 import { UnreadBadge } from "./unread-badge";
 import { ViewerMenu } from "./viewer-menu";
 
 type SidebarProps = {
   viewer: CurrentUser | null;
-  /** Icons only, for pages that need the width (the messenger). */
-  compact?: boolean;
+  /** The member's choice, from a cookie. Below 1024px it's icons only regardless. */
+  collapsed: boolean;
 };
 
-export function Sidebar({ viewer, compact = false }: SidebarProps) {
+export function Sidebar({ viewer, collapsed: initiallyCollapsed }: SidebarProps) {
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(initiallyCollapsed);
+  const wide = useMediaQuery("(min-width: 1024px)");
+  const iconsOnly = collapsed || !wide;
   const signedIn = viewer !== null;
   const { data: unreadActivity } = useUnreadActivity(signedIn);
   const { data: unreadMessages } = useUnreadMessages(signedIn);
@@ -29,102 +38,117 @@ export function Sidebar({ viewer, compact = false }: SidebarProps) {
   const sections = items.filter((item) => !item.action);
   const action = items.find((item) => item.action);
 
-  if (compact) {
-    return (
-      <nav
-        aria-label="Main"
-        className="sticky top-0 hidden h-dvh w-[76px] shrink-0 flex-col items-center gap-2 border-r border-line bg-surface py-5 md:flex"
+  function toggle() {
+    setCollapsed(!collapsed);
+    savePreference(SIDEBAR_COOKIE, collapsed ? "expanded" : "collapsed");
+  }
+
+  return (
+    <nav
+      aria-label="Main"
+      data-expanded={!collapsed}
+      className="group/nav sticky top-0 hidden h-dvh w-[76px] shrink-0 flex-col gap-1 border-r border-line bg-surface/60 px-3 py-5 transition-[width] duration-200 ease-out md:flex lg:data-[expanded=true]:w-[264px]"
+    >
+      <Link
+        href="/"
+        aria-label="Sparks home"
+        className={cn("mb-5 flex items-center gap-2.5 rounded-xl px-1", alignWhenExpanded)}
       >
-        <Hint label="Home">
-          <Link href="/" aria-label="Sparks home" className="mb-3 rounded-md">
-            <BoltMark className="size-10 rounded-[11px]" />
-          </Link>
-        </Hint>
+        <BoltMark className="size-10 shrink-0 rounded-[11px]" />
+        <span className={cn("font-wordmark text-[26px] leading-none text-ink", whenExpanded)}>Sparks</span>
+      </Link>
+
+      <ul className="grid gap-1">
         {sections.map((item) => {
           const active = isActive(item.href, pathname);
           const count = item.badge ? counts[item.badge] : undefined;
           return (
-            <Hint key={item.href} label={item.label}>
-              <Link
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                aria-label={count ? `${item.label}, ${count} unread` : item.label}
-                className={cn(
-                  "relative inline-flex size-12 items-center justify-center rounded-[14px] text-ink-soft transition-colors hover:bg-raised hover:text-ink",
-                  active && "bg-brand-soft text-brand hover:bg-brand-soft hover:text-brand",
-                )}
-              >
-                <PendingIcon icon={item.icon} className="size-[22px]" />
-                <UnreadBadge count={count} className="absolute top-1.5 right-1 border-2 border-surface" />
-              </Link>
-            </Hint>
-          );
-        })}
-        {action && (
-          <Hint label={action.label}>
-            <Link
-              href={action.href}
-              aria-label={action.label}
-              className="mt-2 inline-flex size-12 items-center justify-center rounded-full bg-brand text-brand-ink transition-colors hover:bg-brand-hover"
-            >
-              <PendingIcon icon={action.icon} className="size-[22px]" />
-            </Link>
-          </Hint>
-        )}
-        <div className="mt-auto">{viewer && <ViewerMenu viewer={viewer} compact />}</div>
-      </nav>
-    );
-  }
-
-  return (
-    <nav aria-label="Main" className="sticky top-0 hidden h-dvh w-[248px] shrink-0 flex-col gap-6 px-3 py-6 md:flex">
-      <Link href="/" className="self-start rounded-md px-3" aria-label="Sparks home">
-        <Logo />
-      </Link>
-      <ul className="grid gap-1">
-        {sections.map((item) => {
-          const active = isActive(item.href, pathname);
-          return (
             <li key={item.href}>
-              <Link
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex h-[46px] items-center gap-3.5 rounded-xl px-3.5 text-base text-ink-soft transition-colors hover:bg-raised hover:text-ink",
-                  active && "bg-brand-soft font-semibold text-brand hover:bg-brand-soft hover:text-brand",
-                )}
-              >
-                <PendingIcon icon={item.icon} className="size-[22px]" />
-                <span className="flex-1">{item.label}</span>
-                {item.badge && (
-                  <UnreadBadge count={counts[item.badge]} className="h-[22px] min-w-[22px] text-[11px]" spoken />
-                )}
-              </Link>
+              <Hint label={item.label} disabled={!iconsOnly}>
+                <Link
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  aria-label={count ? `${item.label}, ${count} unread` : item.label}
+                  className={cn(
+                    "relative flex h-12 items-center gap-3.5 rounded-[14px] px-3 text-[15.5px] text-ink-soft transition-colors hover:bg-raised hover:text-ink",
+                    alignWhenExpanded,
+                    active && "bg-brand-soft font-semibold text-brand hover:bg-brand-soft hover:text-brand",
+                  )}
+                >
+                  <PendingIcon icon={item.icon} className="size-[22px] shrink-0" />
+                  <span className={cn("flex-1 truncate", whenExpanded)}>{item.label}</span>
+                  <UnreadBadge
+                    count={count}
+                    className="absolute top-1.5 right-1.5 border-2 border-surface lg:group-data-[expanded=true]/nav:static lg:group-data-[expanded=true]/nav:border-0"
+                  />
+                </Link>
+              </Hint>
             </li>
           );
         })}
       </ul>
+
       {action && (
-        <Button asChild size="lg" className="h-[50px] rounded-[14px] text-[15.5px]">
-          <Link href={action.href}>
-            <PendingIcon icon={action.icon} className="size-[19px]" />
-            {action.label}
+        <Hint label={action.label} disabled={!iconsOnly}>
+          <Link
+            href={action.href}
+            aria-label={action.label}
+            className="mt-3 inline-flex h-12 w-12 items-center justify-center gap-2 self-center rounded-full bg-brand text-[15.5px] font-semibold text-brand-ink shadow-[0_8px_20px_-10px_var(--brand)] transition-[background-color,transform] hover:bg-brand-hover active:scale-[0.97] lg:group-data-[expanded=true]/nav:w-full lg:group-data-[expanded=true]/nav:rounded-[14px]"
+          >
+            <PendingIcon icon={action.icon} className="size-5 shrink-0" />
+            <span className={whenExpanded}>{action.label}</span>
           </Link>
-        </Button>
+        </Hint>
       )}
-      <div className="mt-auto">
+
+      <div className="mt-auto grid gap-2">
+        <Hint label={collapsed ? "Expand sidebar" : "Collapse sidebar"} disabled={!collapsed}>
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className={cn(
+              "hidden h-10 items-center gap-3 rounded-xl px-3 text-sm text-muted transition-colors hover:bg-raised hover:text-ink lg:flex",
+              alignWhenExpanded,
+            )}
+          >
+            {collapsed ? (
+              <PanelLeftOpen className="size-5 shrink-0" aria-hidden />
+            ) : (
+              <PanelLeftClose className="size-5 shrink-0" aria-hidden />
+            )}
+            <span className={whenExpanded}>Collapse</span>
+          </button>
+        </Hint>
+
         {viewer ? (
           <ViewerMenu viewer={viewer} />
         ) : (
-          <div className="grid gap-2 rounded-[18px] border border-line bg-surface p-4 shadow-card">
-            <p className="text-sm text-ink-soft">Join to post, like, comment and chat.</p>
-            <Button asChild size="sm">
-              <Link href="/sign-up">Create account</Link>
-            </Button>
-            <Button asChild size="sm" variant="secondary">
-              <Link href={`/sign-in?next=${encodeURIComponent(pathname)}`}>Sign in</Link>
-            </Button>
-          </div>
+          <>
+            <div
+              className={cn(
+                "hidden gap-2 rounded-[18px] border border-line bg-surface p-4 shadow-card lg:group-data-[expanded=true]/nav:grid",
+              )}
+            >
+              <p className="text-sm text-ink-soft">Join to post, like, comment and chat.</p>
+              <Button asChild size="sm">
+                <Link href="/sign-up">Create account</Link>
+              </Button>
+              <Button asChild size="sm" variant="secondary">
+                <Link href={`/sign-in?next=${encodeURIComponent(pathname)}`}>Sign in</Link>
+              </Button>
+              <ThemeSwitch className="mt-1 self-start" />
+            </div>
+            <Hint label="Sign in" disabled={!iconsOnly}>
+              <Link
+                href={`/sign-in?next=${encodeURIComponent(pathname)}`}
+                aria-label="Sign in"
+                className="inline-flex size-12 items-center justify-center self-center rounded-[14px] text-ink-soft hover:bg-raised hover:text-ink lg:group-data-[expanded=true]/nav:hidden"
+              >
+                <LogIn className="size-[22px]" aria-hidden />
+              </Link>
+            </Hint>
+          </>
         )}
       </div>
     </nav>
