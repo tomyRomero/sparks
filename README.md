@@ -6,11 +6,12 @@ Sparks started in 2024 as a Next.js app built on Clerk, MySQL on RDS, S3, Pusher
 
 ## Features
 
-- **Sparks of ten kinds.** Plain posts plus nine creative kinds, with a filterable, infinitely scrolling feed.
+- **Sparks of ten kinds, each with its own card.** Plain posts plus nine creative kinds, in a filterable, infinitely scrolling feed. A movie script plays on a dark screen with its title over the poster, a book plot sits beside its cover, a haiku is set as a poem, and a joke keeps its punchline back until you tap.
 - **AI drafting.** Describe an idea and get a draft to edit before posting; visual kinds also get a generated picture. Text comes from Google Gemini, pictures from Cloudflare Workers AI, or from built-in sample providers when no keys are set.
 - **Threaded comments.** Replies nest under comments, and each comment has its own page. Authors can edit and delete their own posts and comments, and a delete removes the whole subtree.
 - **Likes.** Posts and comments update immediately, and every list showing the item stays in sync.
-- **Live messaging.** Private conversations over SignalR, with typing indicators, read receipts and unread badges.
+- **Live messaging.** A two-pane messenger over SignalR: conversations grouped by day, typing indicators, read receipts, unread badges, messages that show the moment they're sent, and any spark shared straight into a chat.
+- **Online status.** Who's online now and when everyone else was last around, kept current over the same live connection.
 - **Activity.** Who liked or replied to your sparks and comments, with an unread count.
 - **Profiles and search.** Profile pages with posts, comments and likes; avatar upload; search across sparks and members.
 - **Accounts.** Sign-up, sign-in and password reset, built from scratch rather than on a hosted auth service.
@@ -60,6 +61,8 @@ flowchart LR
 **Schema.** Likes, comments and messages each have their own rows; the 2024 version kept them as comma-separated ids and JSON in text columns. A unique key makes a double like impossible, and a check constraint plus a unique index allow one conversation per pair of members and none with yourself. Like and comment counts are computed in queries, so they can't drift. Unread activity is a single timestamp per member rather than a flag on every row.
 
 **Concurrency.** An edit or delete checks authorship inside the same statement that writes, so nothing can change between the check and the write. Deleting a comment removes its replies in one recursive statement with lock hints, so a reply written at the same moment gets a 404 instead of breaking the delete. Foreign-key and unique-key races become 404s and no-ops, not 500s.
+
+**Presence.** Connections are counted per member in memory, so several tabs count once. A member stays online for a short grace period after their last connection closes, so a page reload or a token refresh doesn't read as leaving and coming back; a background sweep then saves when they were last seen and tells everyone. One instance's memory is enough for one API instance; more would need a shared store, as SignalR would need a backplane.
 
 **Paging.** Every list pages by cursor rather than page number, so new posts never shift a page. Activity merges three tables, so its cursor carries the whole sort key, encoded as an opaque token.
 
@@ -149,13 +152,14 @@ The API tests run each feature over HTTP through `WebApplicationFactory` against
 src/
 ├── backend/
 │   ├── Sparks.Api/         One project, a folder per feature
-│   │   ├── Auth/  Posts/  Users/  Activity/  Chat/  Storage/  Ai/  Realtime/
+│   │   ├── Auth/  Posts/  Users/  Activity/  Chat/  Presence/  Storage/  Ai/  Realtime/
 │   │   ├── Common/         Errors, paging, security middleware, rate limits
 │   │   ├── Migrations/     EF Core migrations
 │   │   └── Seeding/        Demo data (`dotnet run -- seed`)
 │   └── Sparks.Tests/       Integration tests, mirroring the feature folders
 └── frontend/
-    ├── app/                Routes: (auth) for signed-out pages, (app) for the rest
+    ├── app/                Routes: (auth) for signed-out pages, (app) for the rest,
+    │                       with (app)/(main) in three columns and messages full width
     ├── components/         UI by feature
     └── lib/
         ├── api/            Typed API client for server and browser
