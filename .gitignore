@@ -13,6 +13,9 @@ src/frontend/.next/
 src/frontend/out/
 src/frontend/build/
 src/frontend/coverage/
+src/frontend/playwright-report/
+src/frontend/test-results/
+src/frontend/.lighthouseci/
 *.tsbuildinfo
 next-env.d.ts
 .vercel

@@ -75,3 +75,118 @@ jobs:
 
       - name: Tests
         run: dotnet test --solution sparks.slnx --no-build --configuration Release
+
+  e2e:
+    name: End to end (Playwright, axe, Lighthouse)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DOTNET_NOLOGO: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      NEXT_TELEMETRY_DISABLED: 1
+      # A throwaway stack: the API in Development, so it migrates and can
+      # seed, with files on disk and the sample AI providers (no keys).
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://localhost:5100
+      Frontend__BaseUrl: http://localhost:3100
+      Storage__Provider: Local
+      Ai__TextProvider: Sample
+      Ai__ImageProvider: Sample
+      API_URL: http://localhost:5100
+      SITE_URL: http://localhost:3100
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: src/frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+
+      # Made for this run only and masked in the log.
+      - name: Make throwaway secrets
+        run: |
+          sa="Sp-$(openssl rand -hex 16)"
+          jwt="$(openssl rand -base64 48)"
+          seed="demo-$(openssl rand -hex 8)"
+          echo "::add-mask::$sa"
+          echo "::add-mask::$jwt"
+          echo "::add-mask::$seed"
+          {
+            echo "SA_PASSWORD=$sa"
+            echo "Jwt__Secret=$jwt"
+            echo "Seed__Password=$seed"
+            echo "ConnectionStrings__SparksDb=Server=localhost,1433;Database=Sparks;User Id=sa;Password=$sa;TrustServerCertificate=True"
+          } >> "$GITHUB_ENV"
+
+      - name: Start SQL Server
+        run: |
+          docker run -d --name sql -p 127.0.0.1:1433:1433 --memory 2g \
+            -e ACCEPT_EULA=Y -e MSSQL_PID=Developer -e MSSQL_SA_PASSWORD="$SA_PASSWORD" \
+            mcr.microsoft.com/mssql/server:2025-latest
+          for _ in $(seq 1 90); do
+            if docker exec -e SQLCMDPASSWORD="$SA_PASSWORD" sql \
+              /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -Q "SELECT 1" > /dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs sql
+          exit 1
+
+      - name: Build the API
+        run: dotnet build src/backend/Sparks.Api --configuration Release
+
+      # Lighthouse measures pages with real content: the demo members and their sparks.
+      - name: Seed demo data
+        run: dotnet run --project src/backend/Sparks.Api --configuration Release --no-build --no-launch-profile -- seed
+
+      - name: Start the API
+        run: |
+          nohup dotnet run --project src/backend/Sparks.Api --configuration Release --no-build --no-launch-profile \
+            > "$RUNNER_TEMP/api.log" 2>&1 &
+          for _ in $(seq 1 60); do
+            curl -sf http://localhost:5100/health/ready > /dev/null && exit 0
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/api.log"
+          exit 1
+
+      - name: Build and start the web app
+        working-directory: src/frontend
+        run: |
+          npm ci
+          npm run build
+          nohup npm run start > "$RUNNER_TEMP/web.log" 2>&1 &
+          for _ in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:3100/sign-in && exit 0
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/web.log"
+          exit 1
+
+      - name: End-to-end tests
+        working-directory: src/frontend
+        run: npm run e2e
+
+      # Fails the build when the feed, a profile or sign-in gets slow.
+      - name: Lighthouse budget
+        working-directory: src/frontend
+        run: npx --yes @lhci/cli@0.15.1 autorun
+
+      - name: Keep the reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-reports
+          path: |
+            src/frontend/playwright-report
+            src/frontend/test-results
+            src/frontend/.lighthouseci
+            ${{ runner.temp }}/api.log
+            ${{ runner.temp }}/web.log
+          retention-days: 7

@@ -160,9 +160,13 @@ npm test
 npm run lint
 npm run format:check
 npm run typecheck
+
+# End to end: Playwright drives your installed Chrome through a running stack
+# (the web app on 3100, or E2E_BASE_URL), with axe checks in light and dark.
+npm run e2e
 ```
 
-The API tests run each feature over HTTP through `WebApplicationFactory` against a real database, covering the rules above: token rotation and reuse, authorship, cascading deletes, race outcomes, cursor paging, upload sniffing, rate limits and SignalR delivery. CI runs both suites on pushes and pull requests.
+The API tests run each feature over HTTP through `WebApplicationFactory` against a real database, covering the rules above: token rotation and reuse, authorship, cascading deletes, race outcomes, cursor paging, upload sniffing, rate limits and SignalR delivery. CI runs both suites on pushes and pull requests, then starts the whole stack and runs the browser tests and a Lighthouse budget (performance 90 or better, accessibility 100) against it.
 
 ## Project layout
 
