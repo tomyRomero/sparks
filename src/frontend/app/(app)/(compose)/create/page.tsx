@@ -15,12 +15,12 @@ export default async function CreatePage({ searchParams }: PageProps<"/create">)
 
   // Guests come back to the same composer after signing in.
   const query = new URLSearchParams({ ...(withAi && { ai: "1" }), ...(kind && { kind }), ...(idea && { idea }) });
-  await requireViewer(query.size > 0 ? `/create?${query}` : "/create");
+  const viewer = await requireViewer(query.size > 0 ? `/create?${query}` : "/create");
 
   return (
     <>
       <PageHeader title="New spark" back="/" />
-      <Composer startWithAi={withAi} initialKind={kind} initialIdea={idea} />
+      <Composer viewer={viewer} startWithAi={withAi} initialKind={kind} initialIdea={idea} />
     </>
   );
 }

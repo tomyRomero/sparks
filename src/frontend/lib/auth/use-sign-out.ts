@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
+import { forgetAllDrafts } from "@/lib/compose-draft";
 import { forgetAllSearches } from "@/lib/recent-searches";
 
 /** `signingOut` stays true until the next page renders, so the control never looks idle. */
@@ -26,6 +27,7 @@ export function useSignOut() {
     // Nothing of theirs stays for whoever uses this browser next.
     queryClient.clear();
     forgetAllSearches();
+    forgetAllDrafts();
     toast.success("Signed out. See you soon.");
     router.replace("/");
     router.refresh();
