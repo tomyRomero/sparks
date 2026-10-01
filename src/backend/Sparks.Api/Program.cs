@@ -83,6 +83,7 @@ try
     builder.Services.AddScoped<CommentService>();
     builder.Services.AddScoped<UserService>();
     builder.Services.AddScoped<ActivityService>();
+    builder.Services.AddScoped<ActivityNotifier>();
     builder.Services.AddScoped<ChatService>();
     builder.Services.AddSparksHealthChecks();
 

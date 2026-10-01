@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Sparks.Api.Activity.Services;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
@@ -11,30 +12,45 @@ using Sparks.Api.Users.Models;
 namespace Sparks.Api.Posts.Services;
 
 /// <summary>Sparks: the feed, a single post, and writing, editing, deleting and liking posts.</summary>
-public sealed class PostService(SparksDbContext db, TimeProvider time, IFileStorage storage, ILogger<PostService> logger)
+public sealed class PostService(
+    SparksDbContext db, TimeProvider time, IFileStorage storage, ActivityNotifier activity, ILogger<PostService> logger)
 {
-    /// <summary>Newest posts first, optionally of one kind or matching a search.</summary>
-    public Task<CursorPage<PostResponse>> GetFeedAsync(PostFeedQuery query, long? viewerId, CancellationToken ct)
+    /// <summary>Newest posts first, of some kinds, with pictures, or matching a search.</summary>
+    public Task<CursorPage<PostResponse>> GetFeedAsync(PostFeedQuery query, long? viewerId, CancellationToken ct) =>
+        PageAsync(Filter(db.Posts.AsNoTracking(), query.Kind, query.Pictures, query.Q), query, viewerId, ct);
+
+    /// <summary>How many posts a search finds, for the tab that shows them.</summary>
+    public Task<int> CountMatchingAsync(string q, CancellationToken ct) =>
+        Filter(db.Posts, kinds: [], pictures: false, q).CountAsync(ct);
+
+    /// <summary>
+    /// The most liked posts of the last <see cref="TopPostsQuery.Days"/> days,
+    /// newest first among equals. Likes can change between pages, so a post
+    /// may move; the cursor holds the like count and the id.
+    /// </summary>
+    public async Task<OpaqueCursorPage<PostResponse>> GetTopAsync(TopPostsQuery query, long? viewerId, CancellationToken ct)
     {
-        var posts = db.Posts.AsNoTracking();
-        if (query.Kind is { } kind)
+        var since = time.GetUtcNow().UtcDateTime - TimeSpan.FromDays(query.Days);
+        var posts = Filter(db.Posts.AsNoTracking().Where(post => post.CreatedAt >= since), query.Kind, query.Pictures, q: null);
+        if (query.Cursor is not null)
         {
-            posts = posts.Where(post => post.Kind == kind);
+            if (OpaqueCursor.Decode(query.Cursor, partCount: 2) is not [var likes, var id])
+            {
+                throw ApiException.BadRequest("INVALID_CURSOR", "That cursor didn't come from this API.");
+            }
+
+            posts = posts.Where(post => post.Likes.Count < likes || (post.Likes.Count == likes && post.Id < id));
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Q))
-        {
-            // Case-insensitive through the column collation. A substring
-            // search scans, which is fine at Sparks' size; full-text indexing
-            // would replace it at scale.
-            var text = query.Q.Trim();
-            posts = posts.Where(post =>
-                post.Body.Contains(text)
-                || post.Author.Username.Contains(text)
-                || post.Author.DisplayName.Contains(text));
-        }
-
-        return PageAsync(posts, query, viewerId, ct);
+        var fetched = await posts
+            .OrderByDescending(post => post.Likes.Count)
+            .ThenByDescending(post => post.Id)
+            .Take(query.Limit + 1)
+            .Select(ToResponse(viewerId))
+            .ToListAsync(ct);
+        var page = fetched.Take(query.Limit).ToList();
+        var nextCursor = fetched.Count > query.Limit ? OpaqueCursor.Encode(page[^1].LikeCount, page[^1].Id) : null;
+        return new OpaqueCursorPage<PostResponse>(page, nextCursor);
     }
 
     /// <summary>One member's posts, newest first.</summary>
@@ -154,6 +170,7 @@ public sealed class PostService(SparksDbContext db, TimeProvider time, IFileStor
             try
             {
                 await db.SaveChangesAsync(ct);
+                await activity.PostLikedAsync(postId, userId, ct);
             }
             catch (DbUpdateException ex) when (ex.IsUniqueViolation())
             {
@@ -208,6 +225,35 @@ public sealed class PostService(SparksDbContext db, TimeProvider time, IFileStor
                 new UserSummary(
                     comment.Author.Id, comment.Author.Username, comment.Author.DisplayName, FileUrls.Of(comment.Author.AvatarKey))))
             .FirstOrDefault());
+
+    private static IQueryable<PostEntity> Filter(IQueryable<PostEntity> posts, SparkKind[] kinds, bool pictures, string? q)
+    {
+        // Query strings bind numbers too, so anything undefined is dropped.
+        var known = kinds.Where(Enum.IsDefined).Distinct().ToArray();
+        if (known.Length > 0)
+        {
+            posts = posts.Where(post => known.Contains(post.Kind));
+        }
+
+        if (pictures)
+        {
+            posts = posts.Where(post => post.ImageKey != null);
+        }
+
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            // Case-insensitive through the column collation. A substring
+            // search scans, which is fine at Sparks' size; full-text indexing
+            // would replace it at scale.
+            var text = q.Trim();
+            posts = posts.Where(post =>
+                post.Body.Contains(text)
+                || post.Author.Username.Contains(text)
+                || post.Author.DisplayName.Contains(text));
+        }
+
+        return posts;
+    }
 
     private static async Task<CursorPage<PostResponse>> PageAsync(
         IQueryable<PostEntity> posts, PageRequest page, long? viewerId, CancellationToken ct)

@@ -1,3 +1,4 @@
+using Sparks.Api.Activity.Models;
 using Sparks.Api.Chat.Models;
 using Sparks.Api.Presence.Models;
 
@@ -17,6 +18,9 @@ public interface IRealtimeClient
 
     /// <summary>A member came online or went offline; sent to every signed-in member.</summary>
     Task PresenceChanged(PresenceResponse presence);
+
+    /// <summary>Someone liked or answered the member's post or comment.</summary>
+    Task ActivityReceived(ActivityNotice notice);
 }
 
 /// <param name="ReaderId">Who read them.</param>

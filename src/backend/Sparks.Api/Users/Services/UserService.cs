@@ -78,23 +78,31 @@ public sealed class UserService(
     /// </summary>
     public async Task<CursorPage<UserSummary>> SearchAsync(UserSearchQuery query, long? viewerId, CancellationToken ct)
     {
+        var fetched = await Matching(query.Q, viewerId)
+            .NewestFirst(query)
+            .Select(user => new UserSummary(user.Id, user.Username, user.DisplayName, FileUrls.Of(user.AvatarKey)))
+            .ToListAsync(ct);
+        return CursorPage.From(fetched, query.Limit, user => user.Id);
+    }
+
+    public Task<int> CountMatchingAsync(string q, long? viewerId, CancellationToken ct) =>
+        Matching(q, viewerId).CountAsync(ct);
+
+    private IQueryable<UserEntity> Matching(string? q, long? viewerId)
+    {
         var users = db.Users.AsNoTracking();
         if (viewerId is { } self)
         {
             users = users.Where(user => user.Id != self);
         }
 
-        if (!string.IsNullOrWhiteSpace(query.Q))
+        if (!string.IsNullOrWhiteSpace(q))
         {
-            var text = query.Q.Trim();
+            var text = q.Trim();
             users = users.Where(user => user.Username.Contains(text) || user.DisplayName.Contains(text));
         }
 
-        var fetched = await users
-            .NewestFirst(query)
-            .Select(user => new UserSummary(user.Id, user.Username, user.DisplayName, FileUrls.Of(user.AvatarKey)))
-            .ToListAsync(ct);
-        return CursorPage.From(fetched, query.Limit, user => user.Id);
+        return users;
     }
 
     /// <summary>The profile projection, with its counts computed in SQL.</summary>

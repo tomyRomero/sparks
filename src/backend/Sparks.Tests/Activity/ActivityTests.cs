@@ -2,6 +2,7 @@ using System.Net;
 using FluentAssertions;
 using Sparks.Api.Activity.Models;
 using Sparks.Api.Common.Models;
+using Sparks.Api.Realtime;
 using Sparks.Tests.Infrastructure;
 
 namespace Sparks.Tests.Activity;
@@ -37,7 +38,7 @@ public sealed class ActivityTests(SparksApiFactory factory)
             item => item.Should().BeEquivalentTo(new
             {
                 Kind = ActivityKind.Comment,
-                Actor = new { thirdUser.Username },
+                Actors = new[] { new { thirdUser.Username } },
                 PostId = myPost.Id,
                 CommentId = (long?)replyOnMyPost.Id,
                 Excerpt = "A reply on my post",
@@ -45,7 +46,7 @@ public sealed class ActivityTests(SparksApiFactory factory)
             item => item.Should().BeEquivalentTo(new
             {
                 Kind = ActivityKind.CommentLike,
-                Actor = new { otherUser.Username },
+                Actors = new[] { new { otherUser.Username } },
                 PostId = othersPost.Id,
                 CommentId = (long?)myComment.Id,
                 Excerpt = "My comment",
@@ -78,9 +79,9 @@ public sealed class ActivityTests(SparksApiFactory factory)
     public async Task Marking_read_counts_only_later_activity_as_unread()
     {
         var (me, _) = await factory.SignedInClientAsync(Ct);
-        var post = await me.CreatePostAsync("Popular", Ct);
         for (var i = 0; i < 3; i++)
         {
+            var post = await me.CreatePostAsync($"Popular {i}", Ct);
             var (fan, _) = await factory.SignedInClientAsync(Ct);
             await LikePostAsync(fan, post.Id);
         }
@@ -113,9 +114,9 @@ public sealed class ActivityTests(SparksApiFactory factory)
     public async Task Activity_pages_with_an_opaque_cursor()
     {
         var (me, _) = await factory.SignedInClientAsync(Ct);
-        var post = await me.CreatePostAsync("Busy", Ct);
         for (var i = 0; i < 3; i++)
         {
+            var post = await me.CreatePostAsync($"Busy {i}", Ct);
             var (fan, _) = await factory.SignedInClientAsync(Ct);
             await LikePostAsync(fan, post.Id);
         }
@@ -130,6 +131,73 @@ public sealed class ActivityTests(SparksApiFactory factory)
         second.NextCursor.Should().BeNull();
         forged.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         (await forged.ProblemCodeAsync(Ct)).Should().Be("INVALID_CURSOR");
+    }
+
+    [Fact]
+    public async Task Likes_on_one_spark_fold_into_one_item_with_the_latest_likers_first()
+    {
+        var (me, _) = await factory.SignedInClientAsync(Ct);
+        var post = await me.CreatePostAsync("Crowd pleaser", Ct);
+        List<string> likers = [];
+        for (var i = 0; i < 4; i++)
+        {
+            var (fan, fanUser) = await factory.SignedInClientAsync(Ct);
+            await LikePostAsync(fan, post.Id);
+            likers.Add(fanUser.Username);
+        }
+
+        var activity = await me.GetJsonAsync<OpaqueCursorPage<ActivityItem>>(ActivityPath, Ct);
+
+        var item = activity.Items.Should().ContainSingle().Subject;
+        item.Kind.Should().Be(ActivityKind.PostLike);
+        item.Count.Should().Be(4);
+        item.Actors.Select(actor => actor.Username).Should().Equal(likers[3], likers[2], likers[1]);
+        (await UnreadCountAsync(me)).Should().Be(4, "the badge counts every like");
+    }
+
+    [Theory]
+    [InlineData("likes", ActivityKind.PostLike)]
+    [InlineData("comments", ActivityKind.Comment)]
+    [InlineData("replies", ActivityKind.Reply)]
+    public async Task Activity_filters_by_sort(string filter, ActivityKind expected)
+    {
+        var (me, _) = await factory.SignedInClientAsync(Ct);
+        var (other, _) = await factory.SignedInClientAsync(Ct);
+        var myPost = await me.CreatePostAsync("Mine", Ct);
+        var myComment = await me.CommentAsync(myPost.Id, "Mine too", Ct);
+        await LikePostAsync(other, myPost.Id);
+        await other.CommentAsync(myPost.Id, "A comment", Ct);
+        await other.ReplyAsync(myComment.Id, "A reply", Ct);
+
+        var activity = await me.GetJsonAsync<OpaqueCursorPage<ActivityItem>>($"{ActivityPath}?filter={filter}", Ct);
+
+        activity.Items.Should().ContainSingle().Which.Kind.Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task New_activity_is_pushed_live_to_the_member_its_about()
+    {
+        var (me, meUser, myToken) = await factory.SignedInWithTokenAsync(Ct);
+        var (fan, fanUser) = await factory.SignedInClientAsync(Ct);
+        var post = await me.CreatePostAsync("Watch this", Ct);
+        await using var live = await factory.ConnectLiveAsync(myToken, Ct);
+        var liked = live.NextAsync<ActivityNotice>(nameof(IRealtimeClient.ActivityReceived), Ct);
+        var commented = live.NextAsync<ActivityNotice>(
+            nameof(IRealtimeClient.ActivityReceived), Ct, notice => notice.Kind == ActivityKind.Comment);
+
+        await LikePostAsync(fan, post.Id);
+        await fan.CommentAsync(post.Id, "Nice one", Ct);
+        await LikePostAsync(me, post.Id);
+
+        (await liked).Should().BeEquivalentTo(new
+        {
+            Kind = ActivityKind.PostLike,
+            Actor = new { fanUser.Username },
+            PostId = post.Id,
+            Excerpt = "Watch this",
+        });
+        (await commented).Excerpt.Should().Be("Nice one");
+        meUser.Id.Should().NotBe(fanUser.Id);
     }
 
     [Fact]

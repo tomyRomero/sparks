@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Sparks.Api.Common.Models;
 using Sparks.Api.Users.Models;
 
 namespace Sparks.Api.Activity.Models;
@@ -19,18 +20,38 @@ public enum ActivityKind
     Reply,
 }
 
-/// <summary>One thing someone else did to the member's posts or comments.</summary>
+/// <summary>Something others did to the member's posts or comments; likes on one thing come as one item.</summary>
+/// <param name="At">When the latest of it happened.</param>
+/// <param name="Actors">Who did it, latest first, up to three.</param>
+/// <param name="Count">How many did it: one for a comment or reply, every liker for a like.</param>
 /// <param name="CommentId">The comment liked, or the new comment or reply; null for a post like.</param>
 /// <param name="Excerpt">The start of the post or comment liked, or of the new comment.</param>
 /// <param name="Unread">Newer than the point the member last marked as read.</param>
 public sealed record ActivityItem(
     ActivityKind Kind,
     DateTime At,
-    UserSummary Actor,
+    IReadOnlyList<UserSummary> Actors,
+    int Count,
     long PostId,
     long? CommentId,
     string Excerpt,
     bool Unread);
+
+/// <summary>New activity, pushed live to the member it's about.</summary>
+public sealed record ActivityNotice(ActivityKind Kind, UserSummary Actor, long PostId, long? CommentId, string Excerpt);
+
+public enum ActivityFilter
+{
+    Likes,
+    Comments,
+    Replies,
+}
+
+public sealed record ActivityQuery : OpaquePageRequest
+{
+    /// <summary>One sort of activity; everything when left out.</summary>
+    public ActivityFilter? Filter { get; init; }
+}
 
 public sealed record MarkActivityReadRequest
 {

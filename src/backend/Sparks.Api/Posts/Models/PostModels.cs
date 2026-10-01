@@ -56,11 +56,34 @@ public sealed record UpdatePostRequest
 /// <summary>Filters for the post feed, on top of paging.</summary>
 public sealed record PostFeedQuery : PageRequest
 {
-    public SparkKind? Kind { get; init; }
+    /// <summary>Any of these kinds (repeat <c>kind</c> for several); every kind when there's none.</summary>
+    [MaxLength(PostFilters.MaxKinds)]
+    public SparkKind[] Kind { get; init; } = [];
+
+    /// <summary>Only posts with a picture.</summary>
+    public bool Pictures { get; init; }
 
     /// <summary>Matches the post text or the author's name.</summary>
-    [StringLength(100)]
+    [StringLength(PostFilters.MaxQueryLength)]
     public string? Q { get; init; }
+}
+
+/// <summary>The most liked posts of the last few days, with the feed's filters.</summary>
+public sealed record TopPostsQuery : OpaquePageRequest
+{
+    [MaxLength(PostFilters.MaxKinds)]
+    public SparkKind[] Kind { get; init; } = [];
+
+    public bool Pictures { get; init; }
+
+    [Range(1, 30)]
+    public int Days { get; init; } = 7;
+}
+
+public static class PostFilters
+{
+    public const int MaxKinds = 10;
+    public const int MaxQueryLength = 100;
 }
 
 /// <summary>The viewer's like on an item, after a like or unlike.</summary>

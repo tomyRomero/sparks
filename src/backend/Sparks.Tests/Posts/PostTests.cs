@@ -1,9 +1,15 @@
 using System.Net;
 using System.Text.Json;
+using System.Net.Http.Headers;
 using FluentAssertions;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Time.Testing;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
+using Sparks.Api.Search;
+using Sparks.Api.Storage;
 using Sparks.Tests.Infrastructure;
 
 namespace Sparks.Tests.Posts;
@@ -86,6 +92,72 @@ public sealed class PostTests(SparksApiFactory factory)
             .GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word}&kind=haiku", Ct);
 
         feed.Items.Should().ContainSingle().Which.Id.Should().Be(haiku.Id);
+    }
+
+    [Fact]
+    public async Task The_feed_takes_several_kinds_and_can_keep_only_pictures()
+    {
+        var (author, _) = await factory.SignedInClientAsync(Ct);
+        var word = UniqueWord();
+        var haiku = await author.CreatePostAsync($"{word} in five seven five", SparkKind.Haiku, Ct);
+        var joke = await author.CreatePostAsync($"{word} walks into a bar", SparkKind.Joke, Ct);
+        await author.CreatePostAsync($"{word} said nobody", SparkKind.Quote, Ct);
+        var upload = await author.PostAsync("/api/v1/images", PngForm(), Ct);
+        var image = await upload.ReadAsync<UploadedImage>(Ct);
+        var photo = await (await author.PostJsonAsync(
+            PostsPath,
+            new CreatePostRequest { Kind = SparkKind.Photography, Body = $"{word} at dusk", ImageKey = image.Key },
+            Ct)).ReadAsync<PostResponse>(Ct);
+        var reader = factory.CreateClient();
+
+        var twoKinds = await reader.GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word}&kind=haiku&kind=joke", Ct);
+        var pictures = await reader.GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word}&pictures=true", Ct);
+
+        twoKinds.Items.Select(post => post.Id).Should().BeEquivalentTo([haiku.Id, joke.Id]);
+        pictures.Items.Should().ContainSingle().Which.Id.Should().Be(photo.Id);
+    }
+
+    [Fact]
+    public async Task Top_lists_the_weeks_most_liked_posts_a_page_at_a_time()
+    {
+        // A clock of its own, far ahead, so only this test's posts are in the week.
+        var clock = new FakeTimeProvider(DateTimeOffset.UtcNow.AddYears(1));
+        using var api = factory.WithWebHostBuilder(builder =>
+            builder.ConfigureTestServices(services => services.AddSingleton<TimeProvider>(clock)));
+        var (author, _) = await api.SignedInClientAsync(Ct);
+        var quiet = await author.CreatePostAsync("Quiet", Ct);
+        var loved = await author.CreatePostAsync("Loved", Ct);
+        var liked = await author.CreatePostAsync("Liked", Ct);
+        foreach (var (post, likes) in new[] { (loved, 2), (liked, 1) })
+        {
+            for (var i = 0; i < likes; i++)
+            {
+                var (fan, _) = await api.SignedInClientAsync(Ct);
+                (await fan.PutAsync($"{PostsPath}/{post.Id}/like", content: null, Ct)).EnsureSuccessStatusCode();
+            }
+        }
+
+        var reader = api.CreateClient();
+        var first = await reader.GetJsonAsync<OpaqueCursorPage<PostResponse>>($"{PostsPath}/top?limit=2", Ct);
+        var second = await reader.GetJsonAsync<OpaqueCursorPage<PostResponse>>(
+            $"{PostsPath}/top?limit=2&cursor={Uri.EscapeDataString(first.NextCursor!)}", Ct);
+
+        first.Items.Select(post => post.Id).Should().Equal(loved.Id, liked.Id);
+        second.Items.Select(post => post.Id).Should().Equal(quiet.Id);
+        second.NextCursor.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Search_counts_sparks_and_members()
+    {
+        var (author, authorUser) = await factory.SignedInClientAsync(Ct);
+        await author.CreatePostAsync("First", Ct);
+        await author.CreatePostAsync("Second", Ct);
+
+        var counts = await factory.CreateClient()
+            .GetJsonAsync<SearchCounts>($"/api/v1/search/counts?q={authorUser.Username}", Ct);
+
+        counts.Should().Be(new SearchCounts(Sparks: 2, Members: 1));
     }
 
     [Fact]
@@ -210,4 +282,13 @@ public sealed class PostTests(SparksApiFactory factory)
 
     /// <summary>A word no other test's post contains, to find this test's posts in the shared database.</summary>
     private static string UniqueWord() => $"w{Guid.NewGuid():N}"[..16];
+
+    private static MultipartFormDataContent PngForm()
+    {
+        // A real 1x1 PNG.
+        var file = new ByteArrayContent(Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="));
+        file.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        return new MultipartFormDataContent { { file, "file", "image.png" } };
+    }
 }

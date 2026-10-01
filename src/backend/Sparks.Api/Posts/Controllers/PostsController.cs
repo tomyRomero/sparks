@@ -21,6 +21,12 @@ public sealed class PostsController(PostService posts, CommentService comments) 
     public Task<CursorPage<PostResponse>> GetFeed([FromQuery] PostFeedQuery query, CancellationToken ct) =>
         posts.GetFeedAsync(query, User.FindUserId(), ct);
 
+    /// <summary>The most liked posts of the last week (or <c>days</c>), for the Top sort and Trending.</summary>
+    [HttpGet("top")]
+    [AllowAnonymous]
+    public Task<OpaqueCursorPage<PostResponse>> GetTop([FromQuery] TopPostsQuery query, CancellationToken ct) =>
+        posts.GetTopAsync(query, User.FindUserId(), ct);
+
     [HttpGet("{id:long}")]
     [AllowAnonymous]
     public Task<PostResponse> Get(long id, CancellationToken ct) =>

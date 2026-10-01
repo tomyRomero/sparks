@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Sparks.Api.Activity.Services;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
@@ -15,7 +16,7 @@ namespace Sparks.Api.Posts.Services;
 /// deleting and liking comments. Threads read oldest first, so a reply
 /// always comes after what it answers.
 /// </summary>
-public sealed class CommentService(SparksDbContext db, TimeProvider time)
+public sealed class CommentService(SparksDbContext db, TimeProvider time, ActivityNotifier activity)
 {
     /// <summary>The comments made directly on a post. Replies are fetched per comment.</summary>
     public async Task<CursorPage<CommentResponse>> GetForPostAsync(
@@ -156,6 +157,7 @@ public sealed class CommentService(SparksDbContext db, TimeProvider time)
             try
             {
                 await db.SaveChangesAsync(ct);
+                await activity.CommentLikedAsync(commentId, userId, ct);
             }
             catch (DbUpdateException ex) when (ex.IsUniqueViolation())
             {
@@ -227,6 +229,7 @@ public sealed class CommentService(SparksDbContext db, TimeProvider time)
             throw whenAnsweredIsGone();
         }
 
+        await activity.CommentedAsync(comment.Id, ct);
         return await GetAsync(comment.Id, authorId, ct);
     }
 

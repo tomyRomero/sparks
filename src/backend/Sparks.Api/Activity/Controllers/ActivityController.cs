@@ -12,7 +12,7 @@ namespace Sparks.Api.Activity.Controllers;
 public sealed class ActivityController(ActivityService activity) : ControllerBase
 {
     [HttpGet]
-    public Task<OpaqueCursorPage<ActivityItem>> Get([FromQuery] OpaquePageRequest query, CancellationToken ct) =>
+    public Task<OpaqueCursorPage<ActivityItem>> Get([FromQuery] ActivityQuery query, CancellationToken ct) =>
         activity.GetAsync(User.GetUserId(), query, ct);
 
     /// <summary>How many items are unread, for a badge.</summary>

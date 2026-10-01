@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Sparks.Api.Activity.Services;
 using Sparks.Api.Ai.Services;
 using Sparks.Api.Auth.Services;
 using Sparks.Api.Chat.Models;
@@ -33,8 +34,9 @@ public sealed class DemoSeeder(
     public const string MainUsername = "nova_reyes";
 
     private readonly SeedClock _clock = new(realTime.GetUtcNow());
-    private PostService Posts => new(db, _clock, storage, NullLogger<PostService>.Instance);
-    private CommentService Comments => new(db, _clock);
+    private ActivityNotifier Activity => new(db, hub, NullLogger<ActivityNotifier>.Instance);
+    private PostService Posts => new(db, _clock, storage, Activity, NullLogger<PostService>.Instance);
+    private CommentService Comments => new(db, _clock, Activity);
     private ChatService Chat => new(db, _clock, hub);
 
     /// <summary>Seeds once; returns false when the demo members are already there.</summary>
