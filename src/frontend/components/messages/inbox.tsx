@@ -29,6 +29,9 @@ export function Inbox({ initial, viewerId }: { initial: OpaquePage<Conversation>
   );
   const presence = usePresence(conversations.map((conversation) => conversation.with.id));
   const openId = useSelectedLayoutSegment();
+  // With a conversation open, the conversation is the page's subject and has
+  // its main heading; this list is then a section beside it.
+  const Heading = openId === null ? "h1" : "h2";
   const [composing, setComposing] = useState(false);
   const [filter, setFilter] = useState("");
   const filterId = useId();
@@ -44,9 +47,9 @@ export function Inbox({ initial, viewerId }: { initial: OpaquePage<Conversation>
   return (
     <section aria-labelledby="inbox-title" className="flex min-h-0 flex-1 flex-col">
       <header className="flex items-center justify-between gap-3 px-5 pt-5 pb-3.5">
-        <h1 id="inbox-title" className="font-display text-[26px] font-bold tracking-tight">
+        <Heading id="inbox-title" className="font-display text-[26px] font-bold tracking-tight">
           Messages
-        </h1>
+        </Heading>
         <Hint label="New message" side="bottom">
           <button
             type="button"

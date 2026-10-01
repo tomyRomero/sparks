@@ -1,7 +1,7 @@
 "use client";
 
 import { Zap } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import type { SparkKind } from "@/lib/api/types";
 import { kindInfo } from "@/lib/kinds";
@@ -15,8 +15,12 @@ const offered: SparkKind[] = ["movieScript", "bookPlot", "haiku", "artwork", "jo
 export function QuickDraft() {
   const id = useId();
   const router = useRouter();
+  const pathname = usePathname();
   const [idea, setIdea] = useState("");
   const [kind, setKind] = useState<SparkKind>("movieScript");
+
+  // The composer is the full version of this card; beside it, this would only repeat it.
+  if (pathname === "/create") return null;
 
   return (
     <section

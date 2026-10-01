@@ -181,9 +181,9 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
         </Link>
         <Avatar name={other.displayName} src={other.avatarUrl} size={42} online={presence?.online ?? false} />
         <div className="min-w-0 flex-1">
-          <h2 id="chat-title" className="truncate font-display text-lg leading-tight font-bold">
+          <h1 id="chat-title" className="truncate font-display text-lg leading-tight font-bold">
             {other.displayName}
-          </h2>
+          </h1>
           {status && (
             <p className={cn("truncate font-mono text-[11.5px] leading-4", status.tone)} suppressHydrationWarning>
               {status.text}
@@ -232,12 +232,12 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
 
           {days.map((day) => (
             <section key={day.day} aria-label={dayLabel(day.day)} suppressHydrationWarning>
-              <h3
+              <h2
                 className="my-4 flex items-center gap-3.5 font-mono text-[11px] text-muted before:h-px before:flex-1 before:bg-line after:h-px after:flex-1 after:bg-line"
                 suppressHydrationWarning
               >
                 {dayLabel(day.day)}
-              </h3>
+              </h2>
               {day.runs.map((run) => {
                 const mine = run.senderId === viewer.id;
                 const last = run.messages.at(-1)!;
