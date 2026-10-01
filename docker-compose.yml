@@ -1,6 +1,7 @@
-# Local development services. Start with `docker compose up -d --wait`.
+# Local development services: SQL Server, and an S3 bucket for pictures.
+# Start with `docker compose up -d --wait`.
 #
-# Everything belongs to the "sparks" project (containers, volume, network), and
+# Everything belongs to the "sparks" project (containers, volumes, network), and
 # ports are published on 127.0.0.1 only, so nothing is reachable from the
 # local network.
 name: sparks
@@ -47,5 +48,29 @@ services:
       timeout: 5s
       retries: 5
 
+  storage:
+    # SeaweedFS stands in for Cloudflare R2: the same S3 API, so pictures
+    # work without an account. It signs requests with the key pair from .env,
+    # and scripts/setup-dev.sh gives the API the same pair unless a bucket is
+    # already set.
+    image: chrislusf/seaweedfs:4.48
+    command: ["mini", "-dir=/data", "-bucket=sparks", "-admin.ui=false", "-master.telemetry=false"]
+    environment:
+      AWS_ACCESS_KEY_ID: "${STORAGE_ACCESS_KEY_ID:?STORAGE_ACCESS_KEY_ID is not set. Run scripts/setup-dev.sh first.}"
+      AWS_SECRET_ACCESS_KEY: "${STORAGE_SECRET_ACCESS_KEY:?STORAGE_SECRET_ACCESS_KEY is not set. Run scripts/setup-dev.sh first.}"
+    ports:
+      - "127.0.0.1:8333:8333"
+    volumes:
+      - storage-data:/data
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8333/healthz"]
+      start_period: 1m
+      start_interval: 2s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
 volumes:
   mssql-data:
+  storage-data:

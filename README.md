@@ -87,15 +87,16 @@ flowchart LR
 
 ## Running locally
 
-You need Docker Desktop, the .NET 10 SDK and Node.js 24. The ports are SQL Server 14332, API 5100 and web 3100, all bound to localhost.
+You need Docker Desktop, the .NET 10 SDK and Node.js 24. The ports are SQL Server 14332, the image bucket 8333, API 5100 and web 3100, all bound to localhost.
 
 ```bash
-# 1. Generate local secrets: a database password in .env, and the connection
-#    string, JWT key and demo password in .NET user-secrets. Safe to re-run.
+# 1. Generate local secrets: a database password and the bucket's keys in
+#    .env, and the connection string, JWT key, demo password and bucket
+#    settings in .NET user-secrets. Safe to re-run.
 ./scripts/setup-dev.sh
 
-# 2. Start SQL Server. The first start takes a few minutes on Apple Silicon,
-#    where the image runs under emulation.
+# 2. Start SQL Server and the image bucket. The first start takes a few
+#    minutes on Apple Silicon, where SQL Server runs under emulation.
 docker compose up -d --wait
 
 # 3. Optional: fill the database with two weeks of demo members, sparks,
@@ -115,7 +116,7 @@ To use the demo data, sign in as `nova_reyes` with the password stored as `Seed:
 
 ### Image storage
 
-Images go to an S3-compatible bucket. For Cloudflare R2, create a bucket and an R2 API token with Object Read & Write on it, then store the bucket's settings in user-secrets:
+Images go to an S3-compatible bucket. Out of the box that's the SeaweedFS bucket `docker compose` starts, which speaks the same S3 API as R2; `setup-dev.sh` points the API at it unless a bucket is already set. For Cloudflare R2, create a bucket and an R2 API token with Object Read & Write on it, then store the bucket's settings in user-secrets:
 
 ```bash
 cd src/backend/Sparks.Api
