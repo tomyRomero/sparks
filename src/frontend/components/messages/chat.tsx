@@ -19,22 +19,14 @@ import { cn } from "@/lib/utils";
 import { ChatComposer } from "./chat-composer";
 import { SharedSparkCard } from "./shared-spark-card";
 
-/** How long "typing…" shows after the last typing signal. */
+/** How long "typing..." shows after the last signal. */
 const TYPING_SHOWN_MS = 4000;
 
 type ChatProps = { conversation: Conversation; initial: CursorPage<Message>; viewer: CurrentUser };
 
-/**
- * A message shown straight away while it's on its way to the server, or
- * after it failed to get there: some text, a shared spark, or both.
- */
+/** Shown while sending, and kept with its content if sending fails. */
 type Outgoing = { key: number; body: string; sharedPost: SharedSpark | null; failed: boolean };
 
-/**
- * One conversation, oldest message at the top, grouped by day and into runs
- * from one sender. New messages arrive live and are marked read while the
- * tab is visible; the other participant sees when.
- */
 export function Chat({ conversation, initial, viewer }: ChatProps) {
   const queryClient = useQueryClient();
   const live = useLive();
@@ -349,11 +341,9 @@ type MessageContentProps = {
   mine: boolean;
   /** The first in its run: a shared spark there gets a line saying who shared it. */
   first: boolean;
-  /** Who sent it, when it wasn't the viewer. */
   sender: UserSummary | null;
 };
 
-/** What a message holds: a shared spark, its text, or a note that the spark is gone. */
 function MessageContent({ message, mine, first, sender }: MessageContentProps) {
   const who = mine ? "You" : sender!.displayName;
   return (
@@ -391,7 +381,6 @@ function MessageContent({ message, mine, first, sender }: MessageContentProps) {
   );
 }
 
-/** A spark from a list, as a message shows it while it's on its way. */
 function sharedFrom(post: Post): SharedSpark {
   return {
     id: post.id,
@@ -403,7 +392,6 @@ function sharedFrom(post: Post): SharedSpark {
   };
 }
 
-/** Whether this tab is the one being looked at. */
 function useDocumentVisible() {
   return useSyncExternalStore(
     (onChange) => {

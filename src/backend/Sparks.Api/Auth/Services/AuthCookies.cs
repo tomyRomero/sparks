@@ -4,15 +4,12 @@ using Sparks.Api.Common;
 namespace Sparks.Api.Auth.Services;
 
 /// <summary>
-/// The two HttpOnly cookies that carry a browser's sign-in. The web app
-/// renders pages on its server, so the access token travels in a cookie as
-/// well as the refresh token; neither is ever readable by page scripts.
+/// The HttpOnly access and refresh cookies. The access token is a cookie too
+/// because the web app renders pages on its server.
 /// </summary>
 /// <remarks>
-/// <c>SameSite=Lax</c> rather than Strict: a signed-in user who follows a link
-/// to Sparks from another site gets a signed-in page, while other sites still
-/// can't make cookie-carrying POSTs. Secure everywhere except local
-/// development and tests, which run over plain HTTP.
+/// Lax rather than Strict so a link from another site opens signed in.
+/// Not Secure in development and tests, which use plain HTTP.
 /// </remarks>
 public sealed class AuthCookies(IHostEnvironment environment, IOptions<JwtOptions> jwtOptions)
 {

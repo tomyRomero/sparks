@@ -9,10 +9,7 @@ function byMember(list: Presence[]) {
   return new Map(list.map((presence) => [presence.userId, presence]));
 }
 
-/**
- * Whether each of these members is online, by id. The first answer comes
- * from the API; after that, live events keep it current.
- */
+/** Fetched once, then kept current by live events. */
 export function usePresence(userIds: number[], enabled = true) {
   const ids = Array.from(new Set(userIds)).sort((a, b) => a - b);
   const { data } = useQuery({
@@ -25,7 +22,6 @@ export function usePresence(userIds: number[], enabled = true) {
   return data;
 }
 
-/** A few members who are around, online first. */
 export function useMembersAround(enabled: boolean) {
   return useQuery({
     queryKey: queryKeys.presenceAround,
@@ -35,11 +31,7 @@ export function useMembersAround(enabled: boolean) {
   });
 }
 
-/**
- * A member came online or went offline: patches every cached answer that
- * mentions them. Someone new arriving isn't in "who's around" yet, so that
- * list is asked for again.
- */
+/** Patches cached presence, and refetches "who's around" since a newcomer won't be in it. */
 export function applyPresence(queryClient: QueryClient, presence: Presence) {
   queryClient.setQueriesData<Presence[]>({ queryKey: ["presence", "of"] }, (list) =>
     list?.map((item) => (item.userId === presence.userId ? presence : item)),

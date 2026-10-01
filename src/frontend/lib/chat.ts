@@ -5,16 +5,11 @@ export const RUN_GAP_MS = 5 * 60_000;
 
 type Sent = { senderId: number; createdAt: string };
 
-/** Messages in a row from one sender, close in time. */
 export type Run<T extends Sent> = { senderId: number; messages: T[] };
 
-/** One day of a conversation, as runs. */
 export type ChatDay<T extends Sent> = { day: string; runs: Run<T>[] };
 
-/**
- * Groups a conversation, oldest first, into days and then runs. A run ends
- * when someone else speaks, when the gap passes five minutes, or at midnight.
- */
+/** Days, then runs; a run breaks on a new sender, a five-minute gap or midnight. */
 export function groupChat<T extends Sent>(messages: T[]): ChatDay<T>[] {
   const days: ChatDay<T>[] = [];
   for (const message of messages) {

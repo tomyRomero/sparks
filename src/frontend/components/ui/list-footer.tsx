@@ -16,10 +16,7 @@ type ListFooterProps = {
   loadingLabel: string;
 };
 
-/**
- * The end of a paged list: loads the next page as the reader nears it, with
- * a button for anyone who can't or won't scroll, and a retry when it fails.
- */
+/** Loads the next page near the end, with a button fallback and a retry. */
 export function ListFooter({
   hasNextPage,
   isFetchingNextPage,

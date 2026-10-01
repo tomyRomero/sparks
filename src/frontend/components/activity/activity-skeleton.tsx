@@ -1,6 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** Activity on its way: the same frame as ActivityList's rows. */
 export function ActivitySkeleton({ count = 6 }: { count?: number }) {
   const widths = ["w-3/5", "w-1/2", "w-2/3", "w-2/5"];
   return (

@@ -15,12 +15,10 @@ import { CommentList } from "./comment-list";
 
 type CommentSectionProps = {
   postId: number;
-  /** The first page of comments, rendered on the server. */
   initial: CursorPage<Comment>;
   viewer: CurrentUser | null;
 };
 
-/** The conversation under a spark: a box to join it, then the comments. */
 export function CommentSection({ postId, initial, viewer }: CommentSectionProps) {
   const pathname = usePathname();
   const queryClient = useQueryClient();

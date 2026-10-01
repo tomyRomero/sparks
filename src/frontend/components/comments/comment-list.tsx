@@ -12,7 +12,6 @@ type CommentListProps = {
   /** The API path of the list: "/posts/12/comments" or "/comments/40/replies". */
   path: string;
   queryKey: readonly unknown[];
-  /** The first page, when the server already rendered it. */
   initial?: CursorPage<Comment>;
   viewer: CurrentUser | null;
   /** How deeply this list is nested under the spark; replies past a limit move to their own page. */
@@ -20,7 +19,6 @@ type CommentListProps = {
   empty?: React.ReactNode;
 };
 
-/** Comments or replies, oldest first, a page at a time. */
 export function CommentList({ path, queryKey, initial, viewer, depth, empty }: CommentListProps) {
   const queryClient = useQueryClient();
   const query = useInfiniteQuery({

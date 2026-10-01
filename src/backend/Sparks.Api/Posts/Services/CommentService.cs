@@ -112,19 +112,12 @@ public sealed class CommentService(SparksDbContext db, TimeProvider time)
         return await GetAsync(commentId, userId, ct);
     }
 
-    /// <summary>
-    /// Deletes a comment with every reply beneath it, and their likes. Only
-    /// its author may.
-    /// </summary>
+    /// <summary>Deletes a comment, its replies and their likes. Author only.</summary>
     public async Task DeleteAsync(long commentId, long userId, CancellationToken ct)
     {
-        // SQL Server can't cascade through the replies' reference to their
-        // parent, so one statement walks down the thread and deletes the
-        // comment and all its replies together (their likes cascade).
-        // UPDLOCK, HOLDLOCK keep what it reads locked until the delete
-        // commits: a reply posted meanwhile waits, then finds its parent gone
-        // (a 404) instead of breaking the delete, and two overlapping deletes
-        // queue instead of deadlocking.
+        // SQL Server won't cascade a self-reference, so a recursive CTE deletes
+        // the whole subtree. UPDLOCK, HOLDLOCK make a concurrent reply wait and
+        // then 404, and stop overlapping deletes from deadlocking.
         var deleted = await db.Database.ExecuteSqlAsync(
             $"""
             WITH thread AS (

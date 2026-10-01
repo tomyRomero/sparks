@@ -4,7 +4,7 @@ import { requireViewer } from "@/lib/auth/viewer";
 
 export const metadata: Metadata = { title: "Messages" };
 
-/** Wide screens, before a conversation is picked. Narrower ones show the inbox instead. */
+/** Wide screens only; narrow ones show the inbox here instead. */
 export default async function MessagesPage() {
   await requireViewer("/messages");
   return (

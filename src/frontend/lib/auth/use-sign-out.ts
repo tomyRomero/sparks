@@ -6,11 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api/client";
 
-/**
- * Signs the member out of this session. `signingOut` stays true until the
- * next page replaces the one showing it, so the control never looks idle
- * while the app is still on its way out.
- */
+/** `signingOut` stays true until the next page renders, so the control never looks idle. */
 export function useSignOut() {
   const router = useRouter();
   const queryClient = useQueryClient();

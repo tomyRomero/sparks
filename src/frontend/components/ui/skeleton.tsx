@@ -1,16 +1,10 @@
 import { cn } from "@/lib/utils";
 
-/** A shimmering block standing in for content that's on its way. Sized by the caller. */
 export function Skeleton({ className }: { className?: string }) {
   return <span aria-hidden className={cn("block animate-shimmer rounded-md skeleton-fill", className)} />;
 }
 
-/**
- * A whole page's stand-in while its data loads: the page's own skeleton, a
- * bar running along the top of the window, and a status for screen readers.
- * Each route's loading.tsx renders one, so a click shows the next page's
- * shape straight away instead of freezing on the old one.
- */
+/** A route's loading.tsx: the page's skeleton, a top progress bar and a screen reader status. */
 export function PageSkeleton({
   label,
   className,

@@ -2,11 +2,9 @@ import { CircleAlert, CircleCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type FieldProps = {
-  /** The id of the input inside, which the label points at. */
   id: string;
   label: string;
   error?: string;
-  /** A confirmation, such as a username being free. Shown when there's no error. */
   success?: string;
   hint?: string;
   /** Beside the label, at the end of its row: a character count, say. */
@@ -16,10 +14,8 @@ type FieldProps = {
 };
 
 /**
- * A labelled form control with one message below: its error, else a
- * confirmation, else its hint. The input inside should set aria-invalid and
- * aria-describedby from `fieldDescription`, so a screen reader reads the
- * message whenever the field gets focus.
+ * Label, control, and one message: error, else success, else hint. The input
+ * should take aria-invalid and aria-describedby from `fieldDescription`.
  */
 export function Field({ id, label, error, success, hint, aside, className, children }: FieldProps) {
   return (
@@ -50,7 +46,6 @@ export function Field({ id, label, error, success, hint, aside, className, child
   );
 }
 
-/** The accessibility attributes linking an input to its Field's message. */
 export function fieldDescription(id: string, error?: string, message?: string) {
   return {
     "aria-invalid": error ? true : undefined,

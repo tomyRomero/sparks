@@ -17,7 +17,7 @@ import { queryKeys } from "@/lib/queries/keys";
 
 type SearchProps = PageProps<"/search">;
 
-/** The query and tab from the URL: at most 100 characters, as the API allows. */
+/** Capped at 100 characters, like the API. */
 async function readSearch(searchParams: SearchProps["searchParams"]) {
   const { q, type } = await searchParams;
   const query = typeof q === "string" ? q.trim().slice(0, 100) : "";
@@ -69,7 +69,6 @@ export default async function SearchPage({ searchParams }: SearchProps) {
   );
 }
 
-/** Sparks whose words or author match. */
 async function SparkResults({ q }: { q: string }) {
   const path = `/posts?q=${encodeURIComponent(q)}`;
   const [viewer, first] = await Promise.all([getViewer(), serverGet<CursorPage<Post>>(`/api/v1${path}`)]);
@@ -85,7 +84,6 @@ async function SparkResults({ q }: { q: string }) {
   );
 }
 
-/** Members whose name or username match. */
 async function MemberResults({ q }: { q: string }) {
   const path = `/users?q=${encodeURIComponent(q)}`;
   const first = await serverGet<CursorPage<UserSummary>>(`/api/v1${path}`);
@@ -113,7 +111,6 @@ function NoResults({ q, what }: { q: string; what: string }) {
   );
 }
 
-/** Before a search: what can be found, and a way to browse instead. */
 function Suggestions() {
   return (
     <div className="rounded-[18px] border border-line bg-surface p-5 shadow-card sm:p-6">

@@ -8,7 +8,6 @@ const bodies = [
   ["w-5/6", "w-1/2"],
 ];
 
-/** A spark in a list, before it arrives: the same card as PostCard. */
 export function PostCardSkeleton({ variant = 0, picture = false }: { variant?: number; picture?: boolean }) {
   const lines = bodies[variant % bodies.length];
   return (
@@ -36,7 +35,6 @@ export function PostCardSkeleton({ variant = 0, picture = false }: { variant?: n
   );
 }
 
-/** A list of sparks on its way: a few cards, one with a picture. */
 export function FeedSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="grid gap-4">
@@ -47,7 +45,6 @@ export function FeedSkeleton({ count = 4 }: { count?: number }) {
   );
 }
 
-/** The feed's "what's your spark" card. */
 export function ComposerPromptSkeleton() {
   return (
     <div className="mb-3 flex items-center gap-3 rounded-[18px] border border-line bg-surface p-2.5 shadow-card sm:px-4 sm:py-3.5">
@@ -58,7 +55,6 @@ export function ComposerPromptSkeleton() {
   );
 }
 
-/** The row of kind chips. */
 export function KindFilterSkeleton() {
   return (
     <div className="-mx-3 mb-4 flex gap-2 overflow-hidden ps-3 sm:-mx-4 sm:ps-4 md:mx-0 md:ps-0.5">
@@ -69,7 +65,6 @@ export function KindFilterSkeleton() {
   );
 }
 
-/** One spark's own page: the same card as PostDetail. */
 export function PostDetailSkeleton() {
   return (
     <div className="flex flex-col gap-4 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-6">

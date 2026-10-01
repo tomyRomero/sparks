@@ -35,13 +35,11 @@ export class ApiError extends Error {
     return new ApiError(problem);
   }
 
-  /** The first message for a field, as a form shows it. */
   fieldError(field: string): string | undefined {
     return this.fieldErrors[field]?.[0];
   }
 }
 
-/** A message fit to show a member, for any error. */
 export function errorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 429) return "That's a lot of requests. Wait a moment and try again.";

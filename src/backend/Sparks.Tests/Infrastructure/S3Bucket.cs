@@ -7,10 +7,8 @@ using Sparks.Api.Storage;
 namespace Sparks.Tests.Infrastructure;
 
 /// <summary>
-/// A throwaway S3-compatible bucket: SeaweedFS in a container, with an access
-/// key pair made for the run. Requests are signed and checked as R2 checks
-/// them, and anonymous ones are refused. The image runs natively on both
-/// x64 and Arm.
+/// A throwaway S3 bucket (SeaweedFS) with a fresh key pair per run. It checks
+/// signatures like R2 and refuses anonymous requests.
 /// </summary>
 public sealed class S3Bucket : IAsyncLifetime
 {

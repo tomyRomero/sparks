@@ -1,4 +1,4 @@
-# ─── Secrets and local config ───────────────────────────
+# Secrets and local config
 .env
 .env.*
 !.env.example
@@ -7,7 +7,7 @@ appsettings.*.json
 *.pem
 *.pfx
 
-# ─── Frontend (Next.js) ─────────────────────────────────
+# Frontend
 node_modules/
 src/frontend/.next/
 src/frontend/out/
@@ -18,26 +18,17 @@ next-env.d.ts
 .vercel
 npm-debug.log*
 
-# ─── Backend (.NET) ─────────────────────────────────────
+# Backend
 bin/
 obj/
 *.user
 .vs/
 TestResults/
-# Images the API stores on local disk in development.
 App_Data/
-# `dotnet ef` on macOS can create directories literally named `bin\Debug`.
+# dotnet ef on macOS sometimes creates a folder literally named bin\Debug
 **/bin\\*
 
-# ─── OS and editors ─────────────────────────────────────
+# OS and editors
 .DS_Store
 .vscode/
 .idea/
-
-# ─── Internal notes: planning, audits and assistant files stay local ───
-AUDIT.md
-DESIGN.md
-DECISIONS.md
-CLAUDE.md
-AGENTS.md
-docs/

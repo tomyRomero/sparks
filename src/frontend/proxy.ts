@@ -4,10 +4,7 @@ const apiUrl = process.env.API_URL ?? "http://localhost:5100";
 const ACCESS_COOKIE = "sparks_access";
 const REFRESH_COOKIE = "sparks_refresh";
 
-/**
- * Runs before every page and API call. It keeps sessions alive across page
- * loads, and gives each page a Content Security Policy with a fresh nonce.
- */
+/** Keeps the session alive across page loads and sets a per-request CSP nonce. */
 export async function proxy(request: NextRequest) {
   const refreshed = await refreshSession(request);
 
@@ -29,11 +26,9 @@ export async function proxy(request: NextRequest) {
 }
 
 /**
- * The access cookie expires with its token (30 minutes); when it's gone but
- * the refresh cookie remains, the session is rotated here, before anything
- * renders. The new cookies are written into this request, so the page
- * renders signed in, and returned for the browser. "spent" means the
- * refresh token was refused.
+ * Rotates the session when the access cookie has expired but the refresh
+ * cookie hasn't. The new cookies go on this request, so the page renders
+ * signed in, and on the response. "spent" means the API refused the token.
  */
 async function refreshSession(request: NextRequest): Promise<string[] | "spent"> {
   const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value;
@@ -80,13 +75,9 @@ function nonce() {
 }
 
 /**
- * Scripts run only if they carry this response's nonce, which Next adds to
- * its own, or were loaded by one that did ('strict-dynamic'), so injected
- * markup can't run code. Everything else (requests, the live connection,
- * images, fonts, form posts) stays on this origin, and no site can frame the
- * app. Inline styles are allowed: Radix positions popovers with style
- * attributes and the toast library adds its own stylesheet, and a style can't
- * run code. Development also needs eval, for React's error overlays.
+ * Nonce-based scripts with 'strict-dynamic'; everything else same-origin.
+ * Inline styles stay allowed for Radix and sonner. Dev needs eval for the
+ * error overlay.
  */
 function contentSecurityPolicy(nonce: string) {
   const development = process.env.NODE_ENV === "development";

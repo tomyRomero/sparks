@@ -4,13 +4,9 @@ using Sparks.Api.Common.Errors;
 namespace Sparks.Api.Common.Security;
 
 /// <summary>
-/// Refuses requests that change something when a browser sends them from a
-/// site other than the web app. <c>SameSite=Lax</c> cookies already keep the
-/// sign-in off most cross-site requests; this is the second defence.
-/// Browsers send an <c>Origin</c> header with every POST, PUT, PATCH and
-/// DELETE, and with WebSocket handshakes, so anything from another origin is
-/// turned away before it reaches the API. Requests without one (the web
-/// app's server, command-line tools) don't come from a browser page and pass.
+/// Rejects writes and WebSocket handshakes whose <c>Origin</c> isn't the web
+/// app, as a second layer behind SameSite cookies. Requests without an Origin
+/// (the web app's server, CLI tools) pass.
 /// </summary>
 public sealed class OriginCheckMiddleware(RequestDelegate next, IOptions<FrontendOptions> frontend)
 {

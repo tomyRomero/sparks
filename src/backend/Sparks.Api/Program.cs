@@ -23,7 +23,7 @@ using Sparks.Api.Seeding;
 using Sparks.Api.Storage;
 using Sparks.Api.Users.Services;
 
-// Logs anything that goes wrong before the host (and its configured logger) is built.
+// Catches failures before the host's logger exists.
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
@@ -32,10 +32,8 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // ── Logging ──────────────────────────────────────────────────────────────
-    // preserveStaticLogger keeps the static bootstrap logger separate from the
-    // host's logger. Without it, Serilog freezes the shared static logger, and
-    // two hosts starting at once (parallel integration tests) fail.
+    // preserveStaticLogger: otherwise Serilog freezes the static logger and
+    // parallel test hosts fail to start.
     builder.Host.UseSerilog(
         (context, services, logger) => logger
             .ReadFrom.Configuration(context.Configuration)
@@ -44,35 +42,25 @@ try
             .WriteTo.Console(),
         preserveStaticLogger: true);
 
-    // ── Errors ───────────────────────────────────────────────────────────────
-    // Every error response is RFC 9457 problem details, including unhandled
-    // exceptions (a generic 500, never a stack trace) and bare status codes
-    // such as 404 and 405.
+    // RFC 9457 problem details for every error, unhandled exceptions included.
     builder.Services.AddProblemDetails();
     builder.Services.AddExceptionHandler<AbortedRequestHandler>();
     builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
-    // ── Database ─────────────────────────────────────────────────────────────
     builder.Services.AddSparksDatabase();
-
-    // ── Storage ──────────────────────────────────────────────────────────────
     builder.Services.AddSparksStorage(builder.Configuration);
 
-    // ── Email ────────────────────────────────────────────────────────────────
     builder.Services.AddOptions<FrontendOptions>()
         .BindConfiguration(FrontendOptions.SectionName)
         .ValidateDataAnnotations()
         .ValidateOnStart();
     builder.Services.AddSingleton<IEmailSender, LoggingEmailSender>();
 
-    // ── Security ─────────────────────────────────────────────────────────────
-    // One clock for everything time-based (token lifetimes, lockouts), so
-    // tests can move it forward.
+    // Injected so tests can move time forward.
     builder.Services.AddSingleton(TimeProvider.System);
     builder.Services.AddSparksAuth();
     builder.Services.AddSparksRateLimiting(builder.Environment);
-    // The web app calls the API from the browser with its cookies; its
-    // origin, and only it, gets cross-origin access with credentials.
+    // Only the web app's origin may call with credentials.
     builder.Services.AddCors();
     builder.Services.AddOptions<CorsOptions>()
         .Configure<IOptions<FrontendOptions>>((cors, frontend) => cors.AddDefaultPolicy(policy => policy
@@ -81,21 +69,16 @@ try
             .AllowAnyHeader()
             .AllowAnyMethod()));
 
-    // ── API ──────────────────────────────────────────────────────────────────
-    // Don't advertise the web server in every response.
     builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
-    // Validation errors are keyed by JSON field name ("email"), not the C#
-    // property name ("Email"), so the frontend can map them to its inputs.
+    // Validation errors use the JSON field name ("email"), not "Email".
     builder.Services.AddControllers(mvc =>
             mvc.ModelMetadataDetailsProviders.Add(new SystemTextJsonValidationMetadataProvider()))
         .AddJsonOptions(json =>
-            // Enums travel as names ("movieScript"), never numbers, so a stray
-            // number can't reach the database as an undefined value.
+            // Enums as names only; a number could be an undefined value.
             json.JsonSerializerOptions.Converters.Add(
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false)));
     builder.Services.AddOpenApi();
 
-    // ── Features ─────────────────────────────────────────────────────────────
     builder.Services.AddScoped<PostService>();
     builder.Services.AddScoped<CommentService>();
     builder.Services.AddScoped<UserService>();
@@ -103,10 +86,8 @@ try
     builder.Services.AddScoped<ChatService>();
     builder.Services.AddSparksHealthChecks();
 
-    // ── AI ───────────────────────────────────────────────────────────────────
     builder.Services.AddSparksAi(builder.Configuration);
 
-    // ── Realtime ─────────────────────────────────────────────────────────────
     builder.Services.AddSignalR();
     builder.Services.AddSingleton<IUserIdProvider, UserIdProvider>();
     builder.Services.AddSparksPresence();
@@ -118,28 +99,21 @@ try
         await app.MigrateDatabaseAsync();
     }
 
-    // `dotnet run -- seed` fills a development database with demo data and exits.
+    // dotnet run -- seed
     if (args is ["seed"])
     {
         return await app.SeedDemoDataAsync();
     }
 
-    // ── Pipeline ─────────────────────────────────────────────────────────────
-    // Forwarded headers come first, so everything after sees the real client
-    // IP. Request logging wraps the exception handler, so it records the
-    // status the client actually got rather than the exception on its way
-    // out. The exception handler catches errors from everything after it, and
-    // security headers come next so error responses carry them too.
+    // Order matters: forwarded headers first for the real client IP, request
+    // logging outside the exception handler so it logs the final status, and
+    // security headers after it so error responses get them too.
     app.UseForwardedHeaders();
-    // Without a logger of its own, the request log would go to the static
-    // bootstrap logger, which preserveStaticLogger keeps apart from the host's
-    // configured one: its settings, enrichers and sinks would all be skipped.
+    // The host's logger, not the bootstrap one (see preserveStaticLogger).
     app.UseSerilogRequestLogging(options => options.Logger = app.Services.GetRequiredService<Serilog.ILogger>());
     app.UseExceptionHandler(new ExceptionHandlerOptions
     {
-        // What a handler claims is an expected outcome: an ApiException (404,
-        // 403) or a request the client abandoned. Only the rest are logged as
-        // errors.
+        // Handled exceptions (ApiException, aborted requests) aren't errors.
         SuppressDiagnosticsCallback = context =>
             context.ExceptionHandledBy == ExceptionHandledType.ExceptionHandlerService,
     });
@@ -155,26 +129,23 @@ try
         app.MapOpenApi().AllowAnonymous();
     }
 
-    // CORS answers the web app's preflight requests; the origin check then
-    // turns away writes and live connections from any other site.
+    // CORS answers preflights; the origin check blocks writes and hub
+    // connections from other sites.
     app.UseCors();
     app.UseMiddleware<OriginCheckMiddleware>();
-    // Authentication runs before the limiter so uploads and AI can be
-    // limited per member rather than per address.
+    // Before the limiter, so uploads and AI are limited per member.
     app.UseAuthentication();
     app.UseRateLimiter();
     app.UseAuthorization();
     app.MapControllers();
-    // A connection outlives the access token it opened with; closing it when
-    // the token expires makes the browser reconnect with a refreshed one.
+    // Clients reconnect with a fresh token when theirs expires.
     app.MapHub<RealtimeHub>(RealtimeHub.Path, hub => hub.CloseOnAuthenticationExpiration = true);
     app.MapSparksHealthEndpoints();
 
     await app.RunAsync();
     return 0;
 }
-// EF Core's design-time tools stop the host on purpose once they have the
-// services they need; that isn't a startup failure.
+// EF Core's design-time tools abort the host on purpose.
 catch (Exception ex) when (ex is not HostAbortedException)
 {
     Log.Fatal(ex, "Sparks API failed to start");

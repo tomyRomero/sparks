@@ -9,11 +9,9 @@ using Sparks.Api.Users.Models;
 namespace Sparks.Api.Activity.Services;
 
 /// <summary>
-/// A member's activity: the likes, comments and replies other people leave
-/// on their posts and comments, newest first. It's read straight from those
-/// tables rather than stored as notifications, so an unlike or a deleted
-/// comment drops out of it with nothing to clean up. Unread means newer than
-/// one timestamp per member.
+/// Likes, comments and replies on a member's posts and comments, newest first.
+/// Queried from those tables rather than stored, so an unlike or a deleted
+/// comment just disappears. Unread is anything after one per-member timestamp.
 /// </summary>
 public sealed class ActivityService(SparksDbContext db, TimeProvider time)
 {
@@ -177,13 +175,9 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
 }
 
 /// <summary>
-/// One activity row as the union query returns it. Every column is a key or
-/// a time, so the three sources line up; names and text are added per page.
+/// A row of the union query: keys and times only, so the sources line up.
+/// Kind, time, actor and <see cref="SubjectId"/> identify it for the cursor.
 /// </summary>
-/// <remarks>
-/// <see cref="SubjectId"/> is what was liked or the new comment; with the
-/// kind, time and actor it identifies the row, which the cursor relies on.
-/// </remarks>
 internal sealed class ActivityRow
 {
     public int Kind { get; init; }

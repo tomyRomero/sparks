@@ -9,7 +9,6 @@ type HintProps = {
   children: React.ReactElement;
 };
 
-/** A short label on hover and keyboard focus, for controls that show only an icon. */
 export function Hint({ label, side = "right", children }: HintProps) {
   return (
     <Tooltip.Root>

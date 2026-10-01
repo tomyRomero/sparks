@@ -1,11 +1,9 @@
 namespace Sparks.Api.Storage;
 
 /// <summary>
-/// Where images live, by key: an S3-compatible bucket such as Cloudflare R2
-/// (<see cref="S3FileStorage"/>), or local disk for tests and working offline
-/// (<see cref="LocalFileStorage"/>). Nothing else knows which.
-/// Keys come from <see cref="StorageKeys"/> and are never taken from a client
-/// unchecked.
+/// Image storage by key: an S3-compatible bucket (<see cref="S3FileStorage"/>)
+/// or local disk (<see cref="LocalFileStorage"/>). Keys come from
+/// <see cref="StorageKeys"/>.
 /// </summary>
 public interface IFileStorage
 {

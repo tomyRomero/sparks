@@ -10,7 +10,6 @@ import { errorMessage } from "@/lib/api/problem";
 import type { Conversation } from "@/lib/api/types";
 import { MemberLine, MemberPicker } from "./member-picker";
 
-/** Starts a conversation with anyone: find them, pick them, and the chat opens. */
 export function NewMessageDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const router = useRouter();
   const [opening, setOpening] = useState<string | null>(null);

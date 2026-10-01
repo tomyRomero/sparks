@@ -16,11 +16,6 @@ import { fullDate, timeAgo } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { NewMessageDialog } from "./new-message-dialog";
 
-/**
- * The member's conversations, latest message first, beside the open chat on
- * wide screens. New messages reorder it live: the live connection refreshes
- * this list whenever one arrives.
- */
 export function Inbox({ initial, viewerId }: { initial: OpaquePage<Conversation>; viewerId: number }) {
   const { query, items: conversations } = usePagedList<Conversation, string>(
     "/conversations",

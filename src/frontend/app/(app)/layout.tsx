@@ -2,11 +2,6 @@ import { MobileNav } from "@/components/shell/mobile-nav";
 import { getViewer } from "@/lib/auth/viewer";
 import { LiveProvider } from "@/lib/realtime/live";
 
-/**
- * Every page after sign-in (and the public ones guests can read). The
- * frame around each page comes from its group: (main) for most, the
- * messenger's own for messages.
- */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const viewer = await getViewer();
   const page = (
@@ -22,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     </>
   );
 
-  // Members get a live connection, a new one for each member who signs in.
+  // Keyed by member so a new sign-in gets a new connection.
   return viewer ? (
     <LiveProvider key={viewer.id} viewerId={viewer.id}>
       {page}

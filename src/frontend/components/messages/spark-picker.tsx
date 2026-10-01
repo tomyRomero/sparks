@@ -17,7 +17,6 @@ type SparkPickerProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   username: string;
-  /** Who it's going to, for the title. */
   recipient: string;
   onPick: (post: Post) => void;
 };
@@ -27,7 +26,6 @@ const lists = [
   { list: "liked", label: "Liked", empty: "Sparks you like show up here." },
 ] as const;
 
-/** Picks one of the member's sparks, or one they liked, to share in a chat. */
 export function SparkPicker({ open, onOpenChange, username, recipient, onPick }: SparkPickerProps) {
   const [list, setList] = useState<"posts" | "liked">("posts");
   const query = useQuery({

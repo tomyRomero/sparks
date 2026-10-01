@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import { isActive, navItems } from "./nav-items";
 import { UnreadBadge } from "./unread-badge";
 
-/** The phone navigation: icons along the bottom edge. A conversation has the whole screen. */
 export function MobileNav({ viewer }: { viewer: CurrentUser | null }) {
   const pathname = usePathname();
   const signedIn = viewer !== null;

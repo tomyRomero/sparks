@@ -14,7 +14,6 @@ type TextFormProps = {
   maxLength: number;
   submitLabel: string;
   initialValue?: string;
-  /** Put the cursor in the field straight away, for forms opened by a click. */
   focusOnOpen?: boolean;
   /** Saves the text. A thrown error is shown under the field and the text kept. */
   onSubmit: (text: string) => Promise<void>;
@@ -22,7 +21,7 @@ type TextFormProps = {
   className?: string;
 };
 
-/** A comment, a reply, or an edit: one text box with a save button. ⌘/Ctrl+Enter saves. */
+/** A comment, reply or edit box. Cmd/Ctrl+Enter saves. */
 export function TextForm({
   label,
   placeholder,

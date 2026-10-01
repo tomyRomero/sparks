@@ -1,10 +1,6 @@
 import { cn } from "@/lib/utils";
 
-/**
- * A card for lists of rows (activity, comments, members). Rows keep their
- * dividing lines; the last one tucks under the card's own edge, so it
- * never shows twice.
- */
+/** For lists of rows; the last row's divider tucks under the card's border. */
 export function Panel({ className, children, ...props }: React.ComponentProps<"div">) {
   return (
     <div

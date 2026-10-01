@@ -9,7 +9,6 @@ type PageHeaderProps = {
   children?: React.ReactNode;
 };
 
-/** The title at the top of each page, kept in view while the page scrolls. */
 export function PageHeader({ title, back, children }: PageHeaderProps) {
   return (
     <header className="sticky top-0 z-20 -mx-3 mb-3 flex min-h-14 items-center gap-3 bg-canvas/85 px-3 backdrop-blur-md sm:-mx-4 sm:px-4 md:mx-0 md:min-h-[72px] md:px-1 md:pt-2">

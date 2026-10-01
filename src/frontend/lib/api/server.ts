@@ -5,14 +5,9 @@ import { ApiError } from "./problem";
 
 const apiUrl = process.env.API_URL ?? "http://localhost:5100";
 
-/** The access cookie the API sets; read here to call the API as the member. */
 export const ACCESS_COOKIE = "sparks_access";
 
-/**
- * Calls the API from the server, as the member whose request is being
- * rendered: the access token travels as a bearer header, and the member's
- * address as X-Forwarded-For so per-address limits see them, not this server.
- */
+/** Server-side fetch as the current member, forwarding their IP for rate limits. */
 export async function serverFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const requestHeaders = new Headers(init.headers);
   const token = (await cookies()).get(ACCESS_COOKIE)?.value;
@@ -31,7 +26,6 @@ export async function serverFetch(path: string, init: RequestInit = {}): Promise
   return fetch(`${apiUrl}${path}`, { ...init, headers: requestHeaders, cache: "no-store" });
 }
 
-/** GETs JSON from the API; any failure throws an ApiError. */
 export async function serverGet<T>(path: string): Promise<T> {
   const response = await serverFetch(path);
   if (!response.ok) {

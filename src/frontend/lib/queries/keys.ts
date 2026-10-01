@@ -1,9 +1,5 @@
-/**
- * TanStack Query keys, in one place so invalidations can't drift from queries.
- * Everything holding sparks starts with "posts" and everything holding
- * comments with "comments", so a change to one item can reach every list and
- * page that shows it.
- */
+// Every key holding sparks starts with "posts" (comments with "comments"),
+// so one cache update reaches every list that shows the item.
 export const queryKeys = {
   unreadActivity: ["unread", "activity"] as const,
   unreadMessages: ["unread", "messages"] as const,

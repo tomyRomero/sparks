@@ -6,7 +6,6 @@ import { getViewer } from "@/lib/auth/viewer";
 import { getProfile } from "@/lib/profiles";
 import { queryKeys } from "@/lib/queries/keys";
 
-/** The sparks a member liked, newest sparks first. */
 export default async function ProfileLikesPage({ params }: PageProps<"/u/[username]/likes">) {
   const { username } = await params;
   const [viewer, profile] = await Promise.all([getViewer(), getProfile(username)]);

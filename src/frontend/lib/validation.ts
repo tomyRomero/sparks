@@ -1,11 +1,7 @@
 import { limits } from "./limits";
 
-/**
- * The API's rules for what members type, checked as they type so a form
- * never has to round-trip to say a field is wrong. Each returns what's wrong
- * with a value, in words fit to show under the field, or undefined when
- * it's fine. The API checks everything again.
- */
+// Client-side copies of the API's input rules, for feedback while typing.
+// Each returns a message to show, or undefined. The API still validates.
 
 /** Letters, digits and underscores, 3 to 30 of them (InputLimits.UsernamePattern). */
 export function usernameProblem(value: string): string | undefined {
@@ -16,11 +12,7 @@ export function usernameProblem(value: string): string | undefined {
   return undefined;
 }
 
-/**
- * Something@something.something. A little stricter than the API, which only
- * wants one @ with text either side: an address with no dot after the @
- * is almost always a typo.
- */
+/** Stricter than the API: no dot after the @ is almost always a typo. */
 export function emailProblem(value: string): string | undefined {
   const email = value.trim();
   if (email === "") return "Enter your email.";
@@ -57,7 +49,6 @@ export function passwordProblem(value: string): string | undefined {
   return undefined;
 }
 
-/** A field that only has to be filled in. */
 export function requiredProblem(message: string) {
   return (value: string) => (value.trim() === "" ? message : undefined);
 }

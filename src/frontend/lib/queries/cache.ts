@@ -21,23 +21,17 @@ function updateCached<T extends { id: number }>(data: Cached<T> | undefined, id:
   };
 }
 
-/** Changes one spark everywhere the cache shows it: its page and every list. */
 export function updateCachedPost(queryClient: QueryClient, id: number, update: (post: Post) => Post) {
   queryClient.setQueriesData<Cached<Post>>({ queryKey: queryKeys.posts }, (data) => updateCached(data, id, update));
 }
 
-/** Changes one comment everywhere the cache shows it: its page and every list. */
 export function updateCachedComment(queryClient: QueryClient, id: number, update: (comment: Comment) => Comment) {
   queryClient.setQueriesData<Cached<Comment>>({ queryKey: queryKeys.comments }, (data) =>
     updateCached(data, id, update),
   );
 }
 
-/**
- * Drops the cached lists of sparks that aren't on screen, after a change a
- * list can't patch in place (a new spark, a deleted one). Each starts again
- * from the first page the server renders.
- */
+/** Drops inactive spark lists after a change they can't patch (a new or deleted spark). */
 export function forgetPostLists(queryClient: QueryClient) {
   queryClient.removeQueries({ queryKey: queryKeys.posts, type: "inactive" });
 }

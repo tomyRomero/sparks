@@ -21,11 +21,7 @@ import { PostActions } from "./post-actions";
 import { SparkContent } from "./spark-content";
 import { TextForm } from "./text-form";
 
-/**
- * A spark on its own page: in full, with the prompt behind an AI draft, and
- * its author's edit and delete. It reads from the query cache, seeded by the
- * server, so likes, comments and edits anywhere on the page show at once.
- */
+/** Reads from the query cache (seeded by the server) so likes and edits show at once. */
 export function PostDetail({ initial, viewer }: { initial: Post; viewer: CurrentUser | null }) {
   const router = useRouter();
   const queryClient = useQueryClient();

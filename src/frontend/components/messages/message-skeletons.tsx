@@ -1,6 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** Conversations on their way: the inbox's header, filter and rows. */
 export function InboxSkeleton({ count = 5 }: { count?: number }) {
   const names = ["w-28", "w-36", "w-24", "w-32", "w-40"];
   return (
@@ -33,7 +32,6 @@ export function InboxSkeleton({ count = 5 }: { count?: number }) {
   );
 }
 
-/** A conversation on its way: its header, a few bubbles on either side, and the message box. */
 export function ChatSkeleton() {
   const bubbles: { mine: boolean; width: string }[] = [
     { mine: false, width: "w-48" },

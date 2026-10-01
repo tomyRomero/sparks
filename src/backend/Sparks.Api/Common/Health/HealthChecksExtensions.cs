@@ -22,10 +22,8 @@ public static class HealthChecksExtensions
     }
 
     /// <summary>
-    /// Maps <c>/health/live</c> (the process is up; runs no checks) and
-    /// <c>/health/ready</c> (every check tagged <see cref="ReadyTag"/> passes).
-    /// Both are anonymous, so responses carry names and statuses only, never the
-    /// exception text that could reveal a server address.
+    /// <c>/health/live</c> runs no checks; <c>/health/ready</c> runs those tagged
+    /// <see cref="ReadyTag"/>. Anonymous, so no exception text in the output.
     /// </summary>
     public static WebApplication MapSparksHealthEndpoints(this WebApplication app)
     {

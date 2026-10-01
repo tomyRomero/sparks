@@ -6,14 +6,12 @@ import { useState } from "react";
 import { Toaster } from "sonner";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  // One cache per browser tab, created once (not on every render).
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Pages arrive with fresh data from the server; don't refetch it
-            // straight away on mount.
+            // Pages arrive with server data; don't refetch it on mount.
             staleTime: 30_000,
             retry: 1,
           },

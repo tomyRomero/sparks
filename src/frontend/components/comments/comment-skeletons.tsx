@@ -2,7 +2,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const lines = [["w-full", "w-2/3"], ["w-4/5"], ["w-full", "w-full", "w-1/2"]];
 
-/** A thread's comments on their way: the same frame as CommentItem at the top level. */
 export function CommentListSkeleton({ count = 3 }: { count?: number }) {
   return (
     <div>
@@ -28,7 +27,6 @@ export function CommentListSkeleton({ count = 3 }: { count?: number }) {
   );
 }
 
-/** The "add a comment" row above a thread. */
 export function CommentBoxSkeleton() {
   return (
     <div className="flex gap-3 border-b border-line px-4 py-4 sm:px-6">

@@ -16,7 +16,6 @@ export async function generateMetadata({ params }: LayoutProps<"/u/[username]">)
   };
 }
 
-/** A member's profile: the header and tabs stay put while the tabs' lists change below. */
 export default async function ProfileLayout({ params, children }: LayoutProps<"/u/[username]">) {
   const { username } = await params;
   const [viewer, profile] = await Promise.all([getViewer(), getProfile(username)]);

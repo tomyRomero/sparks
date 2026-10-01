@@ -4,10 +4,7 @@ import { sparkPreview } from "@/lib/spark-text";
 import { excerpt } from "@/lib/text";
 import { queryKeys } from "./keys";
 
-/**
- * A message on one line, for the inbox and toasts. A shared spark shows as
- * its title or opening; one that was deleted since says so.
- */
+/** One-line preview for the inbox and toasts. */
 export function messagePreview(message: Pick<Message, "body" | "sharedPost">, max: number): string {
   if (message.body) return excerpt(message.body, max);
   if (message.sharedPost) {
@@ -19,11 +16,7 @@ export function messagePreview(message: Pick<Message, "body" | "sharedPost">, ma
 /** A conversation's messages as cached: pages newest first, each page newest first. */
 type MessagePages = InfiniteData<CursorPage<Message>>;
 
-/**
- * Adds a message to its conversation's cached messages, if they're cached.
- * The same message can arrive twice, from the send's response and the live
- * event, so a message already there is left alone.
- */
+/** Skips a message that's already cached; it can arrive from both the send and the hub. */
 export function addCachedMessage(queryClient: QueryClient, message: Message) {
   queryClient.setQueryData<MessagePages>(queryKeys.messages(message.conversationId), (data) => {
     if (!data || data.pages.some((page) => page.items.some((item) => item.id === message.id))) return data;

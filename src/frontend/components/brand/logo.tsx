@@ -1,7 +1,6 @@
 import { Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** The bolt on a brand-blue tile: Sparks' mark, and the sign for AI help. */
 export function BoltMark({ className }: { className?: string }) {
   return (
     <span
@@ -12,7 +11,6 @@ export function BoltMark({ className }: { className?: string }) {
   );
 }
 
-/** The mark and the wordmark together. */
 export function Logo({ className }: { className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>

@@ -19,11 +19,6 @@ type LikeButtonProps = {
   size?: "md" | "sm";
 };
 
-/**
- * Likes and unlikes straight away, then settles on the count the API
- * returns, which every cached list showing the item picks up too. A failure
- * puts it back. Guests are sent to sign in.
- */
 export function LikeButton({
   target,
   liked: initialLiked,

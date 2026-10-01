@@ -7,7 +7,6 @@ import { getViewer } from "@/lib/auth/viewer";
 import { getProfile } from "@/lib/profiles";
 import { queryKeys } from "@/lib/queries/keys";
 
-/** What a member said under other sparks, newest first. */
 export default async function ProfileCommentsPage({ params }: PageProps<"/u/[username]/comments">) {
   const { username } = await params;
   const [viewer, profile] = await Promise.all([getViewer(), getProfile(username)]);

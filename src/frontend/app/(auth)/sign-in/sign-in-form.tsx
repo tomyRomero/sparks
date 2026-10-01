@@ -33,7 +33,6 @@ export function SignInForm({ returnTo, passwordReset }: { returnTo: string; pass
         json: { identifier: String(form.get("identifier")).trim(), password: form.get("password") },
       });
     } catch (error) {
-      // Wrong credentials and a locked account each come with their own message.
       return { error: errorMessage(error) };
     }
 

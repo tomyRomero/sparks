@@ -9,10 +9,8 @@ public interface IEmailSender
 }
 
 /// <summary>
-/// Writes emails to the log instead of sending them. Only local development
-/// logs the content: emails carry single-use links (password resets), and a
-/// link in a deployed environment's logs would let anyone who can read the
-/// logs take over the account.
+/// Logs emails instead of sending them. The body (with its reset link) is
+/// only logged in development; anywhere else it would be an account takeover.
 /// </summary>
 public sealed class LoggingEmailSender(IHostEnvironment environment, ILogger<LoggingEmailSender> logger) : IEmailSender
 {

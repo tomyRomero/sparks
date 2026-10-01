@@ -22,7 +22,6 @@ import { AvatarField } from "./avatar-field";
 type Values = { displayName: string; bio: string };
 type State = { values: Values; fieldErrors: Partial<Record<keyof Values, string>>; error?: string };
 
-/** The member's own profile: picture, name and bio. */
 export function ProfileForm({ profile: initial }: { profile: Profile }) {
   const router = useRouter();
   const queryClient = useQueryClient();

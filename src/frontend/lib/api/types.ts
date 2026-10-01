@@ -1,8 +1,4 @@
-/**
- * The API's response and request shapes, as it serialises them (camelCase,
- * enums as camelCase names, dates as ISO strings). Kept in step with the
- * C# records in src/backend.
- */
+// Mirrors the API's JSON: camelCase, enums as names, ISO dates.
 
 export type SparkKind =
   | "regular"
@@ -47,7 +43,6 @@ export type Post = {
   topComment: CommentPreview | null;
 };
 
-/** The start of a comment, with who wrote it. */
 export type CommentPreview = { id: number; body: string; author: UserSummary };
 
 export type Comment = {
@@ -106,7 +101,6 @@ export type Message = {
   readAt: string | null;
 };
 
-/** A spark shared in a message: its opening, enough for a preview that links to it. */
 export type SharedSpark = {
   id: number;
   kind: SparkKind;
@@ -124,7 +118,6 @@ export type MessagesReadEvent = {
   readAt: string;
 };
 
-/** Pushed live while the other participant types. */
 export type TypingEvent = { conversationId: number; userId: number };
 
 /** Whether a member is online; also pushed live (PresenceChanged) when it changes. */

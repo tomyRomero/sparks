@@ -8,10 +8,8 @@ import { kindInfo } from "@/lib/kinds";
 import { limits } from "@/lib/limits";
 import { cn } from "@/lib/utils";
 
-/** The kinds offered here; the composer has the rest. */
 const offered: SparkKind[] = ["movieScript", "bookPlot", "haiku", "artwork", "joke"];
 
-/** One line and a kind, then on to the composer, which drafts it straight away. */
 export function QuickDraft() {
   const id = useId();
   const router = useRouter();

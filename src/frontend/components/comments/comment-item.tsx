@@ -28,13 +28,11 @@ type CommentItemProps = {
   comment: Comment;
   viewer: CurrentUser | null;
   depth: number;
-  /** Runs after the member deletes this comment. */
   onDeleted: () => void;
   /** Open the replies straight away, for a comment shown on its own page. */
   startExpanded?: boolean;
 };
 
-/** One comment: who, when, what, its likes, and its replies behind a toggle. */
 export function CommentItem({ comment, viewer, depth, onDeleted, startExpanded = false }: CommentItemProps) {
   const router = useRouter();
   const queryClient = useQueryClient();

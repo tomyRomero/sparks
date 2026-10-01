@@ -10,15 +10,11 @@ import { cn } from "@/lib/utils";
 
 type SharedSparkCardProps = {
   spark: SharedSpark;
-  /** Sent by the viewer: outlined in brand blue, with its corner on the right. */
   mine: boolean;
   className?: string;
 };
 
-/**
- * A spark shared in a chat: who wrote it, its picture and opening, and the
- * way to it. A joke shows only its setup, so the punchline still lands.
- */
+/** A joke shows only its setup, so the punchline still lands. */
 export function SharedSparkCard({ spark, mine, className }: SharedSparkCardProps) {
   const { title, text } = splitSpark(spark.kind, spark.body);
   const { label, icon: Icon } = kindInfo(spark.kind);

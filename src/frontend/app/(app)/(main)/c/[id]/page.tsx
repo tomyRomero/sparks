@@ -19,7 +19,6 @@ export async function generateMetadata({ params }: PageProps<"/c/[id]">): Promis
   return { title: `${comment.author.displayName}: “${excerpt(comment.body, 60)}”` };
 }
 
-/** A comment and its replies, for threads nested too deep to show under the spark, and for links to a reply. */
 export default async function CommentPage({ params }: PageProps<"/c/[id]">) {
   const { id } = await params;
   const [viewer, comment] = await Promise.all([getViewer(), getComment(id)]);

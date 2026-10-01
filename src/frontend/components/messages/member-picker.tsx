@@ -17,7 +17,6 @@ type MemberPickerProps = {
   children: (member: UserSummary) => React.ReactNode;
 };
 
-/** Finds a member by name or username, for starting a chat or sending a spark. */
 export function MemberPicker({ label, placeholder, suggestions, children: row }: MemberPickerProps) {
   const id = useId();
   const [text, setText] = useState("");
@@ -113,7 +112,6 @@ function RowsSkeleton() {
   );
 }
 
-/** A member as a picker shows them: picture, name and username. */
 export function MemberLine({ member }: { member: UserSummary }) {
   return (
     <>

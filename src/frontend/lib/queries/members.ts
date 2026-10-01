@@ -6,10 +6,7 @@ import type { CursorPage, UserSummary } from "@/lib/api/types";
 import { useDebouncedValue } from "@/lib/forms";
 import { queryKeys } from "./keys";
 
-/**
- * Members matching what's typed, for pickers: asked once the typing pauses,
- * with the last answer kept on screen while the next one loads.
- */
+/** Debounced member search that keeps the last results while the next load. */
 export function useMemberLookup(text: string) {
   const term = useDebouncedValue(text.trim(), 250);
   const query = useQuery({

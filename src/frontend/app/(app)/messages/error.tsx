@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 
-/** A conversation that fails to load, shown in its pane; the inbox stays. */
 export default function MessagesError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-canvas px-6 text-center">

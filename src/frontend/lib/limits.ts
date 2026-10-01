@@ -1,7 +1,4 @@
-/**
- * The API's input limits (InputLimits.cs), so forms stop at the same place
- * the server would. The server still checks; these only save a round trip.
- */
+// Mirrors InputLimits.cs.
 export const limits = {
   usernameMin: 3,
   usernameMax: 30,

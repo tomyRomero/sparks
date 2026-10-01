@@ -3,10 +3,7 @@
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-/**
- * Goes back to wherever the reader came from, or to `fallback` when this
- * page opened fresh (a shared link) and there's nothing to go back to.
- */
+/** Goes back, or to `fallback` when there's no history (a shared link). */
 export function BackButton({ fallback }: { fallback: string }) {
   const router = useRouter();
   return (

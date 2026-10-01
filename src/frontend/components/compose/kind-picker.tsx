@@ -10,7 +10,7 @@ type KindPickerProps = {
   disabled?: boolean;
 };
 
-/** The kinds as radio buttons dressed as chips: arrow keys move between them. */
+/** Radio buttons styled as chips, so arrow keys work. */
 export function KindPicker({ value, onChange, aiOnly, disabled = false }: KindPickerProps) {
   const options = aiOnly ? kinds.filter((info) => info.kind !== "regular") : kinds;
   return (

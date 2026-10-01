@@ -9,7 +9,6 @@ import type { CurrentUser } from "@/lib/api/types";
 import { useSignOut } from "@/lib/auth/use-sign-out";
 import { cn } from "@/lib/utils";
 
-/** The signed-in member, with their profile, settings and sign-out. Compact shows the picture alone. */
 export function ViewerMenu({ viewer, compact = false }: { viewer: CurrentUser; compact?: boolean }) {
   const { signingOut, signOut } = useSignOut();
 
@@ -48,7 +47,7 @@ export function ViewerMenu({ viewer, compact = false }: { viewer: CurrentUser; c
           <Menu.Item
             className={menuItemStyle}
             aria-busy={signingOut || undefined}
-            // The menu stays open, so "Signing out…" shows until the next page does.
+            // The menu stays open, so "Signing out..." shows until the next page.
             onSelect={(event) => {
               event.preventDefault();
               void signOut();

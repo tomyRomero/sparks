@@ -20,7 +20,6 @@ type PictureFieldProps = {
   disabled?: boolean;
 };
 
-/** A spark's optional picture: uploaded, or painted by the AI, with a preview. */
 export function PictureField({ image, onChange, paint, disabled = false }: PictureFieldProps) {
   const id = useId();
   const [busy, setBusy] = useState<"uploading" | "painting" | null>(null);

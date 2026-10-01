@@ -4,14 +4,10 @@ using Microsoft.Extensions.Options;
 namespace Sparks.Api.Auth.Services;
 
 /// <summary>
-/// Per-account sign-in lockout. It complements the per-IP rate limit: the rate
-/// limit caps how fast one client can try, and the lockout caps attempts
-/// against one account from any number of clients.
+/// Sign-in lockout per identifier. The per-IP rate limit caps one client; this
+/// caps attempts on one account from any number of clients.
 /// </summary>
-/// <remarks>
-/// Keyed by the identifier as typed, whether or not an account exists, so the
-/// lockout never reveals which accounts are real.
-/// </remarks>
+/// <remarks>Applies whether or not the account exists, so it reveals nothing.</remarks>
 public interface IAccountLockout
 {
     AccountLockoutStatus Check(string identifier);
@@ -48,10 +44,8 @@ public sealed class AccountLockedException(DateTimeOffset lockedUntil)
 }
 
 /// <summary>
-/// Keeps lockout counters in memory. Sparks runs as one API instance; with
-/// several, this would move to a shared store such as Redis behind the same
-/// interface. The cache is size-limited so a flood of made-up identifiers
-/// can't exhaust memory; the oldest entries are evicted first.
+/// In-memory counters for a single instance. Size-limited so made-up
+/// identifiers can't exhaust memory.
 /// </summary>
 public sealed class InMemoryAccountLockout(IOptions<AccountLockoutOptions> options, TimeProvider time)
     : IAccountLockout, IDisposable

@@ -8,10 +8,8 @@ public sealed class PresenceOptions
     public const string SectionName = "Presence";
 
     /// <summary>
-    /// How long a member still counts as online after their last connection
-    /// closes. Reloading a page closes it for a moment, and so does the
-    /// connection reopening when its access token expires; neither should
-    /// read as leaving and coming back.
+    /// Grace after the last connection closes, so a reload or a token
+    /// reconnect doesn't read as leaving.
     /// </summary>
     [Range(typeof(TimeSpan), "00:00:00", "00:10:00")]
     public TimeSpan OfflineAfter { get; set; } = TimeSpan.FromSeconds(15);

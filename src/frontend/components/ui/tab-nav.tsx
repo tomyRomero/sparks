@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 
 export type Tab = { href: string; label: string; current: boolean };
 
-/** Sections of one page as links, in a segmented control with the current one raised. */
 export function TabNav({ label, tabs }: { label: string; tabs: Tab[] }) {
   return (
     <nav aria-label={label} className="mb-4">

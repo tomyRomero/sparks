@@ -4,12 +4,7 @@ import { LoaderCircle, type LucideIcon } from "lucide-react";
 import { useLinkStatus } from "next/link";
 import { cn } from "@/lib/utils";
 
-/**
- * A link's icon that turns into a spinner while the page it opens is on its
- * way, in the same box so nothing shifts. It must sit inside a Link. In
- * production most pages are prefetched and this never shows; it covers slow
- * connections and pages that weren't prefetched.
- */
+/** A Link's icon that becomes a spinner while its page loads. Must be inside a Link. */
 export function PendingIcon({ icon: Icon, className }: { icon: LucideIcon; className?: string }) {
   const { pending } = useLinkStatus();
   return (

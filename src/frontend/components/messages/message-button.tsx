@@ -9,7 +9,6 @@ import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/problem";
 import type { Conversation } from "@/lib/api/types";
 
-/** Opens the conversation with a member, starting it the first time. Compact drops the icon, for tight lists. */
 export function MessageButton({ username, compact = false }: { username: string; compact?: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();

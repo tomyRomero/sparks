@@ -1,10 +1,7 @@
 import { Search } from "lucide-react";
 import Form from "next/form";
 
-/**
- * The search box. A GET form, so it works before any script loads; once
- * the app is running, Next turns the submit into a client-side navigation.
- */
+// A GET form, so search works before scripts load.
 export function SearchForm({ q, tab }: { q: string; tab: "sparks" | "members" }) {
   return (
     <Form action="/search" role="search" className="mb-4">

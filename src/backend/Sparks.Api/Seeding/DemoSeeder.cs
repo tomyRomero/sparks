@@ -15,11 +15,9 @@ using Sparks.Api.Users.Data;
 namespace Sparks.Api.Seeding;
 
 /// <summary>
-/// Fills a development database with two believable weeks of Sparks:
-/// members, posts of every kind, threads, likes and chats. Everything but
-/// the accounts goes through the real services, so it obeys the same rules
-/// as what members write, while a movable clock spreads it over time.
-/// Pictures come from whichever image provider is configured.
+/// Two weeks of demo members, sparks, threads, likes and chats for a
+/// development database. Content goes through the real services, with a
+/// movable clock to spread it over time.
 /// </summary>
 public sealed class DemoSeeder(
     SparksDbContext db,
@@ -49,7 +47,7 @@ public sealed class DemoSeeder(
 
         var passwordHash = Passwords.Hash(password);
 
-        // ── Members, a month ago ────────────────────────────────────────────
+        // Members, a month ago
         _clock.Ago(TimeSpan.FromDays(30));
         var nova = await MemberAsync(MainUsername, "Nova Reyes",
             "Screenwriter by night, barista by day. Collecting plot twists.",
@@ -76,7 +74,7 @@ public sealed class DemoSeeder(
             "Philosophy graduate, professional overthinker.",
             "a man with dark hair, a neat beard and a corduroy blazer", passwordHash, ct);
 
-        // ── Two weeks of posts, comments and likes ──────────────────────────
+        // Two weeks of posts, comments and likes
         _clock.Ago(TimeSpan.FromDays(14));
         var buildHaiku = await PostAsync(lucas, SparkKind.Haiku,
             "Green tests at midnight\nthe coffee has gone cold, but\nthe build is still warm", ct: ct);
@@ -222,7 +220,7 @@ public sealed class DemoSeeder(
         await LikeAsync(tableRead, ct, sofia, theo, isla, kenji);
         await LikeAsync(secondDraft, ct, amara);
 
-        // ── Chats with Nova ─────────────────────────────────────────────────
+        // Chats with Nova
         await ConversationAsync(nova, theo, ct,
             new Said(TimeSpan.FromDays(5), theo, "Found three lighthouses within an hour of the city. Want location photos?"),
             new Said(TimeSpan.FromDays(5) - TimeSpan.FromMinutes(20), nova, "Yes please! The one with the red door, if it exists."),
@@ -240,7 +238,7 @@ public sealed class DemoSeeder(
             new Said(TimeSpan.FromHours(2), sofia, "It's going to have an accent."),
             new Said(TimeSpan.FromHours(1), sofia, "Also, I'm bringing my cat. She has notes."));
 
-        // ── When everyone was last around ───────────────────────────────────
+        // When everyone was last around
         await LastSeenAsync(sofia, TimeSpan.FromMinutes(4), ct);
         await LastSeenAsync(theo, TimeSpan.FromMinutes(12), ct);
         await LastSeenAsync(isla, TimeSpan.FromMinutes(40), ct);

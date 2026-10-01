@@ -6,7 +6,6 @@ import { usePagedList } from "@/lib/queries/use-paged-list";
 import { PostCard } from "./post-card";
 
 type FeedProps = {
-  /** The first page, rendered on the server. */
   initial: CursorPage<Post>;
   /** The API path of the list, with any filters: "/posts?kind=haiku". */
   path: string;
@@ -15,7 +14,6 @@ type FeedProps = {
   empty: React.ReactNode;
 };
 
-/** A list of sparks that keeps loading as the reader scrolls. */
 export function Feed({ initial, path, queryKey, signedIn, empty }: FeedProps) {
   const { query, items: posts } = usePagedList(path, queryKey, initial);
   if (posts.length === 0) {

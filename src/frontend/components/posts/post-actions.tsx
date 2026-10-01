@@ -7,7 +7,6 @@ import type { Post } from "@/lib/api/types";
 import { LikeButton } from "./like-button";
 import { ShareDialog } from "./share-dialog";
 
-/** The look every action under a spark shares: quiet mono counts that light up on hover. */
 export const actionStyle =
   "inline-flex h-[34px] items-center gap-[7px] rounded-[9px] px-2.5 font-mono text-[12.5px] text-muted transition-colors";
 
@@ -18,7 +17,6 @@ type PostActionsProps = {
   commentsHref: string;
 };
 
-/** Like, comments and share, under a spark. */
 export function PostActions({ post, signedIn, commentsHref }: PostActionsProps) {
   const [sharing, setSharing] = useState(false);
   return (

@@ -3,7 +3,6 @@
 import { usePresence } from "@/lib/queries/presence";
 import { lastActive } from "@/lib/time";
 
-/** Whether a member is online, or when they last were; live. Nothing until it's known. */
 export function PresenceLine({ userId }: { userId: number }) {
   const presence = usePresence([userId])?.get(userId);
   if (!presence) return null;

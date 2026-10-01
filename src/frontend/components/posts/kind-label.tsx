@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 const chip =
   "inline-flex h-[26px] shrink-0 items-center gap-1.5 rounded-full px-2.5 font-mono text-[11px] whitespace-nowrap";
 
-/** The kind of a spark as a small outlined chip. Phones show the icon alone. */
 export function KindChip({ kind }: { kind: SparkKind }) {
   const { label, icon: Icon } = kindInfo(kind);
   return (
@@ -17,7 +16,6 @@ export function KindChip({ kind }: { kind: SparkKind }) {
   );
 }
 
-/** Marks a spark drafted with AI, in the cyan reserved for AI. */
 export function AiChip() {
   return (
     <span className={cn(chip, "bg-charge-soft text-charge")}>
@@ -28,7 +26,6 @@ export function AiChip() {
   );
 }
 
-/** The idea an AI draft was written from, in a quiet strip under the spark. */
 export function AiPrompt({ prompt }: { prompt: string }) {
   return (
     <p className="flex items-start gap-2 rounded-[10px] bg-raised px-3 py-2 font-mono text-xs leading-relaxed text-muted">

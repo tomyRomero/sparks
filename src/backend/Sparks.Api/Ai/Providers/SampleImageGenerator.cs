@@ -7,10 +7,8 @@ using Sparks.Api.Ai.Services;
 namespace Sparks.Api.Ai.Providers;
 
 /// <summary>
-/// Paints a soft gradient whose colours come from the prompt, for running
-/// without an image key. The same prompt always gives the same picture, and
-/// the whole upload-and-attach flow runs exactly as it does with a real
-/// provider. It writes the PNG itself, so it needs no imaging library.
+/// A gradient coloured from the prompt, for running without an image key.
+/// Deterministic, and writes the PNG by hand to avoid an imaging library.
 /// </summary>
 public sealed class SampleImageGenerator : IImageGenerator
 {

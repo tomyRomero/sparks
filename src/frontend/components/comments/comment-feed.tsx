@@ -14,7 +14,6 @@ type CommentFeedProps = {
   empty: React.ReactNode;
 };
 
-/** A member's comments, newest first, each leading back to its thread. */
 export function CommentFeed({ initial, path, queryKey, empty }: CommentFeedProps) {
   const { query, items: comments } = usePagedList(path, queryKey, initial);
   if (comments.length === 0) {

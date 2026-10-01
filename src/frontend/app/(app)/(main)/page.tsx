@@ -15,8 +15,7 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   const kind = isKind(kindParam) ? kindParam : undefined;
   const viewer = await getViewer();
 
-  // Picking a kind keys a new boundary, so the list below shows a skeleton
-  // while the header and chips stay where they are.
+  // Keyed by kind so only the list falls back to a skeleton.
   return (
     <>
       <PageHeader title={kind ? kindInfo(kind).label : "Home"}>

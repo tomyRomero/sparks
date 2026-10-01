@@ -25,7 +25,6 @@ type AnyHandler = (payload: never) => void;
 type Live = {
   /** Whether the connection is up. While it's down, lists catch up when it returns. */
   connected: boolean;
-  /** Listens for an event; returns the way to stop. */
   on: <E extends LiveEvent>(event: E, handler: Handler<E>) => () => void;
   /** Tells the other participant the member is typing. Dropped while offline. */
   typing: (conversationId: number) => void;
@@ -38,15 +37,12 @@ export function useLive(): Live | null {
   return useContext(LiveContext);
 }
 
-/** Longest wait between attempts to start the connection again. */
 const MAX_BACKOFF_MS = 30_000;
 
 /**
- * One live connection per signed-in member, to the API's hub through this
- * app's /hubs proxy, so the sign-in cookie goes along. Listeners are kept
- * apart from the connection, so reconnecting never loses them. When the
- * connection drops for good, most often because the access token it opened
- * with expired, the session is refreshed and the connection started again.
+ * The member's SignalR connection, through the /hubs rewrite so cookies go
+ * along. Listeners live outside the connection and survive reconnects; when
+ * it closes (usually an expired token) the session is refreshed and it restarts.
  */
 export function LiveProvider({ viewerId, children }: { viewerId: number; children: React.ReactNode }) {
   const queryClient = useQueryClient();
@@ -81,7 +77,6 @@ export function LiveProvider({ viewerId, children }: { viewerId: number; childre
       void queryClient.invalidateQueries({ queryKey: queryKeys.presence });
     };
 
-    /** A toast for a message that arrives while its conversation isn't open. */
     const announce = async (message: Message) => {
       const path = `/messages/${message.conversationId}`;
       if (here.current.pathname === path) return;

@@ -8,11 +8,9 @@ using Sparks.Api.Presence.Services;
 namespace Sparks.Api.Realtime;
 
 /// <summary>
-/// The live connection each signed-in browser keeps open. Events go to
-/// members by user id (<see cref="UserIdProvider"/>), so every tab a member
-/// has open gets them. Writes such as sending a message go through the REST
-/// API, where they're validated and saved, and are pushed from there.
-/// Connections opening and closing are what make a member online or not.
+/// Each signed-in tab's live connection. Events are addressed by user id, so
+/// every tab gets them. Writes go through the REST API and are pushed from
+/// there; connections also drive presence.
 /// </summary>
 [Authorize]
 public sealed class RealtimeHub(SparksDbContext db, PresenceService presence) : Hub<IRealtimeClient>

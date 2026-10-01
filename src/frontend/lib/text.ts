@@ -1,7 +1,4 @@
-/**
- * The start of a text on one line, cut at a word and marked with an ellipsis
- * when it's longer than `max` characters: for titles, previews and toasts.
- */
+/** The first line, cut at a word with an ellipsis past `max`. */
 export function excerpt(text: string, max: number): string {
   const line = text.replace(/\s+/g, " ").trim();
   if (line.length <= max) return line;

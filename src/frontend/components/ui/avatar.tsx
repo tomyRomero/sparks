@@ -10,16 +10,9 @@ type AvatarProps = {
   className?: string;
 };
 
-/**
- * Deep tones that keep white initials readable (at least 4.5:1), one per
- * member, picked from their name so it never changes between pages.
- */
+/** Dark enough for white initials (4.5:1), picked by name so it's stable. */
 const tones = ["#3b5bdb", "#7048e8", "#2b7a3b", "#0b7285", "#c2255c", "#1864ab", "#495867", "#9c36b5"];
 
-/**
- * A member's picture, or their initials on a disc of their own colour when
- * they have none. The green dot says they're online.
- */
 export function Avatar({ name, src, size = 40, online, className }: AvatarProps) {
   const style = { width: size, height: size };
   const face = src ? (

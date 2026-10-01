@@ -1,4 +1,3 @@
-/** The panel and item looks every Radix dropdown menu shares. */
 export const menuContentStyle = "z-50 min-w-44 rounded-md border border-line bg-surface p-1 shadow-lg";
 
 export const menuItemStyle =

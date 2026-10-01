@@ -8,10 +8,7 @@ import { queryKeys } from "./keys";
 
 export type UsernameStatus = "unknown" | "checking" | "free" | "taken";
 
-/**
- * Whether a username is free, looked up once the member pauses typing. Only
- * a well-formed name is looked up; the API still has the last word at sign-up.
- */
+/** Debounced availability check for well-formed names; sign-up has the last word. */
 export function useUsernameStatus(username: string, wellFormed: boolean): UsernameStatus {
   const settled = useDebouncedValue(username, 400);
   const waiting = settled !== username;

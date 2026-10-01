@@ -1,13 +1,10 @@
 import type { SparkKind } from "@/lib/api/types";
 import { excerpt } from "@/lib/text";
 
-/**
- * A spark's text, split the way its kind is written. AI drafts follow these
- * shapes (SparkBriefs.cs in the API), and the composer suggests them to
- * anyone writing by hand. Text that doesn't follow them shows as written.
- */
+// Splits a spark by its kind's layout (see SparkBriefs.cs). Text that
+// doesn't follow it shows as written.
 export type SparkText = {
-  /** A first line "Title: …", for movie scripts, book plots and artworks. */
+  /** A first line "Title: ...", for movie scripts, book plots and artworks. */
   title: string | null;
   /** The rest of the text; for a joke, the setup. */
   text: string;
@@ -31,7 +28,6 @@ export function splitSpark(kind: SparkKind, body: string): SparkText {
   return { title: null, text: body.trim(), punchline: null };
 }
 
-/** A haiku's lines, without blank ones. */
 export function haikuLines(body: string): string[] {
   return body
     .split("\n")
@@ -39,10 +35,7 @@ export function haikuLines(body: string): string[] {
     .filter(Boolean);
 }
 
-/**
- * A one-line preview of a spark for tight spaces (an inbox row, a toast):
- * its title when it has one, and never a joke's punchline.
- */
+/** One-line preview: the title if any, never a joke's punchline. */
 export function sparkPreview(kind: SparkKind, body: string, max: number): string {
   const { title, text } = splitSpark(kind, body);
   return excerpt(title ?? text, max);

@@ -7,23 +7,18 @@ using Microsoft.Extensions.Options;
 namespace Sparks.Api.Storage;
 
 /// <summary>
-/// Stores files in an S3-compatible bucket (Cloudflare R2, AWS S3, Backblaze
-/// B2, MinIO). The bucket stays private: browsers get files from the API's
-/// <c>/files</c> endpoint, which reads them from here.
+/// Any S3-compatible bucket (R2, S3, B2, MinIO). The bucket stays private;
+/// browsers get files through the API's <c>/files</c> endpoint.
 /// </summary>
 public sealed class S3FileStorage(IAmazonS3 s3, IOptions<S3StorageOptions> options) : IFileStorage
 {
     private readonly string _bucket = options.Value.Bucket;
 
-    // Cloudflare's guide for this SDK asks uploads to skip payload signing and
-    // the default checksum: R2 doesn't support the streaming upload format
-    // they otherwise switch on. The SDK allows an unsigned payload only over
-    // HTTPS, where TLS protects the body anyway, so a plain-HTTP endpoint
-    // (the test bucket) still signs it.
+    // R2 doesn't support the SDK's streaming upload format, so skip payload
+    // signing (HTTPS only; the plain-HTTP test bucket still signs).
     private readonly bool _unsignedPayload =
         options.Value.ServiceUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>A client for the bucket, set up to work with any S3-compatible store.</summary>
     public static IAmazonS3 CreateClient(S3StorageOptions bucket) =>
         new AmazonS3Client(
             new BasicAWSCredentials(bucket.AccessKeyId, bucket.SecretAccessKey),
@@ -31,11 +26,8 @@ public sealed class S3FileStorage(IAmazonS3 s3, IOptions<S3StorageOptions> optio
             {
                 ServiceURL = bucket.ServiceUrl,
                 AuthenticationRegion = bucket.Region,
-                // bucket/key in the path rather than the host name, which every
-                // S3-compatible store accepts.
                 ForcePathStyle = true,
-                // Checksums only where the S3 API requires them: the SDK's newer
-                // defaults send headers other stores don't all accept.
+                // The SDK's newer checksum defaults aren't supported everywhere.
                 RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
                 ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
             });
@@ -82,19 +74,12 @@ public sealed class S3FileStorage(IAmazonS3 s3, IOptions<S3StorageOptions> optio
         }
     }
 
-    /// <summary>S3 answers a delete of a missing key with success, so this is harmless too.</summary>
     public Task DeleteAsync(string key, CancellationToken ct) => s3.DeleteObjectAsync(_bucket, Checked(key), ct);
 
-    /// <summary>The same rule as local storage: only keys <see cref="StorageKeys"/> could have made.</summary>
     private static string Checked(string key) =>
         StorageKeys.IsValid(key) ? key : throw new ArgumentException("Not a storage key.", nameof(key));
 
-    /// <summary>
-    /// An object's content, read straight from the bucket's HTTP response.
-    /// Disposing it disposes the whole response, which releases the
-    /// connection, so whoever reads it (the <c>/files</c> endpoint) needs to
-    /// know nothing about S3.
-    /// </summary>
+    /// <summary>Disposes the whole S3 response with the stream, releasing the connection.</summary>
     private sealed class ObjectStream(GetObjectResponse response) : Stream
     {
         private readonly Stream _body = response.ResponseStream;

@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import type { CurrentUser } from "@/lib/api/types";
 
-/** The top of the feed: a way in to writing, by hand or with AI. */
 export function ComposerPrompt({ viewer }: { viewer: CurrentUser }) {
   const firstName = viewer.displayName.split(/\s+/)[0];
   return (

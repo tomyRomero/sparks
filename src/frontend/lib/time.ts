@@ -2,10 +2,7 @@ const minute = 60_000;
 const hour = 60 * minute;
 const day = 24 * hour;
 
-/**
- * A compact age for timestamps in lists: "now", "5m", "3h", "2d", then the
- * date ("Sep 12", with the year once it's another year).
- */
+/** "now", "5m", "3h", "2d", then "Sep 12" (with the year if it differs). */
 export function timeAgo(iso: string, now: Date = new Date()): string {
   const then = new Date(iso);
   const elapsed = now.getTime() - then.getTime();
@@ -20,7 +17,6 @@ export function timeAgo(iso: string, now: Date = new Date()): string {
   });
 }
 
-/** The full date and time, for a tooltip or a <time> title. */
 export function fullDate(iso: string): string {
   return new Date(iso).toLocaleString("en", { dateStyle: "medium", timeStyle: "short" });
 }
@@ -37,10 +33,7 @@ export function sameDay(a: string, b: string): boolean {
   return new Date(a).toDateString() === new Date(b).toDateString();
 }
 
-/**
- * The day a chat's messages were sent, for the line between days: "Today",
- * "Yesterday", the weekday within the last week, then the date.
- */
+/** "Today", "Yesterday", a weekday within the week, then the date. */
 export function dayLabel(iso: string, now: Date = new Date()): string {
   const then = new Date(iso);
   const startOf = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();

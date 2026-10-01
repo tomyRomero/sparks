@@ -13,9 +13,7 @@ import { SparkPicker } from "./spark-picker";
 const TYPING_SIGNAL_MS = 3000;
 
 type ChatComposerProps = {
-  /** Who the messages go to, for labels. */
   name: string;
-  /** The viewer's username, for picking one of their sparks to share. */
   username: string;
   onSend: (body: string) => void;
   onShare: (post: Post) => void;

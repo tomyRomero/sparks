@@ -18,13 +18,9 @@ import { cn } from "@/lib/utils";
 import { KindPicker } from "./kind-picker";
 import { PictureField } from "./picture-field";
 
-/** The kind AI drafting starts on when none was asked for. */
 const FIRST_AI_KIND = kinds.find((info) => info.kind !== "regular")!.kind;
 
-/**
- * How to write a kind by hand so it's laid out like an AI draft of it (see
- * splitSpark): a title line for the long kinds, a held-back punchline for jokes.
- */
+/** Hints that match how AI drafts are laid out (see splitSpark). */
 const formatHints: Partial<Record<SparkKind, string>> = {
   movieScript: "Start with “Title: …” on its own line, and the title goes over the poster.",
   bookPlot: "Start with “Title: …” on its own line, and the title goes beside the cover.",
@@ -41,11 +37,6 @@ type ComposerProps = {
   initialIdea?: string;
 };
 
-/**
- * Writes a spark by hand, or drafts it with AI from a one-line idea and then
- * edits it. Visual kinds can have their picture painted too. A spark drafted
- * with AI carries the prompt it came from, so readers can see it.
- */
 export function Composer({ startWithAi, initialKind, initialIdea }: ComposerProps) {
   const id = useId();
   const router = useRouter();

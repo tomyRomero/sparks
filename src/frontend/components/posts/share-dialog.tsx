@@ -25,11 +25,6 @@ type ShareDialogProps = {
 
 type Delivery = { state: "sending" } | { state: "sent"; conversationId: number } | { state: "failed" };
 
-/**
- * Shares a spark: its link for anywhere, or straight into a conversation
- * with someone on Sparks. Recent conversations come first; anyone else is a
- * search away.
- */
 export function ShareDialog({ post, open, onOpenChange, signedIn }: ShareDialogProps) {
   const queryClient = useQueryClient();
   const pathname = usePathname();

@@ -9,10 +9,6 @@ import type { Comment, CurrentUser } from "@/lib/api/types";
 import { queryKeys } from "@/lib/queries/keys";
 import { CommentItem } from "./comment-item";
 
-/**
- * A comment on its own page: where it sits in the thread, then it and its
- * replies. Read from the query cache, seeded by the server, like the spark page.
- */
 export function CommentFocus({ initial, viewer }: { initial: Comment; viewer: CurrentUser | null }) {
   const router = useRouter();
   const { data: comment } = useQuery({

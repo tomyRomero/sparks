@@ -14,11 +14,6 @@ type DialogProps = {
   className?: string;
 };
 
-/**
- * A modal panel with a title and a close button. Focus moves in when it
- * opens, stays inside, and goes back where it was when it closes; Escape and
- * a click outside close it. On a phone it rises from the bottom edge.
- */
 export function Dialog({ open, onOpenChange, title, description, children, className }: DialogProps) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>

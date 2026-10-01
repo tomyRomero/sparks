@@ -12,11 +12,9 @@ import { cn } from "@/lib/utils";
 
 type AvatarFieldProps = {
   profile: Profile;
-  /** Runs with the profile the API returns after each change. */
   onChanged: (profile: Profile) => void;
 };
 
-/** The member's picture: replaced the moment a file is picked, or removed. */
 export function AvatarField({ profile, onChanged }: AvatarFieldProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();

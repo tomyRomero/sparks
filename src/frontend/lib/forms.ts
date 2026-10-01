@@ -4,11 +4,7 @@ import { useEffect, useState } from "react";
 
 export type FieldState = ReturnType<typeof useField>;
 
-/**
- * One text field's value and what's wrong with it. The problem shows once
- * the member leaves the field or tries to submit, then updates as they type:
- * it clears the moment they fix it, but never nags halfway through a word.
- */
+/** A field's value and problem. The problem shows after blur or submit, then updates live. */
 export function useField(initial: string, check: (value: string) => string | undefined) {
   const [value, setValue] = useState(initial);
   const [touched, setTouched] = useState(false);
@@ -27,11 +23,9 @@ export function useField(initial: string, check: (value: string) => string | und
 }
 
 /**
- * For a form's onSubmit: shows every field's problem and, if there is one,
- * stops the submit and puts the cursor in the first field with a problem.
- * Each entry is the input's id, its field, and optionally a problem the
- * field can't see itself (a username that's taken). A prevented submit
- * never reaches the form's action.
+ * Touches every field and, if any has a problem, cancels the submit and
+ * focuses the first one. `extraProblem` is for checks the field can't make
+ * itself, like a taken username.
  */
 export function stopIfInvalid(
   event: React.FormEvent<HTMLFormElement>,

@@ -20,22 +20,16 @@ const kinds: Record<ActivityKind, { verb: string; icon: typeof Heart; tone: stri
   reply: { verb: "replied to your comment", icon: CornerDownRight, tone: "bg-brand-soft text-brand" },
 };
 
-/** Where an item leads: the spark for a like on it, otherwise the comment in its thread. */
 function target(item: ActivityItem) {
   return item.commentId === null ? `/p/${item.postId}` : `/c/${item.commentId}`;
 }
 
-/**
- * What others did with the member's sparks and comments, newest first. New
- * items stay highlighted for this visit, but are marked read at once so the
- * badge clears; anything arriving later stays unread.
- */
+// New items stay highlighted for this visit but are marked read at once.
 export function ActivityList({ initial }: { initial: OpaquePage<ActivityItem> }) {
   const queryClient = useQueryClient();
   const { query, items } = usePagedList<ActivityItem, string>("/activity", queryKeys.activity, initial);
 
-  // Each visit starts from the server's first page, never from what was
-  // cached last time, so new activity and the read state are always current.
+  // Always start from the server's first page so the read state is current.
   useEffect(() => () => queryClient.removeQueries({ queryKey: queryKeys.activity }), [queryClient]);
 
   const newest = initial.items[0];
@@ -113,10 +107,7 @@ export function ActivityList({ initial }: { initial: OpaquePage<ActivityItem> })
   );
 }
 
-/**
- * Activity excerpts are a spark's or comment's opening words, of any kind,
- * so a titled spark's "Title: " label is dropped there.
- */
+/** Excerpts are opening words, so drop a titled spark's "Title: " label. */
 function withoutTitleLabel(text: string) {
   return text.replace(/^Title:[ \t]*/, "");
 }

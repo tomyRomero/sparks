@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { Logo } from "@/components/brand/logo";
 import { getViewer } from "@/lib/auth/viewer";
 
-/** Sign-in, sign-up and password pages: a brand panel beside the form. */
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   if (await getViewer()) {
     redirect("/");

@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 const FADE_START_PX = 16;
 const FADE_END_PX = 48;
 
-/** The feed's kind chips: every kind, or one. */
 export function KindFilter({ active }: { active: SparkKind | undefined }) {
   const list = useRef<HTMLUListElement>(null);
 

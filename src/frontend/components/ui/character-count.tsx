@@ -8,11 +8,7 @@ type CharacterCountProps = {
   className?: string;
 };
 
-/**
- * "12 / 50" for a field with a limit: amber in the last tenth, red at the
- * limit. Screen readers hear how many are left once it turns amber, not a
- * number on every keystroke.
- */
+/** Amber in the last tenth, red at the limit; announced once it turns amber. */
 export function CharacterCount({ length, max, showFrom = 0, className }: CharacterCountProps) {
   const near = length >= max * 0.9;
   return (

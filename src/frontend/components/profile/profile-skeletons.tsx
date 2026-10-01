@@ -1,6 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** A profile's header and tabs on their way: the same frame as ProfileHeader and ProfileTabs. */
 export function ProfileHeaderSkeleton() {
   return (
     <>
@@ -26,7 +25,6 @@ export function ProfileHeaderSkeleton() {
   );
 }
 
-/** Members on their way: the same frame as MemberList. */
 export function MemberListSkeleton({ count = 5 }: { count?: number }) {
   const names = ["w-32", "w-24", "w-40", "w-28", "w-36"];
   return (
@@ -44,7 +42,6 @@ export function MemberListSkeleton({ count = 5 }: { count?: number }) {
   );
 }
 
-/** The profile settings form on its way: picture, then name and bio. */
 export function ProfileFormSkeleton() {
   return (
     <div className="grid gap-8 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-6">

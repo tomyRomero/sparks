@@ -2,7 +2,6 @@ import { RightRail } from "@/components/shell/right-rail";
 import { Sidebar } from "@/components/shell/sidebar";
 import { getViewer } from "@/lib/auth/viewer";
 
-/** Most pages: the navigation, one column of content, and the right rail on wide screens. */
 export default async function MainLayout({ children }: { children: React.ReactNode }) {
   const viewer = await getViewer();
   return (

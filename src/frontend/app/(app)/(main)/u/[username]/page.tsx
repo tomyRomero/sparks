@@ -6,7 +6,6 @@ import { getViewer } from "@/lib/auth/viewer";
 import { getProfile } from "@/lib/profiles";
 import { queryKeys } from "@/lib/queries/keys";
 
-/** The sparks a member shared, newest first. */
 export default async function ProfileSparksPage({ params }: PageProps<"/u/[username]">) {
   const { username } = await params;
   const [viewer, profile] = await Promise.all([getViewer(), getProfile(username)]);

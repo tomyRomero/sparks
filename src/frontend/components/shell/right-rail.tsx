@@ -4,7 +4,6 @@ import type { CurrentUser } from "@/lib/api/types";
 import { QuickDraft } from "./quick-draft";
 import { WhosAround } from "./whos-around";
 
-/** Wide screens only: a quick way into AI drafting, and who's around to talk to. */
 export function RightRail({ viewer }: { viewer: CurrentUser | null }) {
   return (
     <aside className="sticky top-0 hidden h-dvh w-[312px] shrink-0 flex-col gap-4 overflow-y-auto py-6 xl:flex">

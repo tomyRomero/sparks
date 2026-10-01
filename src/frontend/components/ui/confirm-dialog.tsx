@@ -14,7 +14,6 @@ type ConfirmDialogProps = {
   onConfirm: () => Promise<void>;
 };
 
-/** Asks before something that can't be undone, such as a delete. */
 export function ConfirmDialog({ open, onOpenChange, title, description, confirmLabel, onConfirm }: ConfirmDialogProps) {
   const [pending, setPending] = useState(false);
 

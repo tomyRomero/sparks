@@ -3,16 +3,11 @@ using Microsoft.Extensions.Options;
 namespace Sparks.Api.Presence.Services;
 
 /// <summary>
-/// Who is connected right now, counted in this instance's memory. A member
-/// with three tabs open has three connections. They're online while any is
-/// open, and for <see cref="PresenceOptions.OfflineAfter"/> after the last
-/// one closes.
+/// Open connections per member, in memory. A member is online while any tab
+/// is connected and for <see cref="PresenceOptions.OfflineAfter"/> after the
+/// last one closes.
 /// </summary>
-/// <remarks>
-/// Memory is enough while the API runs as one instance. Several instances
-/// would keep the counts in a shared store such as Redis, as SignalR itself
-/// would then need a backplane.
-/// </remarks>
+/// <remarks>Single instance only; scaling out needs Redis and a SignalR backplane.</remarks>
 public sealed class PresenceTracker(TimeProvider time, IOptions<PresenceOptions> options)
 {
     private readonly Lock _gate = new();

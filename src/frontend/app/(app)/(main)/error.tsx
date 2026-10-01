@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 
-/** Shown in the page column when a page fails to load; the navigation stays. */
 export default function PageError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-24 text-center">

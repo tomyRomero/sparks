@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { passwordChecks } from "@/lib/validation";
 import { Input } from "./input";
 
-/** A password box with a button to show what's been typed. */
 export function PasswordInput({ className, ...props }: Omit<React.ComponentProps<"input">, "type">) {
   const [shown, setShown] = useState(false);
   return (
@@ -26,10 +25,7 @@ export function PasswordInput({ className, ...props }: Omit<React.ComponentProps
   );
 }
 
-/**
- * The password rules, ticked off as they're met. The byte limit only
- * appears when it's broken: it takes 73 plain characters to reach it.
- */
+/** The byte limit only shows once broken; it takes 73 ASCII characters. */
 export function PasswordRules({ id, value }: { id: string; value: string }) {
   const { longEnough, shortEnough } = passwordChecks(value);
   return (

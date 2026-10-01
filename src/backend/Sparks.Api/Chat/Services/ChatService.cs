@@ -15,10 +15,8 @@ using Sparks.Api.Users.Services;
 namespace Sparks.Api.Chat.Services;
 
 /// <summary>
-/// Private conversations between two members: the inbox, opening a
-/// conversation, and sending and reading messages, which can share a spark.
-/// New messages and read receipts are pushed live to both participants once
-/// they're saved.
+/// One-to-one conversations. Messages and read receipts are pushed live to
+/// both participants once saved.
 /// </summary>
 public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubContext<RealtimeHub, IRealtimeClient> hub)
 {

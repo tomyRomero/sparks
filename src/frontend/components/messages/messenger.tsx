@@ -3,11 +3,8 @@
 import { useSelectedLayoutSegment } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-/**
- * The messenger's two panes: the inbox and the open conversation. Wide
- * screens show both. Narrower ones show the inbox until a conversation is
- * opened, then the conversation alone, with a way back.
- */
+// Wide screens show both panes; narrow ones show the inbox until a
+// conversation opens.
 export function Messenger({ inbox, children }: { inbox: React.ReactNode; children: React.ReactNode }) {
   const open = useSelectedLayoutSegment() !== null;
   return (

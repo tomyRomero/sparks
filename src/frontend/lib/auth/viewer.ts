@@ -7,11 +7,7 @@ import { ApiError } from "@/lib/api/problem";
 import { ACCESS_COOKIE, serverFetch } from "@/lib/api/server";
 import type { CurrentUser } from "@/lib/api/types";
 
-/**
- * The signed-in member, or null for a guest. Asked once per request however
- * many components need it. The proxy has already refreshed an expired
- * session, so a missing cookie means signed out.
- */
+/** Cached per request. The proxy already refreshed the session, so no cookie means a guest. */
 export const getViewer = cache(async (): Promise<CurrentUser | null> => {
   if (!(await cookies()).has(ACCESS_COOKIE)) {
     return null;

@@ -15,12 +15,6 @@ type SparkContentProps = {
   eagerImage?: boolean;
 };
 
-/**
- * A spark laid out for its kind: a movie script on a dark screen with its
- * title over the poster, a book plot beside its cover, a haiku as a poem, a
- * joke that holds its punchline back. In a card, the text and picture link
- * to the spark's page.
- */
 export function SparkContent({ post, variant, eagerImage = false }: SparkContentProps) {
   const card = variant === "card";
   const { title, text, punchline } = splitSpark(post.kind, post.body);
@@ -286,7 +280,6 @@ function Picture({ src, href, frame, sizes, eager, className }: PictureProps) {
   );
 }
 
-/** A joke's punchline, held back until the reader asks for it. */
 function Punchline({ text, large }: { text: string; large: boolean }) {
   const [shown, setShown] = useState(false);
   const revealed = useRef<HTMLParagraphElement>(null);

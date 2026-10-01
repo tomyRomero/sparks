@@ -14,7 +14,6 @@ type MemberListProps = {
   empty: React.ReactNode;
 };
 
-/** Members as rows that open their profiles. */
 export function MemberList({ initial, path, queryKey, empty }: MemberListProps) {
   const { query, items: members } = usePagedList(path, queryKey, initial);
   if (members.length === 0) {

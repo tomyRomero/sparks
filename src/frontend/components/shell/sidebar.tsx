@@ -19,7 +19,6 @@ type SidebarProps = {
   compact?: boolean;
 };
 
-/** The desktop navigation: every section with its unread count, the way to write, and the account. */
 export function Sidebar({ viewer, compact = false }: SidebarProps) {
   const pathname = usePathname();
   const signedIn = viewer !== null;

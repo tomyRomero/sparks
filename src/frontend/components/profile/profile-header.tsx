@@ -10,11 +10,9 @@ const joined = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" })
 
 type ProfileHeaderProps = {
   profile: Profile;
-  /** Who's looking: the member themselves, another member, or a guest. */
   viewer: "self" | "member" | "guest";
 };
 
-/** Who a member is: picture, names, bio, when they joined, and what they've shared. */
 export function ProfileHeader({ profile, viewer }: ProfileHeaderProps) {
   return (
     <section

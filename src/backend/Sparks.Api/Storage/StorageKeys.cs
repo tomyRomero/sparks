@@ -4,10 +4,8 @@ using System.Text.RegularExpressions;
 namespace Sparks.Api.Storage;
 
 /// <summary>
-/// Storage keys look like <c>avatars/42/3f9c…e1.webp</c>: a folder, the
-/// owner's user id, and a random name with the image's real extension. The
-/// owner in the key lets the API check that a member only attaches their own
-/// uploads, and the random name can't be guessed or collide.
+/// Keys look like <c>avatars/42/3f9c...e1.webp</c>: folder, owner id, random
+/// name. The owner id lets the API check members only attach their own uploads.
 /// </summary>
 public static partial class StorageKeys
 {

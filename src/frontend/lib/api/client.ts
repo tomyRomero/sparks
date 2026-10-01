@@ -9,10 +9,7 @@ type RequestOptions = Omit<RequestInit, "body"> & {
 
 let refreshing: Promise<boolean> | null = null;
 
-/**
- * Rotates the session once, however many requests found it expired at the
- * same moment; they all wait for the one refresh. True when it worked.
- */
+/** One refresh shared by every request that found the session expired. */
 export function refreshSession(): Promise<boolean> {
   refreshing ??= fetch("/api/v1/auth/refresh", { method: "POST" })
     .then((response) => response.ok)
@@ -23,11 +20,7 @@ export function refreshSession(): Promise<boolean> {
   return refreshing;
 }
 
-/**
- * Calls the API from the browser through this app's /api/v1 proxy, so the
- * sign-in cookies go along. An expired session is refreshed once and the
- * request retried; any failure throws an ApiError.
- */
+/** Fetch through the /api/v1 rewrite; retries once after refreshing an expired session. */
 export async function api<T = void>(path: string, options: RequestOptions = {}): Promise<T> {
   const { json, body, headers, ...init } = options;
   const send = () =>

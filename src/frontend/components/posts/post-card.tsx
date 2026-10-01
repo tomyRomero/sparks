@@ -14,7 +14,6 @@ type PostCardProps = {
   eagerImage?: boolean;
 };
 
-/** A spark in a list, as a card: who and when, the spark laid out for its kind, and what to do with it. */
 export function PostCard({ post, signedIn, eagerImage = false }: PostCardProps) {
   const href = `/p/${post.id}`;
   const profile = `/u/${post.author.username}`;

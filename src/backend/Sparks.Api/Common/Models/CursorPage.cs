@@ -3,10 +3,8 @@ using System.ComponentModel.DataAnnotations;
 namespace Sparks.Api.Common.Models;
 
 /// <summary>
-/// Paging for lists ordered by id: the feed newest first, a thread oldest
-/// first. Instead of a page number, the client sends back the cursor from the
-/// previous page, so items added in the meantime can't shift what it has
-/// already seen.
+/// Keyset paging for lists ordered by id. New items can't shift pages the
+/// client already has, as they would with page numbers.
 /// </summary>
 public record PageRequest
 {

@@ -7,10 +7,7 @@ using Sparks.Api.Users.Data;
 namespace Sparks.Api.Common.Data;
 
 /// <summary>
-/// The Sparks database. Each feature keeps its entities and their
-/// <see cref="IEntityTypeConfiguration{TEntity}"/> in its own Data folder;
-/// they're all picked up here. Table and column names are snake_case,
-/// applied by convention where the context is registered.
+/// Entity configurations live in each feature's Data folder and are picked up here.
 /// </summary>
 public sealed class SparksDbContext(DbContextOptions<SparksDbContext> options) : DbContext(options)
 {

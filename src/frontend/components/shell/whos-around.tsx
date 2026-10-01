@@ -7,7 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useMembersAround } from "@/lib/queries/presence";
 import { lastActive } from "@/lib/time";
 
-/** A few members to talk to: who's online now, then who was around lately. Live. */
 export function WhosAround() {
   const { data: members, isPending } = useMembersAround(true);
   if (!isPending && !members?.length) return null;

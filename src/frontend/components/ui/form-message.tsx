@@ -1,7 +1,6 @@
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** A form-level message: an error the fields can't show, or a confirmation. */
 export function FormMessage({ tone, children }: { tone: "error" | "success"; children: React.ReactNode }) {
   const Icon = tone === "error" ? CircleAlert : CircleCheck;
   return (

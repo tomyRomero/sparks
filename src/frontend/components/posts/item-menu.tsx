@@ -13,7 +13,6 @@ type ItemMenuProps = {
   className?: string;
 };
 
-/** The author's own actions on a spark or comment. */
 export function ItemMenu({ label, onEdit, onDelete, className }: ItemMenuProps) {
   return (
     // Not modal: a modal menu that hands focus to the delete dialog can leave

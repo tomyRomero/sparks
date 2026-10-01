@@ -8,12 +8,9 @@ using Sparks.Api.Users.Data;
 namespace Sparks.Api.Auth.Services;
 
 /// <summary>
-/// Account creation, sign-in, refresh-token rotation and sign-out.
+/// Sign-up, sign-in, refresh-token rotation and sign-out. Sign-in failures all
+/// look the same, so they don't reveal which accounts exist.
 /// </summary>
-/// <remarks>
-/// Every sign-in failure surfaces as one generic error, whatever the cause, so
-/// callers can't learn which emails or usernames exist.
-/// </remarks>
 public sealed class AuthService(
     SparksDbContext db,
     TokenService tokens,
@@ -111,10 +108,8 @@ public sealed class AuthService(
     }
 
     /// <summary>
-    /// Exchanges a refresh token for a new access token and a new refresh
-    /// token. Exactly one of several concurrent refreshes with the same token
-    /// wins; a token that was rotated a while ago and comes back is treated as
-    /// stolen, and every session of its user ends.
+    /// Rotates the refresh token. One of several concurrent refreshes wins; an
+    /// old token coming back is treated as stolen and ends all the user's sessions.
     /// </summary>
     /// <exception cref="UnauthorizedAccessException">The token is unknown, expired, revoked or lost a race.</exception>
     public async Task<SignedIn> RefreshAsync(string refreshToken, CancellationToken ct)
@@ -206,11 +201,9 @@ public sealed class AuthService(
     }
 
     /// <summary>
-    /// A revoked token came back. If it was rotated moments ago, another
-    /// request with the same cookie simply got there first. If it was rotated
-    /// earlier, the only way to hold it is to have copied it before it was
-    /// replaced, so it is treated as stolen. Tokens revoked by sign-out have
-    /// no successor and just fail.
+    /// A revoked token came back. Within the grace period it's a concurrent
+    /// request; after it, someone copied the token. Signed-out tokens have no
+    /// successor and just fail.
     /// </summary>
     private async Task HandleReuseAsync(RefreshTokenEntity stored, DateTime revokedAt, DateTime now, CancellationToken ct)
     {

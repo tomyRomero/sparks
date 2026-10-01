@@ -7,7 +7,6 @@ type UnreadBadgeProps = {
   className?: string;
 };
 
-/** A count on a nav item; hidden at zero, capped at 99+. */
 export function UnreadBadge({ count, spoken = false, className }: UnreadBadgeProps) {
   if (!count) return null;
   return (

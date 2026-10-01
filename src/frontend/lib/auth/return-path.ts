@@ -1,8 +1,4 @@
-/**
- * Where to go after signing in. Only a path on this site is accepted, so a
- * crafted link can't bounce a member to another site ("//evil.example"
- * would be protocol-relative).
- */
+/** Same-site paths only, so a crafted link can't redirect elsewhere ("//evil.example"). */
 export function safeReturnPath(next: string | null | undefined): string {
   if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) {
     return "/";

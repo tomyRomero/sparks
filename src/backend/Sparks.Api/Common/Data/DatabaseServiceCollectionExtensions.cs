@@ -8,11 +8,8 @@ public static class DatabaseServiceCollectionExtensions
     public const string ConnectionStringName = "SparksDb";
 
     /// <summary>
-    /// Registers <see cref="SparksDbContext"/> on SQL Server with snake_case
-    /// table and column names. The connection string is read when the options
-    /// are first built rather than at startup, so configuration added later
-    /// (such as a test's own database) applies. The options are a singleton
-    /// because they never change; each request still gets its own context.
+    /// SQL Server with snake_case names. The connection string is read lazily
+    /// so a test host's own database applies.
     /// </summary>
     public static IServiceCollection AddSparksDatabase(this IServiceCollection services)
     {
