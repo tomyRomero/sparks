@@ -1,8 +1,9 @@
 "use client";
 
+import { Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Marked } from "@/components/search/highlight";
 import type { Post } from "@/lib/api/types";
 import { haikuLines, splitSpark } from "@/lib/spark-text";
@@ -14,9 +15,11 @@ type SparkContentProps = {
   variant: "card" | "page";
   /** Load the picture straight away: it's likely the largest thing on screen. */
   eagerImage?: boolean;
+  /** On the spark's own page: a double tap on the picture likes it. */
+  onDoubleTap?: () => void;
 };
 
-export function SparkContent({ post, variant, eagerImage = false }: SparkContentProps) {
+export function SparkContent({ post, variant, eagerImage = false, onDoubleTap }: SparkContentProps) {
   const card = variant === "card";
   const { title, text, punchline } = splitSpark(post.kind, post.body);
   const href = `/p/${post.id}`;
@@ -37,6 +40,7 @@ export function SparkContent({ post, variant, eagerImage = false }: SparkContent
         sizes={sizes}
         eager={eagerImage || !card}
         className={imageClassName}
+        onDoubleTap={card ? undefined : onDoubleTap}
       />
     );
   const columnSizes = "(min-width: 768px) 600px, 100vw";
@@ -260,9 +264,10 @@ type PictureProps = {
   sizes: string;
   eager: boolean;
   className?: string;
+  onDoubleTap?: () => void;
 };
 
-function Picture({ src, href, frame, sizes, eager, className }: PictureProps) {
+function Picture({ src, href, frame, sizes, eager, className, onDoubleTap }: PictureProps) {
   const image = (
     <Image
       src={src}
@@ -274,12 +279,77 @@ function Picture({ src, href, frame, sizes, eager, className }: PictureProps) {
     />
   );
   const frameStyle = cn("relative block overflow-hidden rounded-[14px] bg-raised", frame);
-  return href ? (
-    <Link href={href} className={frameStyle} tabIndex={-1} aria-hidden>
+  if (href) {
+    return (
+      <Link href={href} className={frameStyle} tabIndex={-1} aria-hidden>
+        {image}
+      </Link>
+    );
+  }
+  return onDoubleTap ? (
+    <DoubleTap className={frameStyle} onDoubleTap={onDoubleTap}>
       {image}
-    </Link>
+    </DoubleTap>
   ) : (
     <div className={frameStyle}>{image}</div>
+  );
+}
+
+/** Two taps or clicks this close together, in time and on screen, are a double tap. */
+const DOUBLE_TAP_MS = 300;
+const DOUBLE_TAP_PX = 30;
+
+/**
+ * Likes on a double tap, with a big heart where it landed. It's a shortcut for
+ * pointers; everyone has the like button, so it isn't announced or focusable.
+ */
+function DoubleTap({
+  className,
+  onDoubleTap,
+  children,
+}: {
+  className: string;
+  onDoubleTap: () => void;
+  children: React.ReactNode;
+}) {
+  const frame = useRef<HTMLDivElement>(null);
+  const [hearts, setHearts] = useState(0);
+  const tapped = useEffectEvent(() => {
+    onDoubleTap();
+    setHearts((count) => count + 1);
+  });
+
+  useEffect(() => {
+    const element = frame.current;
+    if (!element) return;
+    let last: { at: number; x: number; y: number } | null = null;
+    const onPointerUp = (event: PointerEvent) => {
+      const near = last && Math.hypot(event.clientX - last.x, event.clientY - last.y) < DOUBLE_TAP_PX;
+      if (last && near && event.timeStamp - last.at < DOUBLE_TAP_MS) {
+        last = null;
+        window.getSelection()?.removeAllRanges();
+        tapped();
+        return;
+      }
+      last = { at: event.timeStamp, x: event.clientX, y: event.clientY };
+    };
+    element.addEventListener("pointerup", onPointerUp);
+    return () => element.removeEventListener("pointerup", onPointerUp);
+  }, []);
+
+  return (
+    <div ref={frame} className={cn(className, "touch-manipulation select-none")}>
+      {children}
+      {hearts > 0 && (
+        <span
+          key={hearts}
+          aria-hidden
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
+        >
+          <Heart className="size-24 animate-big-heart fill-like text-like drop-shadow-[0_6px_24px_rgb(0_0_0/0.35)] motion-reduce:animate-fade-flash sm:size-28" />
+        </span>
+      )}
+    </div>
   );
 }
 

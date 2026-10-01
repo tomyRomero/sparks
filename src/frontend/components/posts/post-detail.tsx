@@ -17,6 +17,7 @@ import { queryKeys } from "@/lib/queries/keys";
 import { fullDate } from "@/lib/time";
 import { ItemMenu } from "./item-menu";
 import { AiChip, KindChip } from "./kind-label";
+import { useLike } from "./like-button";
 import { PostActions } from "./post-actions";
 import { SparkContent } from "./spark-content";
 import { TextForm } from "./text-form";
@@ -33,6 +34,11 @@ export function PostDetail({ initial, viewer }: { initial: Post; viewer: Current
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const mine = viewer?.id === post.author.id;
+  const like = useLike(
+    { kind: "post", id: post.id },
+    { liked: post.likedByMe, likeCount: post.likeCount },
+    viewer !== null,
+  );
 
   async function save(body: string) {
     const updated = await api<Post>(`/posts/${post.id}`, { method: "PATCH", json: { body } });
@@ -83,7 +89,7 @@ export function PostDetail({ initial, viewer }: { initial: Post; viewer: Current
           onCancel={() => setEditing(false)}
         />
       ) : (
-        <SparkContent post={post} variant="page" />
+        <SparkContent post={post} variant="page" onDoubleTap={like.like} />
       )}
 
       {post.aiPrompt && (
@@ -109,7 +115,7 @@ export function PostDetail({ initial, viewer }: { initial: Post; viewer: Current
       </p>
 
       <footer className="border-t border-line pt-3">
-        <PostActions post={post} signedIn={viewer !== null} commentsHref="#comments" />
+        <PostActions post={post} signedIn={viewer !== null} commentsHref="#comments" like={like} />
       </footer>
 
       <ConfirmDialog

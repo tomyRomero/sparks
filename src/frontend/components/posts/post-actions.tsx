@@ -4,7 +4,7 @@ import { MessageCircle, Send } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import type { Post } from "@/lib/api/types";
-import { LikeButton } from "./like-button";
+import { LikeButton, type LikeControl, LikeToggle } from "./like-button";
 import { ShareDialog } from "./share-dialog";
 
 export const actionStyle =
@@ -15,18 +15,24 @@ type PostActionsProps = {
   signedIn: boolean;
   /** Where the comment count goes: the spark's page from a list, its thread on the page itself. */
   commentsHref: string;
+  /** The like state, when something else on the page can like too (a double tap on the picture). */
+  like?: LikeControl;
 };
 
-export function PostActions({ post, signedIn, commentsHref }: PostActionsProps) {
+export function PostActions({ post, signedIn, commentsHref, like }: PostActionsProps) {
   const [sharing, setSharing] = useState(false);
   return (
     <div className="-ml-2.5 flex items-center gap-1">
-      <LikeButton
-        target={{ kind: "post", id: post.id }}
-        liked={post.likedByMe}
-        count={post.likeCount}
-        signedIn={signedIn}
-      />
+      {like ? (
+        <LikeToggle like={like} />
+      ) : (
+        <LikeButton
+          target={{ kind: "post", id: post.id }}
+          liked={post.likedByMe}
+          count={post.likeCount}
+          signedIn={signedIn}
+        />
+      )}
       <Link href={commentsHref} className={`${actionStyle} hover:bg-brand/10 hover:text-brand`}>
         <MessageCircle className="size-[18px]" aria-hidden />
         {post.commentCount}
