@@ -7,13 +7,18 @@ type RequestOptions = Omit<RequestInit, "body"> & {
   body?: BodyInit;
 };
 
-let refreshing: Promise<boolean> | null = null;
+type RefreshResult = "refreshed" | "signed-out" | "unavailable";
+
+let refreshing: Promise<RefreshResult> | null = null;
 
 /** One refresh shared by every request that found the session expired. */
-export function refreshSession(): Promise<boolean> {
+export function refreshSession(): Promise<RefreshResult> {
   refreshing ??= fetch("/api/v1/auth/refresh", { method: "POST" })
-    .then((response) => response.ok)
-    .catch(() => false)
+    .then((response): RefreshResult => {
+      if (response.ok) return "refreshed";
+      return response.status === 401 ? "signed-out" : "unavailable";
+    })
+    .catch((): RefreshResult => "unavailable")
     .finally(() => {
       refreshing = null;
     });
@@ -31,7 +36,7 @@ export async function api<T = void>(path: string, options: RequestOptions = {}):
     });
 
   let response = await send();
-  if (response.status === 401 && !path.startsWith("/auth/") && (await refreshSession())) {
+  if (response.status === 401 && !path.startsWith("/auth/") && (await refreshSession()) === "refreshed") {
     response = await send();
   }
 

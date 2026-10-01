@@ -123,7 +123,12 @@ export function LiveProvider({ viewerId, children }: { viewerId: number; childre
         catchUp();
       } catch {
         if (stopped) return;
-        await refreshSession();
+        if ((await refreshSession()) === "signed-out") {
+          // The session is over (signed out elsewhere, or a password reset):
+          // show the page as a guest rather than retrying forever.
+          here.current.router.refresh();
+          return;
+        }
         retry = window.setTimeout(start, Math.min(MAX_BACKOFF_MS, 1000 * 2 ** attempt++));
       }
     };
