@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using FluentAssertions;
 using Sparks.Api.Common.Models;
+using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
 using Sparks.Api.Users.Models;
 using Sparks.Tests.Infrastructure;
@@ -37,7 +38,30 @@ public sealed class ProfileTests(SparksApiFactory factory)
             Bio = (string?)null,
             PostCount = 2,
             LikesReceived = 1,
+            CommentCount = 0,
+            PictureCount = 0,
+            CoverUrl = (string?)null,
         });
+    }
+
+    [Fact]
+    public async Task A_profile_shows_its_most_liked_picture_on_top_and_lists_its_pictures()
+    {
+        var (member, user) = await factory.SignedInClientAsync(Ct);
+        var (fan, _) = await factory.SignedInClientAsync(Ct);
+        var older = await member.CreatePictureAsync("Low tide", SparkKind.Photography, Ct);
+        var newer = await member.CreatePictureAsync("High noon", SparkKind.Photography, Ct);
+        await member.CreatePostAsync("No picture", Ct);
+        await member.CommentAsync(older.Id, "My own note", Ct);
+        await fan.PutAsync($"/api/v1/posts/{older.Id}/like", content: null, Ct);
+        var reader = factory.CreateClient();
+
+        var profile = await reader.GetJsonAsync<ProfileResponse>($"{UsersPath}/{user.Username}", Ct);
+        var pictures = await reader.GetJsonAsync<CursorPage<PostResponse>>(
+            $"{UsersPath}/{user.Username}/posts?pictures=true", Ct);
+
+        profile.Should().BeEquivalentTo(new { PostCount = 3, PictureCount = 2, CommentCount = 1, CoverUrl = older.ImageUrl });
+        pictures.Items.Select(post => post.Id).Should().Equal(newer.Id, older.Id);
     }
 
     [Theory]

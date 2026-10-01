@@ -114,5 +114,13 @@ public sealed class UserService(
         FileUrls.Of(user.AvatarKey),
         user.CreatedAt,
         db.Posts.Count(post => post.AuthorId == user.Id),
-        db.PostLikes.Count(like => like.Post.AuthorId == user.Id));
+        db.PostLikes.Count(like => like.Post.AuthorId == user.Id),
+        db.Comments.Count(comment => comment.AuthorId == user.Id),
+        db.Posts.Count(post => post.AuthorId == user.Id && post.ImageKey != null),
+        FileUrls.Of(db.Posts
+            .Where(post => post.AuthorId == user.Id && post.ImageKey != null)
+            .OrderByDescending(post => post.Likes.Count)
+            .ThenByDescending(post => post.Id)
+            .Select(post => post.ImageKey)
+            .FirstOrDefault()));
 }

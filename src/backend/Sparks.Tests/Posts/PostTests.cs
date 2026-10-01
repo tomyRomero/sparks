@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text.Json;
-using System.Net.Http.Headers;
 using FluentAssertions;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +8,6 @@ using Sparks.Api.Common.Models;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
 using Sparks.Api.Search;
-using Sparks.Api.Storage;
 using Sparks.Tests.Infrastructure;
 
 namespace Sparks.Tests.Posts;
@@ -102,12 +100,7 @@ public sealed class PostTests(SparksApiFactory factory)
         var haiku = await author.CreatePostAsync($"{word} in five seven five", SparkKind.Haiku, Ct);
         var joke = await author.CreatePostAsync($"{word} walks into a bar", SparkKind.Joke, Ct);
         await author.CreatePostAsync($"{word} said nobody", SparkKind.Quote, Ct);
-        var upload = await author.PostAsync("/api/v1/images", PngForm(), Ct);
-        var image = await upload.ReadAsync<UploadedImage>(Ct);
-        var photo = await (await author.PostJsonAsync(
-            PostsPath,
-            new CreatePostRequest { Kind = SparkKind.Photography, Body = $"{word} at dusk", ImageKey = image.Key },
-            Ct)).ReadAsync<PostResponse>(Ct);
+        var photo = await author.CreatePictureAsync($"{word} at dusk", SparkKind.Photography, Ct);
         var reader = factory.CreateClient();
 
         var twoKinds = await reader.GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word}&kind=haiku&kind=joke", Ct);
@@ -283,12 +276,4 @@ public sealed class PostTests(SparksApiFactory factory)
     /// <summary>A word no other test's post contains, to find this test's posts in the shared database.</summary>
     private static string UniqueWord() => $"w{Guid.NewGuid():N}"[..16];
 
-    private static MultipartFormDataContent PngForm()
-    {
-        // A real 1x1 PNG.
-        var file = new ByteArrayContent(Convert.FromBase64String(
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="));
-        file.Headers.ContentType = new MediaTypeHeaderValue("image/png");
-        return new MultipartFormDataContent { { file, "file", "image.png" } };
-    }
 }

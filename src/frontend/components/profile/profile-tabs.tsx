@@ -9,6 +9,7 @@ export function ProfileTabs({ username }: { username: string }) {
   const base = `/u/${username}`;
   const tabs = [
     { href: base, label: "Sparks" },
+    { href: `${base}/pictures`, label: "Pictures" },
     { href: `${base}/comments`, label: "Comments" },
     { href: `${base}/likes`, label: "Likes" },
   ].map((tab) => ({ ...tab, current: pathname === tab.href.toLowerCase() }));

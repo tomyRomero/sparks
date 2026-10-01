@@ -1,4 +1,5 @@
 import { CalendarDays } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { MessageButton } from "@/components/messages/message-button";
 import { Avatar } from "@/components/ui/avatar";
@@ -7,6 +8,7 @@ import type { Profile } from "@/lib/api/types";
 import { PresenceLine } from "./presence-line";
 
 const joined = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" });
+const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
 
 type ProfileHeaderProps = {
   profile: Profile;
@@ -14,15 +16,22 @@ type ProfileHeaderProps = {
 };
 
 export function ProfileHeader({ profile, viewer }: ProfileHeaderProps) {
+  const stats = [
+    { label: profile.postCount === 1 ? "Spark" : "Sparks", value: profile.postCount },
+    { label: profile.likesReceived === 1 ? "Like received" : "Likes received", value: profile.likesReceived },
+    { label: profile.pictureCount === 1 ? "Picture" : "Pictures", value: profile.pictureCount },
+    { label: profile.commentCount === 1 ? "Comment" : "Comments", value: profile.commentCount },
+  ];
+
   return (
     <section
       aria-label="Profile"
       className="mb-4 overflow-hidden rounded-[18px] border border-line bg-surface pb-5 shadow-card"
     >
-      <div aria-hidden className="h-24 bg-gradient-to-br from-brand-soft via-raised to-charge-soft" />
+      <Cover profile={profile} />
       <div className="px-5 sm:px-6">
-        <div className="-mt-11 flex items-end justify-between gap-4">
-          <Avatar name={profile.displayName} src={profile.avatarUrl} size={88} className="ring-4 ring-surface" />
+        <div className="relative -mt-12 flex items-end justify-between gap-4">
+          <Avatar name={profile.displayName} src={profile.avatarUrl} size={96} className="ring-4 ring-surface" />
           {viewer === "self" && (
             <Button asChild variant="secondary" size="sm">
               <Link href="/settings/profile">Edit profile</Link>
@@ -38,17 +47,54 @@ export function ProfileHeader({ profile, viewer }: ProfileHeaderProps) {
           <CalendarDays className="size-4" aria-hidden />
           Joined {joined.format(new Date(profile.joinedAt))}
         </p>
-        <p className="mt-3 flex gap-5 text-sm">
-          <span>
-            <strong className="font-semibold">{profile.postCount}</strong>{" "}
-            <span className="text-muted">{profile.postCount === 1 ? "spark" : "sparks"}</span>
-          </span>
-          <span>
-            <strong className="font-semibold">{profile.likesReceived}</strong>{" "}
-            <span className="text-muted">{profile.likesReceived === 1 ? "like received" : "likes received"}</span>
-          </span>
-        </p>
+        <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-[14px] border border-line bg-line sm:grid-cols-4">
+          {stats.map(({ label, value }) => (
+            <div key={label} className="flex flex-col-reverse gap-0.5 bg-surface px-4 py-3">
+              <dt className="label-mono">{label}</dt>
+              <dd className="font-display text-xl font-bold tabular-nums" title={value.toLocaleString("en")}>
+                {compact.format(value)}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
+  );
+}
+
+/**
+ * The top of the page: their most liked picture when they have one, otherwise
+ * a wash of colour picked from their name, so no two bare profiles match.
+ */
+function Cover({ profile }: { profile: Profile }) {
+  if (profile.coverUrl) {
+    return (
+      <div aria-hidden className="relative h-32 bg-raised sm:h-40">
+        <Image
+          src={profile.coverUrl}
+          alt=""
+          fill
+          sizes="720px"
+          loading="eager"
+          fetchPriority="high"
+          className="object-cover"
+        />
+        <span className="absolute inset-0 bg-gradient-to-b from-black/0 via-black/0 to-black/30" />
+      </div>
+    );
+  }
+
+  const hue = Array.from(profile.username).reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) % 360, 7);
+  return (
+    <div
+      aria-hidden
+      className="h-32 bg-raised sm:h-40"
+      style={{
+        backgroundImage: [
+          `radial-gradient(120% 160% at 0% 0%, hsl(${hue} 85% 60% / 0.5), transparent 60%)`,
+          `radial-gradient(120% 160% at 100% 100%, hsl(${(hue + 70) % 360} 85% 55% / 0.45), transparent 60%)`,
+        ].join(", "),
+      }}
+    />
   );
 }

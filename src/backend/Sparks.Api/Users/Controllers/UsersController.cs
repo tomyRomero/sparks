@@ -33,10 +33,10 @@ public sealed class UsersController(UserService users, PostService posts, Commen
 
     [HttpGet("{username}/posts")]
     [AllowAnonymous]
-    public async Task<CursorPage<PostResponse>> GetPosts(string username, [FromQuery] PageRequest page, CancellationToken ct)
+    public async Task<CursorPage<PostResponse>> GetPosts(string username, [FromQuery] UserPostsQuery query, CancellationToken ct)
     {
         var authorId = await users.GetIdAsync(username, ct);
-        return await posts.GetByAuthorAsync(authorId, page, User.FindUserId(), ct);
+        return await posts.GetByAuthorAsync(authorId, query, query.Pictures, User.FindUserId(), ct);
     }
 
     [HttpGet("{username}/comments")]

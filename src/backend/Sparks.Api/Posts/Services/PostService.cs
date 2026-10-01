@@ -53,10 +53,14 @@ public sealed class PostService(
         return new OpaqueCursorPage<PostResponse>(page, nextCursor);
     }
 
-    /// <summary>One member's posts, newest first.</summary>
+    /// <summary>One member's posts, newest first; only those with a picture for the Pictures grid.</summary>
     public Task<CursorPage<PostResponse>> GetByAuthorAsync(
-        long authorId, PageRequest page, long? viewerId, CancellationToken ct) =>
-        PageAsync(db.Posts.AsNoTracking().Where(post => post.AuthorId == authorId), page, viewerId, ct);
+        long authorId, PageRequest page, bool picturesOnly, long? viewerId, CancellationToken ct) =>
+        PageAsync(
+            Filter(db.Posts.AsNoTracking().Where(post => post.AuthorId == authorId), kinds: [], picturesOnly, q: null),
+            page,
+            viewerId,
+            ct);
 
     /// <summary>
     /// The posts a member liked, newest post first. Ordering by the post

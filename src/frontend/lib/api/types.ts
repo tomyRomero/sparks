@@ -75,6 +75,12 @@ export type Profile = {
   joinedAt: string;
   postCount: number;
   likesReceived: number;
+  /** Comments and replies the member wrote. */
+  commentCount: number;
+  /** The member's sparks that have a picture. */
+  pictureCount: number;
+  /** The picture of their most liked spark that has one, for the top of the page. */
+  coverUrl: string | null;
 };
 
 export type ActivityKind = "postLike" | "commentLike" | "comment" | "reply";

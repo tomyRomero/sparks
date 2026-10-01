@@ -11,7 +11,7 @@ export const queryKeys = {
     ["posts", "feed", filter] as const,
   /** The week's most liked sparks, for the right rail. */
   trending: ["posts", "trending"] as const,
-  profilePosts: (username: string, tab: "posts" | "liked") => ["posts", "profile", username, tab] as const,
+  profilePosts: (username: string, tab: "posts" | "pictures" | "liked") => ["posts", "profile", username, tab] as const,
 
   comments: ["comments"] as const,
   comment: (id: number) => ["comments", "detail", id] as const,

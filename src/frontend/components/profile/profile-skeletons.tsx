@@ -4,9 +4,9 @@ export function ProfileHeaderSkeleton() {
   return (
     <>
       <div className="mb-4 overflow-hidden rounded-[18px] border border-line bg-surface pb-5 shadow-card">
-        <div className="h-24 bg-raised" />
+        <div className="h-32 bg-raised sm:h-40" />
         <div className="px-5 sm:px-6">
-          <Skeleton className="-mt-11 size-[88px] rounded-full ring-4 ring-surface" />
+          <Skeleton className="relative -mt-12 size-24 rounded-full ring-4 ring-surface" />
           <Skeleton className="mt-5 h-6 w-44" />
           <Skeleton className="mt-2.5 h-3 w-24" />
           <div className="mt-4 grid max-w-prose gap-2">
@@ -14,14 +14,21 @@ export function ProfileHeaderSkeleton() {
             <Skeleton className="h-3.5 w-2/3" />
           </div>
           <Skeleton className="mt-4 h-3.5 w-36" />
-          <div className="mt-4 flex gap-5">
-            <Skeleton className="h-3.5 w-20" />
-            <Skeleton className="h-3.5 w-28" />
-          </div>
+          <Skeleton className="mt-5 h-[124px] w-full rounded-[14px] sm:h-[62px]" />
         </div>
       </div>
-      <Skeleton className="mb-4 h-11 w-64 rounded-xl" />
+      <Skeleton className="mb-4 h-11 w-80 max-w-full rounded-xl" />
     </>
+  );
+}
+
+export function PictureGridSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {Array.from({ length: count }, (_, index) => (
+        <Skeleton key={index} className="aspect-square rounded-[14px]" />
+      ))}
+    </div>
   );
 }
 
