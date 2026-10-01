@@ -15,6 +15,7 @@ public sealed class AuthService(
     SparksDbContext db,
     TokenService tokens,
     IAccountLockout lockout,
+    EndedSessions endedSessions,
     IOptions<JwtOptions> jwtOptions,
     TimeProvider time,
     ILogger<AuthService> logger)
@@ -72,27 +73,28 @@ public sealed class AuthService(
     }
 
     /// <summary>Signs in with an email or username and password.</summary>
-    /// <exception cref="AccountLockedException">Too many recent failures for this identifier.</exception>
+    /// <exception cref="AccountLockedException">Too many recent failures for this account.</exception>
     /// <exception cref="UnauthorizedAccessException">The credentials don't match an account.</exception>
     public async Task<SignedIn> SignInAsync(LoginRequest request, ClientInfo client, CancellationToken ct)
     {
         var identifier = request.Identifier.Trim();
 
-        // Checked before touching the database, so a locked identifier answers
-        // the same way whether or not the account exists.
-        var status = lockout.Check(identifier);
+        // Usernames can't contain "@", so an identifier matches one column at most.
+        var account = await db.Users
+            .SingleOrDefaultAsync(user => user.Email == identifier || user.Username == identifier, ct);
+
+        // One budget per account whether it's named by username or email;
+        // unknown identifiers lock the same way, so the lock reveals nothing.
+        var lockoutKey = account is null ? identifier : AccountLockout.AccountKey(account.Id);
+        var status = lockout.Check(lockoutKey);
         if (status.IsLocked)
         {
             throw new AccountLockedException(status.LockedUntil!.Value);
         }
 
-        // Usernames can't contain "@", so an identifier matches one column at most.
-        var account = await db.Users
-            .SingleOrDefaultAsync(user => user.Email == identifier || user.Username == identifier, ct);
-
         if (!Passwords.Verify(request.Password, account?.PasswordHash))
         {
-            var afterFailure = lockout.RecordFailure(identifier);
+            var afterFailure = lockout.RecordFailure(lockoutKey);
             // Never log the identifier: it's personal data, and often a typo of a password.
             logger.LogWarning("Failed sign-in attempt");
             if (afterFailure.IsLocked)
@@ -103,7 +105,7 @@ public sealed class AuthService(
             throw new UnauthorizedAccessException();
         }
 
-        lockout.Clear(identifier);
+        lockout.Clear(lockoutKey);
         return await StartSessionAsync(account!, client, ct);
     }
 
@@ -125,10 +127,9 @@ public sealed class AuthService(
             throw new UnauthorizedAccessException();
         }
 
-        if (stored.RevokedAt is { } revokedAt)
+        if (stored.RevokedAt is not null)
         {
-            await HandleReuseAsync(stored, revokedAt, now, ct);
-            throw new UnauthorizedAccessException();
+            return await RefreshRevokedAsync(stored, now, ct);
         }
 
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
@@ -140,7 +141,10 @@ public sealed class AuthService(
             .ExecuteUpdateAsync(set => set.SetProperty(token => token.RevokedAt, now), ct);
         if (claimed == 0)
         {
-            throw new UnauthorizedAccessException();
+            await transaction.RollbackAsync(ct);
+            await db.Entry(stored).ReloadAsync(ct);
+            await db.Entry(stored.Session).ReloadAsync(ct);
+            return await RefreshRevokedAsync(stored, now, ct);
         }
 
         var (rawToken, successorHash) = TokenService.CreateOpaqueToken();
@@ -181,6 +185,7 @@ public sealed class AuthService(
         var now = time.GetUtcNow().UtcDateTime;
         stored.Session.RevokedAt = now;
         await db.SaveChangesAsync(ct);
+        endedSessions.Add([stored.SessionId]);
         await db.RefreshTokens
             .Where(token => token.SessionId == stored.SessionId && token.RevokedAt == null)
             .ExecuteUpdateAsync(set => set.SetProperty(token => token.RevokedAt, now), ct);
@@ -192,30 +197,39 @@ public sealed class AuthService(
     public async Task RevokeAllSessionsAsync(long userId, CancellationToken ct)
     {
         var now = time.GetUtcNow().UtcDateTime;
-        await db.Sessions
-            .Where(session => session.UserId == userId && session.RevokedAt == null)
-            .ExecuteUpdateAsync(set => set.SetProperty(session => session.RevokedAt, now), ct);
+        var active = db.Sessions.Where(session => session.UserId == userId && session.RevokedAt == null);
+        endedSessions.Add(await active.Select(session => session.Id).ToListAsync(ct));
+        await active.ExecuteUpdateAsync(set => set.SetProperty(session => session.RevokedAt, now), ct);
         await db.RefreshTokens
             .Where(token => token.Session.UserId == userId && token.RevokedAt == null)
             .ExecuteUpdateAsync(set => set.SetProperty(token => token.RevokedAt, now), ct);
     }
 
     /// <summary>
-    /// A revoked token came back. Within the grace period it's a concurrent
-    /// request; after it, someone copied the token. Signed-out tokens have no
-    /// successor and just fail.
+    /// A revoked token came back. Within the grace period of its rotation it's
+    /// a request that raced the rotating one (another tab, or a page and its
+    /// data calls): it gets an access token, and the refresh cookie the winner
+    /// set stays. After that, someone copied the token. Signed-out tokens have
+    /// no successor and just fail.
     /// </summary>
-    private async Task HandleReuseAsync(RefreshTokenEntity stored, DateTime revokedAt, DateTime now, CancellationToken ct)
+    private async Task<SignedIn> RefreshRevokedAsync(RefreshTokenEntity stored, DateTime now, CancellationToken ct)
     {
-        if (stored.ReplacedById is null || now - revokedAt < _jwt.RotationGracePeriod)
+        if (stored.ReplacedById is null || stored.Session.RevokedAt is not null)
         {
-            return;
+            throw new UnauthorizedAccessException();
+        }
+
+        if (now - stored.RevokedAt < _jwt.RotationGracePeriod)
+        {
+            var user = stored.Session.User;
+            return new SignedIn(user, tokens.CreateAccessToken(user, stored.SessionId), RefreshToken: null);
         }
 
         logger.LogWarning(
             "Refresh token reuse detected for user {UserId}; ending all of their sessions",
             stored.Session.UserId);
         await RevokeAllSessionsAsync(stored.Session.UserId, ct);
+        throw new UnauthorizedAccessException();
     }
 
     /// <summary>Creates a session with its first refresh token, and the access token for it.</summary>
@@ -244,8 +258,8 @@ public sealed class AuthService(
     }
 }
 
-/// <summary>The result of a successful sign-in or refresh.</summary>
-public sealed record SignedIn(UserEntity User, string AccessToken, string RefreshToken);
+/// <summary>The result of a successful sign-in or refresh; no refresh token when a refresh lost a race.</summary>
+public sealed record SignedIn(UserEntity User, string AccessToken, string? RefreshToken);
 
 /// <summary>Where a sign-in came from, recorded on the session.</summary>
 public sealed record ClientInfo(string? IpAddress, string? UserAgent)

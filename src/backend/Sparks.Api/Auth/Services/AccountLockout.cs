@@ -4,19 +4,25 @@ using Microsoft.Extensions.Options;
 namespace Sparks.Api.Auth.Services;
 
 /// <summary>
-/// Sign-in lockout per identifier. The per-IP rate limit caps one client; this
-/// caps attempts on one account from any number of clients.
+/// Sign-in lockout. The per-IP rate limit caps one client; this caps attempts
+/// on one account from any number of clients. Keys are an account
+/// (<see cref="AccountLockout.AccountKey"/>) or an identifier no account has.
 /// </summary>
-/// <remarks>Applies whether or not the account exists, so it reveals nothing.</remarks>
 public interface IAccountLockout
 {
-    AccountLockoutStatus Check(string identifier);
+    AccountLockoutStatus Check(string key);
 
     /// <summary>Counts a failed attempt and returns the resulting status.</summary>
-    AccountLockoutStatus RecordFailure(string identifier);
+    AccountLockoutStatus RecordFailure(string key);
 
     /// <summary>Forgets past failures after a successful sign-in.</summary>
-    void Clear(string identifier);
+    void Clear(string key);
+}
+
+public static class AccountLockout
+{
+    /// <summary>A space can't appear in a username or email, so this never matches an identifier.</summary>
+    public static string AccountKey(long userId) => $"account {userId}";
 }
 
 public sealed record AccountLockoutStatus(bool IsLocked, DateTimeOffset? LockedUntil)
@@ -50,14 +56,14 @@ public sealed class AccountLockedException(DateTimeOffset lockedUntil)
 public sealed class InMemoryAccountLockout(IOptions<AccountLockoutOptions> options, TimeProvider time)
     : IAccountLockout, IDisposable
 {
-    private const int MaxTrackedIdentifiers = 100_000;
+    private const int MaxTrackedKeys = 100_000;
 
     private readonly AccountLockoutOptions _options = options.Value;
-    private readonly MemoryCache _entries = new(new MemoryCacheOptions { SizeLimit = MaxTrackedIdentifiers });
+    private readonly MemoryCache _entries = new(new MemoryCacheOptions { SizeLimit = MaxTrackedKeys });
 
-    public AccountLockoutStatus Check(string identifier)
+    public AccountLockoutStatus Check(string key)
     {
-        if (!_entries.TryGetValue(Key(identifier), out Entry? entry) || entry is null)
+        if (!_entries.TryGetValue(Normalize(key), out Entry? entry) || entry is null)
         {
             return AccountLockoutStatus.Open;
         }
@@ -68,10 +74,10 @@ public sealed class InMemoryAccountLockout(IOptions<AccountLockoutOptions> optio
         }
     }
 
-    public AccountLockoutStatus RecordFailure(string identifier)
+    public AccountLockoutStatus RecordFailure(string key)
     {
         var now = time.GetUtcNow();
-        var entry = _entries.GetOrCreate(Key(identifier), cacheEntry =>
+        var entry = _entries.GetOrCreate(Normalize(key), cacheEntry =>
         {
             cacheEntry.Size = 1;
             // Only for eviction; the timestamps in the entry decide the outcome.
@@ -105,7 +111,7 @@ public sealed class InMemoryAccountLockout(IOptions<AccountLockoutOptions> optio
         }
     }
 
-    public void Clear(string identifier) => _entries.Remove(Key(identifier));
+    public void Clear(string key) => _entries.Remove(Normalize(key));
 
     public void Dispose() => _entries.Dispose();
 
@@ -114,7 +120,7 @@ public sealed class InMemoryAccountLockout(IOptions<AccountLockoutOptions> optio
             ? new AccountLockoutStatus(true, until)
             : AccountLockoutStatus.Open;
 
-    private static string Key(string identifier) => identifier.Trim().ToLowerInvariant();
+    private static string Normalize(string key) => key.Trim().ToLowerInvariant();
 
     private sealed class Entry
     {

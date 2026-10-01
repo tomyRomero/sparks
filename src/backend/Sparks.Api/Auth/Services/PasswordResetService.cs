@@ -109,8 +109,7 @@ public sealed class PasswordResetService(
         await transaction.CommitAsync(ct);
 
         // The lockout message points people here, so a reset also unlocks.
-        lockout.Clear(stored.User.Email);
-        lockout.Clear(stored.User.Username);
+        lockout.Clear(AccountLockout.AccountKey(stored.UserId));
 
         logger.LogInformation("Password reset for user {UserId}; all sessions ended", stored.UserId);
     }

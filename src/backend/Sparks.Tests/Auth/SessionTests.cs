@@ -81,22 +81,25 @@ public sealed class SessionTests(SparksApiFactory factory)
 
         refreshed.StatusCode.Should().Be(HttpStatusCode.OK);
         second.Should().NotBe(first);
-        firstAgain.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        // Moments after rotation, the old token failing is a harmless race
-        // (two tabs), so the session carries on with the new token.
+        // Moments after rotation the old token is a race (two tabs): it gets an
+        // access token but leaves the newer refresh cookie alone.
+        firstAgain.StatusCode.Should().Be(HttpStatusCode.OK);
+        firstAgain.SetCookie(AuthCookies.AccessToken).Should().NotBeNull();
+        firstAgain.SetCookie(AuthCookies.RefreshToken).Should().BeNull();
         (await client.RefreshWithAsync(second, Ct)).StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
-    public async Task Concurrent_refreshes_with_one_token_have_exactly_one_winner()
+    public async Task Concurrent_refreshes_with_one_token_rotate_it_once_and_all_stay_signed_in()
     {
         var client = factory.CreateCookielessClient();
         var token = (await client.SignUpAsync(AuthHelpers.NewAccount(), Ct)).CookieValue(AuthCookies.RefreshToken);
 
         var responses = await Task.WhenAll(Enumerable.Range(0, 5).Select(_ => client.RefreshWithAsync(token, Ct)));
 
-        responses.Count(response => response.StatusCode == HttpStatusCode.OK).Should().Be(1);
-        var winner = responses.Single(response => response.StatusCode == HttpStatusCode.OK);
+        responses.Should().OnlyContain(response => response.StatusCode == HttpStatusCode.OK);
+        responses.Should().OnlyContain(response => response.SetCookie(AuthCookies.AccessToken) != null);
+        var winner = responses.Single(response => response.SetCookie(AuthCookies.RefreshToken) != null);
         var next = await client.RefreshWithAsync(winner.CookieValue(AuthCookies.RefreshToken), Ct);
         next.StatusCode.Should().Be(HttpStatusCode.OK);
     }
@@ -141,12 +144,34 @@ public sealed class SessionTests(SparksApiFactory factory)
     }
 
     [Fact]
+    public async Task An_access_token_stops_working_as_soon_as_its_session_signs_out()
+    {
+        var client = factory.CreateCookielessClient();
+        var signUp = await client.SignUpAsync(AuthHelpers.NewAccount(), Ct);
+        var (access, refresh) = (signUp.CookieValue(AuthCookies.AccessToken), signUp.CookieValue(AuthCookies.RefreshToken));
+        var logout = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/logout");
+        logout.Headers.Add("Cookie", $"{AuthCookies.RefreshToken}={refresh}");
+
+        (await MeWithAsync(client, access)).StatusCode.Should().Be(HttpStatusCode.OK);
+        await client.SendAsync(logout, Ct);
+
+        (await MeWithAsync(client, access)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task A_failed_refresh_clears_the_cookies()
     {
         var response = await factory.CreateCookielessClient().RefreshWithAsync("not-a-real-token", Ct);
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         response.SetCookie(AuthCookies.RefreshToken)!.Expires.Should().BeBefore(DateTimeOffset.UtcNow);
+    }
+
+    private static Task<HttpResponseMessage> MeWithAsync(HttpClient client, string accessToken)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, MePath);
+        request.Headers.Authorization = new("Bearer", accessToken);
+        return client.SendAsync(request, Ct);
     }
 
     private Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory<Program> WithClock(TimeProvider clock) =>

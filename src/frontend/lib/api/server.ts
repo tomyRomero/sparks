@@ -1,11 +1,8 @@
 import "server-only";
 
 import { cookies, headers } from "next/headers";
+import { ACCESS_COOKIE, apiUrl } from "./config";
 import { ApiError } from "./problem";
-
-const apiUrl = process.env.API_URL ?? "http://localhost:5100";
-
-export const ACCESS_COOKIE = "sparks_access";
 
 /** Server-side fetch as the current member, forwarding their IP for rate limits. */
 export async function serverFetch(path: string, init: RequestInit = {}): Promise<Response> {

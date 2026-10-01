@@ -24,6 +24,7 @@ public static class AuthServiceCollectionExtensions
         services.AddSingleton<TokenService>();
         services.AddSingleton<AuthCookies>();
         services.AddSingleton<IAccountLockout, InMemoryAccountLockout>();
+        services.AddSingleton<EndedSessions>();
         services.AddScoped<AuthService>();
         services.AddScoped<PasswordResetService>();
 
@@ -33,7 +34,7 @@ public static class AuthServiceCollectionExtensions
         // the app is being built, so every host (including tests) supplies its
         // own key through ordinary configuration.
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-            .Configure<IOptions<JwtOptions>, TimeProvider>((bearer, jwt, time) =>
+            .Configure<IOptions<JwtOptions>, TimeProvider, EndedSessions>((bearer, jwt, time, endedSessions) =>
             {
                 // Keep claim names as issued ("sub", "sid") instead of mapping
                 // them to long XML-schema URIs.
@@ -48,6 +49,16 @@ public static class AuthServiceCollectionExtensions
                         if (!context.Request.Headers.ContainsKey(HeaderNames.Authorization))
                         {
                             context.Token = context.Request.Cookies[AuthCookies.AccessToken];
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        var sessionId = context.Principal?.FindFirst(AuthClaims.SessionId)?.Value;
+                        if (!long.TryParse(sessionId, out var id) || endedSessions.Contains(id))
+                        {
+                            context.Fail("The session has ended.");
                         }
 
                         return Task.CompletedTask;

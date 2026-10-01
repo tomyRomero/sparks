@@ -1,8 +1,5 @@
 import type { NextConfig } from "next";
-
-// The browser only talks to this app: /api/v1, /files and /hubs are
-// proxied to the API so requests stay same-origin.
-const apiUrl = process.env.API_URL ?? "http://localhost:5100";
+import { apiUrl } from "./lib/api/config";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -23,6 +20,7 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
+      // The browser only talks to this app, so requests stay same-origin.
       { source: "/api/v1/:path*", destination: `${apiUrl}/api/v1/:path*` },
       { source: "/files/:path*", destination: `${apiUrl}/files/:path*` },
       { source: "/hubs/:path*", destination: `${apiUrl}/hubs/:path*` },

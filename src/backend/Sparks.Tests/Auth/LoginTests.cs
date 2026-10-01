@@ -74,6 +74,23 @@ public sealed class LoginTests(SparksApiFactory factory)
     }
 
     [Fact]
+    public async Task Username_and_email_share_one_budget()
+    {
+        var account = AuthHelpers.NewAccount();
+        await factory.CreateClient().SignUpAsync(account, Ct);
+        var client = factory.CreateClient();
+
+        var statuses = new List<HttpStatusCode>();
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            var identifier = attempt % 2 == 0 ? account.Username : account.Email;
+            statuses.Add((await client.LogInAsync(identifier, WrongPassword, Ct)).StatusCode);
+        }
+
+        statuses.Last().Should().Be(HttpStatusCode.Locked);
+    }
+
+    [Fact]
     public async Task Unknown_identifiers_lock_too_so_the_lock_reveals_nothing()
     {
         var ghost = TestData.UniqueUsername();

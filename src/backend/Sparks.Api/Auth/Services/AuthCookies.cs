@@ -21,7 +21,10 @@ public sealed class AuthCookies(IHostEnvironment environment, IOptions<JwtOption
     public void Write(HttpResponse response, SignedIn signedIn)
     {
         response.Cookies.Append(AccessToken, signedIn.AccessToken, Options(_jwt.AccessTokenLifetime));
-        response.Cookies.Append(RefreshToken, signedIn.RefreshToken, Options(_jwt.RefreshTokenLifetime));
+        if (signedIn.RefreshToken is not null)
+        {
+            response.Cookies.Append(RefreshToken, signedIn.RefreshToken, Options(_jwt.RefreshTokenLifetime));
+        }
     }
 
     public void Delete(HttpResponse response)

@@ -1,8 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-
-const apiUrl = process.env.API_URL ?? "http://localhost:5100";
-const ACCESS_COOKIE = "sparks_access";
-const REFRESH_COOKIE = "sparks_refresh";
+import { ACCESS_COOKIE, REFRESH_COOKIE, apiUrl } from "@/lib/api/config";
 
 /** Keeps the session alive across page loads and sets a per-request CSP nonce. */
 export async function proxy(request: NextRequest) {
@@ -33,6 +30,9 @@ export async function proxy(request: NextRequest) {
 async function refreshSession(request: NextRequest): Promise<string[] | "spent"> {
   const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value;
   if (request.cookies.has(ACCESS_COOKIE) || !refreshToken) return [];
+  // The auth endpoints manage the cookies themselves; refreshing here too
+  // would rotate the token twice in one request.
+  if (request.nextUrl.pathname.startsWith("/api/v1/auth/")) return [];
 
   let refreshed: Response;
   try {
@@ -47,7 +47,9 @@ async function refreshSession(request: NextRequest): Promise<string[] | "spent">
     // The API is unreachable: render as a guest rather than fail the page.
     return [];
   }
-  if (!refreshed.ok) return "spent";
+  if (refreshed.status === 401) return "spent";
+  // Rate limited or failing: keep the cookie and try again next request.
+  if (!refreshed.ok) return [];
 
   const setCookies = refreshed.headers.getSetCookie();
   for (const setCookie of setCookies) {
