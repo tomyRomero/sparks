@@ -1,7 +1,9 @@
 using System.Net;
 using System.Text.Json;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Sparks.Api.Presence.Models;
+using Sparks.Api.Presence.Services;
 using Sparks.Api.Realtime;
 using Sparks.Tests.Infrastructure;
 
@@ -81,6 +83,27 @@ public sealed class PresenceTests(SparksApiFactory factory)
 
         (await PresenceOfAsync(viewer, stranger.Id)).Should().BeEquivalentTo(
             new PresenceResponse(stranger.Id, Online: false, LastSeenAt: null));
+    }
+
+    [Fact]
+    public async Task A_connection_that_fails_to_open_does_not_keep_the_member_online()
+    {
+        var (watcher, _, _) = await factory.SignedInWithTokenAsync(Ct);
+        var (_, alice, _) = await factory.SignedInWithTokenAsync(Ct);
+        using var scope = factory.Services.CreateScope();
+        var presence = scope.ServiceProvider.GetRequiredService<PresenceService>();
+
+        // The tab closed mid-handshake.
+        var connect = () => presence.ConnectedAsync(alice.Id, new CancellationToken(canceled: true));
+
+        await connect.Should().ThrowAsync<OperationCanceledException>();
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while ((await PresenceOfAsync(watcher, alice.Id)).Online && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(100, Ct);
+        }
+
+        (await PresenceOfAsync(watcher, alice.Id)).Online.Should().BeFalse();
     }
 
     [Fact]

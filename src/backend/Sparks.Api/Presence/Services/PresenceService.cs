@@ -34,9 +34,18 @@ public sealed class PresenceService(
             return;
         }
 
-        var now = time.GetUtcNow().UtcDateTime;
-        await TrySetLastSeenAsync(userId, now, ct);
-        await hub.Clients.All.PresenceChanged(new PresenceResponse(userId, true, now));
+        try
+        {
+            var now = time.GetUtcNow().UtcDateTime;
+            await TrySetLastSeenAsync(userId, now, ct);
+            await hub.Clients.All.PresenceChanged(new PresenceResponse(userId, true, now));
+        }
+        catch
+        {
+            // The connection never opens, so OnDisconnectedAsync won't run for it.
+            tracker.Disconnect(userId);
+            throw;
+        }
     }
 
     public void Disconnected(long userId) => tracker.Disconnect(userId);
