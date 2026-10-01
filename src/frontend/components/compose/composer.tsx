@@ -112,7 +112,8 @@ export function Composer({ startWithAi, initialKind, initialIdea }: ComposerProp
         setShared(true);
         forgetPostLists(queryClient);
         toast.success("Spark shared");
-        router.push(`/p/${post.id}`);
+        // Replace the composer in history, so Back goes where the writer came from.
+        router.replace(`/p/${post.id}`);
       } catch (error) {
         setShareError((error instanceof ApiError && error.fieldError("body")) || errorMessage(error));
       }
