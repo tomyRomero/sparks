@@ -35,8 +35,13 @@ public sealed class GeminiOptions
     [Required]
     public string ApiKey { get; set; } = string.Empty;
 
+    /// <summary>
+    /// A stable model on Gemini's free tier. Flash-Lite thinks only minimally
+    /// by default, which suits a short creative draft: it answers fast and
+    /// leaves the output budget for the draft itself.
+    /// </summary>
     [Required]
-    public string Model { get; set; } = "gemini-2.5-flash";
+    public string Model { get; set; } = "gemini-3.5-flash-lite";
 }
 
 /// <summary>Cloudflare Workers AI (section <c>Ai:Cloudflare</c>). The token lives in user secrets.</summary>

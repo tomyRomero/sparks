@@ -33,9 +33,11 @@ public sealed class GeminiSparkWriter(HttpClient http, IOptions<GeminiOptions> o
         var request = new GenerateContentRequest(
             SystemInstruction: new Content([new Part(instructions)]),
             Contents: [new Content([new Part(prompt)], Role: "user")],
+            // Temperature stays at the model's default: Google advises against
+            // changing it for Gemini 3 models. Thinking tokens count toward the
+            // output cap, so it leaves room for them as well as the draft.
             GenerationConfig: new GenerationConfig(
-                Temperature: 0.9,
-                MaxOutputTokens: 1024,
+                MaxOutputTokens: 4096,
                 ResponseMimeType: "application/json",
                 ResponseSchema: brief.HasImage ? DraftWithImageSchema : DraftSchema));
 
@@ -121,8 +123,7 @@ public sealed class GeminiSparkWriter(HttpClient http, IOptions<GeminiOptions> o
 
     private sealed record Part(string? Text);
 
-    private sealed record GenerationConfig(
-        double Temperature, int MaxOutputTokens, string ResponseMimeType, object ResponseSchema);
+    private sealed record GenerationConfig(int MaxOutputTokens, string ResponseMimeType, object ResponseSchema);
 
     private sealed record GenerateContentResponse(IReadOnlyList<Candidate>? Candidates, PromptFeedback? PromptFeedback);
 
