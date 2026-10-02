@@ -275,6 +275,7 @@ function Picture({ src, href, frame, sizes, eager, className, onDoubleTap }: Pic
       fill
       sizes={sizes}
       loading={eager ? "eager" : "lazy"}
+      fetchPriority={eager ? "high" : undefined}
       className={cn("object-cover", className)}
     />
   );
