@@ -25,9 +25,13 @@ import type { ActivityFilter, ActivityItem, ActivityKind, OpaquePage } from "@/l
 import { markActivityRead } from "@/lib/queries/activity";
 import { queryKeys } from "@/lib/queries/keys";
 import { usePagedList, useShownFor } from "@/lib/queries/use-paged-list";
+import { excerpt } from "@/lib/text";
 import { fullDate, timeAgo } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { ActivitySkeleton } from "./activity-skeleton";
+
+/** Shorter than the start of the text the API sends, so a quote it cut ends at a word, with an ellipsis. */
+const QUOTE_MAX = 120;
 
 const like = { icon: Heart, tone: "bg-like/12 text-like [&_svg]:fill-current" };
 const answer = { tone: "bg-brand-soft text-brand" };
@@ -192,7 +196,9 @@ function ActivityRow({ item, viewerUsername }: { item: ActivityItem; viewerUsern
           </span>
         </span>
         {item.excerpt !== null && (
-          <span className="mt-1 line-clamp-2 block text-sm text-muted">“{withoutTitleLabel(item.excerpt)}”</span>
+          <span className="mt-1 line-clamp-2 block text-sm text-muted">
+            “{excerpt(withoutTitleLabel(item.excerpt), QUOTE_MAX)}”
+          </span>
         )}
       </span>
     </IntentLink>
