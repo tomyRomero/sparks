@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart } from "lucide-react";
+import { Heart, Maximize2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Marked } from "@/components/search/highlight";
@@ -8,6 +8,7 @@ import { IntentLink } from "@/components/ui/intent-link";
 import type { Post } from "@/lib/api/types";
 import { haikuLines, splitSpark } from "@/lib/spark-text";
 import { cn } from "@/lib/utils";
+import { PictureViewer } from "./picture-viewer";
 
 type SparkContentProps = {
   post: Pick<Post, "id" | "kind" | "body" | "imageUrl">;
@@ -15,7 +16,7 @@ type SparkContentProps = {
   variant: "card" | "page";
   /** Load the picture straight away: it's likely the largest thing on screen. */
   eagerImage?: boolean;
-  /** On the spark's own page: a double tap on the picture likes it. */
+  /** On the spark's own page: a double tap on the picture likes it, and a single tap still opens it whole. */
   onDoubleTap?: () => void;
 };
 
@@ -268,6 +269,7 @@ type PictureProps = {
 };
 
 function Picture({ src, href, frame, sizes, eager, className, onDoubleTap }: PictureProps) {
+  const [viewing, setViewing] = useState(false);
   const image = (
     <Image
       src={src}
@@ -287,12 +289,19 @@ function Picture({ src, href, frame, sizes, eager, className, onDoubleTap }: Pic
       </IntentLink>
     );
   }
-  return onDoubleTap ? (
-    <DoubleTap className={frameStyle} onDoubleTap={onDoubleTap}>
+  return (
+    <TapFrame className={cn(frameStyle, "cursor-zoom-in")} onTap={() => setViewing(true)} onDoubleTap={onDoubleTap}>
       {image}
-    </DoubleTap>
-  ) : (
-    <div className={frameStyle}>{image}</div>
+      <PictureViewer src={src} open={viewing} onOpenChange={setViewing}>
+        <button
+          type="button"
+          aria-label="View the whole picture"
+          className="absolute top-2.5 right-2.5 inline-flex size-8 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm transition-colors hover:bg-black/65 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+        >
+          <Maximize2 className="size-4" aria-hidden />
+        </button>
+      </PictureViewer>
+    </TapFrame>
   );
 }
 
@@ -301,22 +310,28 @@ const DOUBLE_TAP_MS = 300;
 const DOUBLE_TAP_PX = 30;
 
 /**
- * Likes on a double tap, with a big heart where it landed. It's a shortcut for
- * pointers; everyone has the like button, so it isn't announced or focusable.
+ * A tap opens the picture. Where a double tap likes the spark, with a big
+ * heart where it landed, a single tap waits that long to be sure. The like is
+ * a shortcut for pointers; everyone has the like button, so it isn't
+ * announced or focusable.
  */
-function DoubleTap({
+function TapFrame({
   className,
+  onTap,
   onDoubleTap,
   children,
 }: {
   className: string;
-  onDoubleTap: () => void;
+  onTap: () => void;
+  onDoubleTap?: () => void;
   children: React.ReactNode;
 }) {
   const frame = useRef<HTMLDivElement>(null);
   const [hearts, setHearts] = useState(0);
-  const tapped = useEffectEvent(() => {
-    onDoubleTap();
+  const likes = onDoubleTap !== undefined;
+  const tapped = useEffectEvent(onTap);
+  const doubleTapped = useEffectEvent(() => {
+    onDoubleTap?.();
     setHearts((count) => count + 1);
   });
 
@@ -324,19 +339,31 @@ function DoubleTap({
     const element = frame.current;
     if (!element) return;
     let last: { at: number; x: number; y: number } | null = null;
+    let pending = 0;
     const onPointerUp = (event: PointerEvent) => {
+      // The main button only, and not on a control in the frame, which acts for itself.
+      if (event.button !== 0 || (event.target instanceof Element && event.target.closest("button"))) return;
+      if (!likes) {
+        tapped();
+        return;
+      }
+      window.clearTimeout(pending);
       const near = last && Math.hypot(event.clientX - last.x, event.clientY - last.y) < DOUBLE_TAP_PX;
       if (last && near && event.timeStamp - last.at < DOUBLE_TAP_MS) {
         last = null;
         window.getSelection()?.removeAllRanges();
-        tapped();
+        doubleTapped();
         return;
       }
       last = { at: event.timeStamp, x: event.clientX, y: event.clientY };
+      pending = window.setTimeout(() => tapped(), DOUBLE_TAP_MS);
     };
     element.addEventListener("pointerup", onPointerUp);
-    return () => element.removeEventListener("pointerup", onPointerUp);
-  }, []);
+    return () => {
+      window.clearTimeout(pending);
+      element.removeEventListener("pointerup", onPointerUp);
+    };
+  }, [likes]);
 
   return (
     <div ref={frame} className={cn(className, "touch-manipulation select-none")}>
