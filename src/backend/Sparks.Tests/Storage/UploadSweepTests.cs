@@ -12,10 +12,6 @@ namespace Sparks.Tests.Storage;
 
 public sealed class UploadSweepTests(SparksApiFactory factory)
 {
-    /// <summary>A real 1x1 PNG.</summary>
-    private static readonly byte[] Png = Convert.FromBase64String(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
-
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
@@ -62,9 +58,7 @@ public sealed class UploadSweepTests(SparksApiFactory factory)
 
     private static async Task<UploadedImage> UploadAsync(HttpClient client)
     {
-        var file = new ByteArrayContent(Png);
-        file.Headers.ContentType = new("image/png");
-        var response = await client.PostAsync("/api/v1/images", new MultipartFormDataContent { { file, "file", "image.png" } }, Ct);
+        var response = await client.PostAsync("/api/v1/images", ContentHelpers.PngForm(), Ct);
         response.EnsureSuccessStatusCode();
         return await response.ReadAsync<UploadedImage>(Ct);
     }

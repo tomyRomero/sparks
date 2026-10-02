@@ -199,13 +199,14 @@ public sealed class CommentTests(SparksApiFactory factory)
     }
 
     [Fact]
-    public async Task Deleting_a_post_removes_its_whole_thread()
+    public async Task Deleting_a_post_removes_its_whole_thread_and_every_like()
     {
         var (author, _) = await factory.SignedInClientAsync(Ct);
         var (fan, _) = await factory.SignedInClientAsync(Ct);
         var post = await author.CreatePostAsync("Here today", Ct);
         var comment = await fan.CommentAsync(post.Id, "Love it", Ct);
         var reply = await author.ReplyAsync(comment.Id, "Thanks", Ct);
+        await fan.PutAsync($"{PostsPath}/{post.Id}/like", content: null, Ct);
         await fan.PutAsync($"{CommentsPath}/{reply.Id}/like", content: null, Ct);
 
         var response = await author.DeleteAsync($"{PostsPath}/{post.Id}", Ct);
@@ -213,6 +214,7 @@ public sealed class CommentTests(SparksApiFactory factory)
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         await using var db = factory.CreateDbContext();
         (await db.Comments.CountAsync(row => row.PostId == post.Id, Ct)).Should().Be(0);
+        (await db.PostLikes.CountAsync(like => like.PostId == post.Id, Ct)).Should().Be(0);
         (await db.CommentLikes.CountAsync(like => like.CommentId == reply.Id, Ct)).Should().Be(0);
     }
 

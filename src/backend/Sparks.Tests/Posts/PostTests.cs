@@ -80,20 +80,6 @@ public sealed class PostTests(SparksApiFactory factory)
     }
 
     [Fact]
-    public async Task The_feed_filters_by_kind()
-    {
-        var (author, _) = await factory.SignedInClientAsync(Ct);
-        var word = UniqueWord();
-        var haiku = await author.CreatePostAsync($"{word} in five seven five", SparkKind.Haiku, Ct);
-        await author.CreatePostAsync($"{word} walks into a bar", SparkKind.Joke, Ct);
-
-        var feed = await factory.CreateClient()
-            .GetJsonAsync<CursorPage<PostResponse>>($"{PostsPath}?q={word}&kind=haiku", Ct);
-
-        feed.Items.Should().ContainSingle().Which.Id.Should().Be(haiku.Id);
-    }
-
-    [Fact]
     public async Task The_feed_takes_several_kinds_and_can_keep_only_pictures()
     {
         var (author, _) = await factory.SignedInClientAsync(Ct);
@@ -301,5 +287,4 @@ public sealed class PostTests(SparksApiFactory factory)
 
     /// <summary>A word no other test's post contains, to find this test's posts in the shared database.</summary>
     private static string UniqueWord() => $"w{Guid.NewGuid():N}"[..16];
-
 }

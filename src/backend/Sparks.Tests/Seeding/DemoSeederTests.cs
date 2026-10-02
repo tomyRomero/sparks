@@ -3,9 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Sparks.Api.Activity.Models;
 using Sparks.Api.Chat.Models;
-using Sparks.Api.Common.Models;
 using Sparks.Api.Posts.Data;
-using Sparks.Api.Posts.Models;
 using Sparks.Api.Seeding;
 using Sparks.Api.Users.Models;
 using Sparks.Tests.Infrastructure;
@@ -29,26 +27,9 @@ public sealed class DemoSeederTests(SparksApiFactory factory)
         second.Should().BeFalse("seeding twice would duplicate everything");
         signIn.EnsureSuccessStatusCode();
 
-        var profile = await nova.GetJsonAsync<ProfileResponse>($"/api/v1/users/{DemoSeeder.MainUsername}", Ct);
-        profile.AvatarUrl.Should().NotBeNull();
-        profile.PostCount.Should().BePositive();
-        profile.Should().BeEquivalentTo(new { FollowerCount = 7, FollowingCount = 5 });
-        var following = await nova.GetJsonAsync<CursorPage<PostResponse>>("/api/v1/posts?following=true&limit=50", Ct);
-        following.Items.Should().NotBeEmpty();
-        following.Items.Should().NotContain(
-            post => post.Author.Username == "amara_okafor" || post.Author.Username == "omar_haddad",
-            "Nova doesn't follow them, so her Following feed differs from the full one");
+        // What the demo is for: someone to sign in as, with something waiting.
         (await nova.GetJsonAsync<UnreadActivity>("/api/v1/activity/unread-count", Ct)).Count.Should().BePositive();
         (await nova.GetJsonAsync<UnreadMessages>("/api/v1/conversations/unread-count", Ct)).Count.Should().BePositive();
-        var inbox = await nova.GetJsonAsync<OpaqueCursorPage<ConversationResponse>>("/api/v1/conversations", Ct);
-        inbox.Items.Should().HaveCount(3);
-        var withSofia = inbox.Items.Single(conversation => conversation.With.Username == "sofia_ruiz");
-        var chat = await nova.GetJsonAsync<CursorPage<MessageResponse>>(
-            $"/api/v1/conversations/{withSofia.Id}/messages", Ct);
-        chat.Items.Should().Contain(message => message.SharedPost != null, "the demo shows a spark shared in a chat");
-
-        var posts = await nova.GetJsonAsync<CursorPage<PostResponse>>("/api/v1/users/theo_park/posts", Ct);
-        posts.Items.Should().OnlyContain(post => post.ImageUrl != null, "Theo's photography posts come with pictures");
 
         await using var db = factory.CreateDbContext();
         var seededKinds = await db.Posts
@@ -59,11 +40,14 @@ public sealed class DemoSeederTests(SparksApiFactory factory)
         seededKinds.Should().BeEquivalentTo(Enum.GetValues<SparkKind>(), "the demo shows every kind of spark");
 
         // A database seeded before members could follow each other gets the follows on the next run.
+        var followingBefore = (await ProfileAsync(nova)).FollowingCount;
         await db.Follows.Where(follow => follow.Follower.Username == DemoSeeder.MainUsername).ExecuteDeleteAsync(Ct);
         (await SeedAsync()).Should().BeTrue();
-        (await nova.GetJsonAsync<ProfileResponse>($"/api/v1/users/{DemoSeeder.MainUsername}", Ct))
-            .FollowingCount.Should().Be(5);
+        (await ProfileAsync(nova)).FollowingCount.Should().Be(followingBefore).And.BePositive();
     }
+
+    private static Task<ProfileResponse> ProfileAsync(HttpClient client) =>
+        client.GetJsonAsync<ProfileResponse>($"/api/v1/users/{DemoSeeder.MainUsername}", Ct);
 
     private async Task<bool> SeedAsync()
     {

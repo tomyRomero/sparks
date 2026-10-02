@@ -36,13 +36,4 @@ internal static class TestData
         Body = "A test spark.",
         CreatedAt = DateTime.UtcNow,
     };
-
-    public static CommentEntity Comment(PostEntity post, UserEntity author, CommentEntity? replyTo = null) => new()
-    {
-        Post = post,
-        Author = author,
-        ParentComment = replyTo,
-        Body = "A test comment.",
-        CreatedAt = DateTime.UtcNow,
-    };
 }

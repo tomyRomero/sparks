@@ -4,16 +4,13 @@ using FluentAssertions;
 using Microsoft.Extensions.Options;
 using Sparks.Api.Storage.Services;
 using Sparks.Tests.Infrastructure;
+using static Sparks.Tests.Infrastructure.ContentHelpers;
 
 namespace Sparks.Tests.Storage;
 
 /// <summary>Images in a bucket, against a real S3 API with signed requests.</summary>
 public sealed class S3StorageTests : IClassFixture<S3Bucket>, IDisposable
 {
-    /// <summary>A real 1x1 PNG.</summary>
-    private static readonly byte[] Png = Convert.FromBase64String(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
-
     private readonly S3Bucket _bucket;
     private readonly IAmazonS3 _client;
     private readonly S3FileStorage _storage;

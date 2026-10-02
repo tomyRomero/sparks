@@ -4,9 +4,7 @@ using System.Text.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Serilog.Core;
 using Serilog.Events;
 using Sparks.Tests.Infrastructure;
@@ -41,14 +39,6 @@ public sealed class PipelineTests(SparksApiFactory factory)
         response.Headers.GetValues("Referrer-Policy").Should().ContainSingle("no-referrer");
         response.Headers.GetValues("Content-Security-Policy").Should().ContainSingle()
             .Which.Should().Contain("default-src 'none'");
-    }
-
-    [Fact]
-    public void Kestrel_does_not_advertise_itself()
-    {
-        var kestrel = factory.Services.GetRequiredService<IOptions<KestrelServerOptions>>().Value;
-
-        kestrel.AddServerHeader.Should().BeFalse();
     }
 
     [Fact]

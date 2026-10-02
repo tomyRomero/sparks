@@ -8,6 +8,10 @@ namespace Sparks.Tests.Infrastructure;
 /// <summary>Posts and comments written through the API, for tests that need some to exist.</summary>
 internal static class ContentHelpers
 {
+    /// <summary>A real 1x1 PNG.</summary>
+    public static readonly byte[] Png = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
+
     public static Task<PostResponse> CreatePostAsync(this HttpClient author, string body, CancellationToken ct) =>
         author.CreatePostAsync(body, SparkKind.Regular, ct);
 
@@ -35,8 +39,7 @@ internal static class ContentHelpers
     /// <summary>A real 1x1 PNG, as an upload form.</summary>
     public static MultipartFormDataContent PngForm()
     {
-        var file = new ByteArrayContent(Convert.FromBase64String(
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="));
+        var file = new ByteArrayContent(Png);
         file.Headers.ContentType = new MediaTypeHeaderValue("image/png");
         return new MultipartFormDataContent { { file, "file", "image.png" } };
     }

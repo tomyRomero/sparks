@@ -9,8 +9,8 @@ namespace Sparks.Tests.Data;
 
 /// <summary>
 /// Rules the database itself enforces, checked against real SQL Server:
-/// uniqueness, check constraints, what a delete removes, and how timestamps
-/// round-trip.
+/// uniqueness, check constraints, and how timestamps round-trip. They hold
+/// even for writes that race past the services' own checks.
 /// </summary>
 public sealed class SchemaTests(SparksApiFactory factory)
 {
@@ -114,28 +114,6 @@ public sealed class SchemaTests(SparksApiFactory factory)
                 $"INSERT INTO conversations (user_a_id, user_b_id, created_at, last_message_at) VALUES ({lower}, {lower}, SYSUTCDATETIME(), SYSUTCDATETIME())",
                 Ct),
             ConstraintViolation);
-    }
-
-    [Fact]
-    public async Task Deleting_a_post_removes_its_whole_thread_and_every_like()
-    {
-        var (author, fan) = (TestData.User(), TestData.User());
-        var post = TestData.Post(author);
-        var comment = TestData.Comment(post, fan);
-        var reply = TestData.Comment(post, author, replyTo: comment);
-        await using var db = factory.CreateDbContext();
-        db.AddRange(post, comment, reply);
-        db.PostLikes.Add(new PostLikeEntity { Post = post, User = fan, CreatedAt = DateTime.UtcNow });
-        db.CommentLikes.Add(new CommentLikeEntity { Comment = reply, User = fan, CreatedAt = DateTime.UtcNow });
-        await db.SaveChangesAsync(Ct);
-
-        await db.Posts.Where(row => row.Id == post.Id).ExecuteDeleteAsync(Ct);
-
-        long[] commentIds = [comment.Id, reply.Id];
-        (await db.Comments.CountAsync(row => row.PostId == post.Id, Ct)).Should().Be(0);
-        (await db.PostLikes.CountAsync(like => like.PostId == post.Id, Ct)).Should().Be(0);
-        (await db.CommentLikes.CountAsync(like => commentIds.Contains(like.CommentId), Ct)).Should().Be(0);
-        (await db.Users.CountAsync(user => user.Id == author.Id || user.Id == fan.Id, Ct)).Should().Be(2);
     }
 
     [Fact]

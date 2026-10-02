@@ -68,7 +68,7 @@ public sealed class SignUpTests(SparksApiFactory factory)
         var response = await factory.CreateClient().SignUpAsync(second, Ct);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
-        (await ProblemCodeAsync(response)).Should().Be("USERNAME_TAKEN");
+        (await response.ProblemCodeAsync(Ct)).Should().Be("USERNAME_TAKEN");
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public sealed class SignUpTests(SparksApiFactory factory)
         var response = await factory.CreateClient().SignUpAsync(second, Ct);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
-        (await ProblemCodeAsync(response)).Should().Be("EMAIL_TAKEN");
+        (await response.ProblemCodeAsync(Ct)).Should().Be("EMAIL_TAKEN");
     }
 
     [Theory]
@@ -155,11 +155,5 @@ public sealed class SignUpTests(SparksApiFactory factory)
         }
 
         statuses.Should().Equal(HttpStatusCode.Created, HttpStatusCode.Created, HttpStatusCode.TooManyRequests);
-    }
-
-    private static async Task<string?> ProblemCodeAsync(HttpResponseMessage response)
-    {
-        var problem = await response.Content.ReadFromJsonAsync<JsonElement>(Ct);
-        return problem.GetProperty("code").GetString();
     }
 }

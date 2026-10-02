@@ -10,6 +10,7 @@ using Sparks.Api.Storage.Models;
 using Sparks.Api.Storage.Services;
 using Sparks.Api.Users.Models;
 using Sparks.Tests.Infrastructure;
+using static Sparks.Tests.Infrastructure.ContentHelpers;
 
 namespace Sparks.Tests.Storage;
 
@@ -18,10 +19,6 @@ public sealed class ImageTests(SparksApiFactory factory)
 {
     private const string AvatarPath = "/api/v1/users/me/avatar";
     private const string ImagesPath = "/api/v1/images";
-
-    /// <summary>A real 1x1 PNG.</summary>
-    private static readonly byte[] Png = Convert.FromBase64String(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 

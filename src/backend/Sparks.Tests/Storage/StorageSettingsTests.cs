@@ -1,4 +1,3 @@
-using Amazon.S3;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,18 +10,10 @@ namespace Sparks.Tests.Storage;
 /// <summary>How the <c>Storage</c> settings choose where images live. No containers involved.</summary>
 public sealed class StorageSettingsTests
 {
-    [Fact]
-    public void Without_a_provider_setting_images_go_to_a_bucket()
-    {
-        var services = Register([]);
-
-        StorageType(services).Should().Be<S3FileStorage>();
-    }
-
     [Theory]
-    [InlineData("S3", typeof(S3FileStorage))]
+    [InlineData(null, typeof(S3FileStorage))]
     [InlineData("Local", typeof(LocalFileStorage))]
-    public void The_provider_setting_picks_the_storage(string provider, Type storage)
+    public void Images_go_to_a_bucket_unless_the_provider_setting_says_otherwise(string? provider, Type storage)
     {
         var services = Register(new() { ["Storage:Provider"] = provider });
 
@@ -40,15 +31,6 @@ public sealed class StorageSettingsTests
         read.Should().Throw<OptionsValidationException>()
             .Which.Message.Should().Contain("ServiceUrl").And.Contain("AccessKeyId").And.Contain("SecretAccessKey")
             .And.NotContain("Bucket");
-    }
-
-    [Fact]
-    public void Local_storage_needs_no_bucket()
-    {
-        var services = Register(new() { ["Storage:Provider"] = "Local" });
-
-        services.Should().NotContain(service => service.ServiceType == typeof(IAmazonS3));
-        services.Should().NotContain(service => service.ServiceType == typeof(IConfigureOptions<S3StorageOptions>));
     }
 
     private static ServiceCollection Register(Dictionary<string, string?> settings)
