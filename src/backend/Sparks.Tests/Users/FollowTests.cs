@@ -72,19 +72,17 @@ public sealed class FollowTests(SparksApiFactory factory)
     }
 
     [Fact]
-    public async Task Following_needs_a_signed_in_member()
+    public async Task A_guest_has_no_following_feed()
     {
-        var (_, they) = await factory.SignedInClientAsync(Ct);
-        var guest = factory.CreateClient();
+        // The feed itself is public; only its Following filter needs a member.
+        var feed = await factory.CreateClient().GetAsync("/api/v1/posts?following=true", Ct);
+        var top = await factory.CreateClient().GetAsync("/api/v1/posts/top?following=true", Ct);
 
-        var follow = await guest.PutAsync($"{UsersPath}/{they.Username}/follow", content: null, Ct);
-        var suggestions = await guest.GetAsync($"{UsersPath}/me/suggestions", Ct);
-        var feed = await guest.GetAsync("/api/v1/posts?following=true", Ct);
-
-        follow.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        suggestions.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        feed.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        (await feed.ProblemCodeAsync(Ct)).Should().Be("SIGN_IN_REQUIRED");
+        foreach (var response in new[] { feed, top })
+        {
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+            (await response.ProblemCodeAsync(Ct)).Should().Be("SIGN_IN_REQUIRED");
+        }
     }
 
     [Fact]

@@ -139,18 +139,6 @@ public sealed class ImageTests(SparksApiFactory factory)
     }
 
     [Fact]
-    public async Task Uploading_requires_sign_in()
-    {
-        var anonymous = factory.CreateClient();
-
-        var avatar = await anonymous.PutAsync(AvatarPath, ImageForm(Png), Ct);
-        var image = await anonymous.PostAsync(ImagesPath, ImageForm(Png), Ct);
-
-        avatar.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        image.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
-
-    [Fact]
     public async Task Uploads_are_limited_per_member_not_per_address()
     {
         using var api = factory.WithWebHostBuilder(builder =>

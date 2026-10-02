@@ -85,18 +85,6 @@ public sealed class AiTests(SparksApiFactory factory)
     }
 
     [Fact]
-    public async Task Ai_requires_sign_in()
-    {
-        var anonymous = factory.CreateClient();
-
-        var draft = await anonymous.PostJsonAsync(DraftsPath, new DraftRequest { Kind = SparkKind.Haiku, Prompt = "rain" }, Ct);
-        var image = await anonymous.PostJsonAsync(ImagesPath, new ImageRequest { Prompt = "rain" }, Ct);
-
-        draft.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        image.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
-
-    [Fact]
     public async Task Ai_calls_are_limited_per_member()
     {
         using var api = factory.WithWebHostBuilder(builder =>

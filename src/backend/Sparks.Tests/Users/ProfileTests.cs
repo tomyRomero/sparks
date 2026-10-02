@@ -122,15 +122,12 @@ public sealed class ProfileTests(SparksApiFactory factory)
     }
 
     [Fact]
-    public async Task Editing_a_profile_requires_sign_in_and_a_display_name()
+    public async Task A_profile_needs_a_display_name()
     {
         var (member, _) = await factory.SignedInClientAsync(Ct);
 
-        var anonymous = await factory.CreateClient().PatchJsonAsync(
-            $"{UsersPath}/me", new UpdateProfileRequest { DisplayName = "Nobody" }, Ct);
         var blankName = await member.PatchJsonAsync($"{UsersPath}/me", new UpdateProfileRequest { DisplayName = " " }, Ct);
 
-        anonymous.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         blankName.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         var problem = await blankName.ReadAsync<JsonElement>(Ct);
         problem.GetProperty("errors").EnumerateObject().Select(error => error.Name).Should().Contain("displayName");

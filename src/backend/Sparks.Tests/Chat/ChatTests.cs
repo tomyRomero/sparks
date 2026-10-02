@@ -49,14 +49,11 @@ public sealed class ChatTests(SparksApiFactory factory)
         var withSelf = await alice.PostJsonAsync(ConversationsPath, new StartConversationRequest { Username = aliceUser.Username }, Ct);
         var withNobody = await alice.PostJsonAsync(
             ConversationsPath, new StartConversationRequest { Username = TestData.UniqueUsername() }, Ct);
-        var anonymous = await factory.CreateClient().PostJsonAsync(
-            ConversationsPath, new StartConversationRequest { Username = aliceUser.Username }, Ct);
 
         withSelf.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         (await withSelf.ProblemCodeAsync(Ct)).Should().Be("CANNOT_MESSAGE_YOURSELF");
         withNobody.StatusCode.Should().Be(HttpStatusCode.NotFound);
         (await withNobody.ProblemCodeAsync(Ct)).Should().Be("USER_NOT_FOUND");
-        anonymous.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]

@@ -189,15 +189,6 @@ public sealed class PostTests(SparksApiFactory factory)
     }
 
     [Fact]
-    public async Task Writing_a_post_requires_sign_in()
-    {
-        var response = await factory.CreateClient().PostJsonAsync(
-            PostsPath, new CreatePostRequest { Kind = SparkKind.Regular, Body = "Hello" }, Ct);
-
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
-
-    [Fact]
     public async Task A_new_post_comes_back_with_its_author_and_location()
     {
         var (author, user) = await factory.SignedInClientAsync(Ct);

@@ -11,26 +11,22 @@ internal static class LiveConnections
     private static readonly TimeSpan EventTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// A hub connection through the in-memory test server, not yet started.
-    /// Long polling, because the test server's handler carries plain HTTP
-    /// requests only. It reads payloads as strictly as the web app does, so
-    /// an enum sent as a number fails.
+    /// A started connection for the member the token belongs to, through the
+    /// in-memory test server. Long polling, because the test server's handler
+    /// carries plain HTTP requests only. It reads payloads as strictly as the
+    /// web app does, so an enum sent as a number fails.
     /// </summary>
-    public static HubConnection LiveConnection(this SparksApiFactory factory, string? accessToken) =>
-        new HubConnectionBuilder()
+    public static async Task<HubConnection> ConnectLiveAsync(this SparksApiFactory factory, string accessToken, CancellationToken ct)
+    {
+        var connection = new HubConnectionBuilder()
             .WithUrl(new Uri(factory.Server.BaseAddress, RealtimeHub.Path), options =>
             {
                 options.Transports = HttpTransportType.LongPolling;
                 options.HttpMessageHandlerFactory = _ => factory.Server.CreateHandler();
-                options.AccessTokenProvider = () => Task.FromResult(accessToken);
+                options.AccessTokenProvider = () => Task.FromResult<string?>(accessToken);
             })
             .AddJsonProtocol(json => json.PayloadSerializerOptions = ApiJson.Options)
             .Build();
-
-    /// <summary>A started connection for the member the token belongs to.</summary>
-    public static async Task<HubConnection> ConnectLiveAsync(this SparksApiFactory factory, string accessToken, CancellationToken ct)
-    {
-        var connection = factory.LiveConnection(accessToken);
         await connection.StartAsync(ct);
         return connection;
     }

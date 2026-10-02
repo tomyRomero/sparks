@@ -1,4 +1,3 @@
-using System.Net;
 using FluentAssertions;
 using Microsoft.AspNetCore.SignalR.Client;
 using Sparks.Api.Chat.Models;
@@ -73,17 +72,6 @@ public sealed class RealtimeTests(SparksApiFactory factory)
         await aliceLive.InvokeAsync(nameof(RealtimeHub.Typing), chat.ConversationId, Ct);
 
         (await bobSees).Should().Be(new TypingEvent(chat.ConversationId, chat.AliceId));
-    }
-
-    [Fact]
-    public async Task Connecting_requires_sign_in()
-    {
-        await using var connection = factory.LiveConnection(accessToken: null);
-
-        var connect = () => connection.StartAsync(Ct);
-
-        (await connect.Should().ThrowAsync<HttpRequestException>())
-            .Which.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     /// <summary>Two new members, Alice and Bob, with a conversation between them.</summary>

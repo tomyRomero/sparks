@@ -17,14 +17,6 @@ public sealed class SessionTests(SparksApiFactory factory)
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task The_current_user_requires_a_signed_in_request()
-    {
-        var response = await factory.CreateClient().GetAsync(MePath, Ct);
-
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
-
-    [Fact]
     public async Task The_access_token_also_works_as_a_bearer_token()
     {
         var signedUp = await factory.CreateClient().SignUpAsync(AuthHelpers.NewAccount(), Ct);

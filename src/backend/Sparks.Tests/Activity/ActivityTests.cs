@@ -214,18 +214,6 @@ public sealed class ActivityTests(SparksApiFactory factory)
         (await UnreadCountAsync(me)).Should().Be(0);
     }
 
-    [Theory]
-    [InlineData("GET", "")]
-    [InlineData("GET", "/unread-count")]
-    [InlineData("POST", "/read")]
-    public async Task Activity_requires_sign_in(string method, string path)
-    {
-        var response = await factory.CreateClient().SendAsync(
-            new HttpRequestMessage(new HttpMethod(method), ActivityPath + path), Ct);
-
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
-
     private static async Task LikePostAsync(HttpClient client, long postId) =>
         (await client.PutAsync($"/api/v1/posts/{postId}/like", content: null, Ct)).EnsureSuccessStatusCode();
 

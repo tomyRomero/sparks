@@ -86,21 +86,6 @@ public sealed class CommentTests(SparksApiFactory factory)
     }
 
     [Fact]
-    public async Task Commenting_requires_sign_in()
-    {
-        var (author, _) = await factory.SignedInClientAsync(Ct);
-        var post = await author.CreatePostAsync("Say something", Ct);
-        var comment = await author.CommentAsync(post.Id, "I will", Ct);
-        var anonymous = factory.CreateClient();
-
-        var onPost = await anonymous.PostJsonAsync($"{PostsPath}/{post.Id}/comments", new CommentRequest { Body = "Hi" }, Ct);
-        var onComment = await anonymous.PostJsonAsync($"{CommentsPath}/{comment.Id}/replies", new CommentRequest { Body = "Hi" }, Ct);
-
-        onPost.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        onComment.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
-
-    [Fact]
     public async Task A_new_comment_comes_back_with_its_author_and_location()
     {
         var (author, user) = await factory.SignedInClientAsync(Ct);

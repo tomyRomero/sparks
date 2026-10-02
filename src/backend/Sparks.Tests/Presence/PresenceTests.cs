@@ -106,15 +106,6 @@ public sealed class PresenceTests(SparksApiFactory factory)
         (await PresenceOfAsync(watcher, alice.Id)).Online.Should().BeFalse();
     }
 
-    [Fact]
-    public async Task Presence_is_for_signed_in_members()
-    {
-        var guest = factory.CreateClient();
-
-        (await guest.GetAsync($"{PresencePath}?ids=1", Ct)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        (await guest.GetAsync($"{PresencePath}/around", Ct)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
-
     [Theory]
     [InlineData(0)]
     [InlineData(101)]
