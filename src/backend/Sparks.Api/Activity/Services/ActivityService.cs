@@ -138,15 +138,28 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
             });
 
         // A reply to the member's comment is a reply even on their own post.
-        var comments = db.Comments
+        // Two queries rather than one with an OR, so each can seek an index
+        // (by the parent's author, by the post's) instead of reading every comment.
+        var replies = db.Comments
             .Where(comment => comment.AuthorId != userId
-                && (comment.Post.AuthorId == userId
-                    || (comment.ParentComment != null && comment.ParentComment.AuthorId == userId)))
+                && comment.ParentComment != null && comment.ParentComment.AuthorId == userId)
             .Select(comment => new ActivityRow
             {
-                Kind = comment.ParentComment != null && comment.ParentComment.AuthorId == userId
-                    ? (int)ActivityKind.Reply
-                    : (int)ActivityKind.Comment,
+                Kind = (int)ActivityKind.Reply,
+                At = comment.CreatedAt,
+                SubjectId = comment.Id,
+                ActorId = comment.AuthorId,
+                PostId = comment.PostId,
+                CommentId = comment.Id,
+            });
+
+        var comments = db.Comments
+            .Where(comment => comment.AuthorId != userId
+                && comment.Post.AuthorId == userId
+                && (comment.ParentComment == null || comment.ParentComment.AuthorId != userId))
+            .Select(comment => new ActivityRow
+            {
+                Kind = (int)ActivityKind.Comment,
                 At = comment.CreatedAt,
                 SubjectId = comment.Id,
                 ActorId = comment.AuthorId,
@@ -167,7 +180,7 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
                 CommentId = null,
             });
 
-        return postLikes.Concat(commentLikes).Concat(comments).Concat(follows);
+        return postLikes.Concat(commentLikes).Concat(replies).Concat(comments).Concat(follows);
     }
 
     /// <summary>
