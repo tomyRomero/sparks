@@ -172,15 +172,15 @@ function ComposerForm({
     });
   }
 
-  // An idea that came with the link is drafted once, as soon as the page opens.
+  // An idea that came with the link is drafted once, as soon as the page
+  // opens; later drafts come from the button.
   const draftedOnOpen = useRef(false);
+  const draftOnOpen = useEffectEvent(draftWithAi);
   useEffect(() => {
     if (draftedOnOpen.current || !startWithAi || !initialIdea?.trim()) return;
     draftedOnOpen.current = true;
-    draftWithAi();
-    // Only on opening; later drafts come from the button.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    draftOnOpen();
+  }, [startWithAi, initialIdea]);
 
   function share(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
