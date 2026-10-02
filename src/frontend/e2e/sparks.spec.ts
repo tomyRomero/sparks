@@ -27,7 +27,7 @@ test("a member writes a haiku, likes it and starts the conversation", async ({ p
   await expect(like).toHaveAttribute("aria-pressed", "true");
   await expect(like).toContainText("1");
 
-  await page.getByLabel("Write a comment").fill("Reading this back, I'd keep every line.");
+  await page.getByRole("textbox", { name: "Write a comment" }).fill("Reading this back, I'd keep every line.");
   await page.getByRole("button", { name: "Comment", exact: true }).click();
   await expect(page.getByText("Reading this back, I'd keep every line.")).toBeVisible();
 });

@@ -9,9 +9,9 @@ test("a message arrives in the other member's open chat without a reload", async
   await expect(page).toHaveURL(/\/messages\/\d+$/);
 
   await otherPage.goto(new URL(page.url()).pathname);
-  await expect(otherPage.getByLabel(`Message ${sender.displayName}`)).toBeVisible();
+  await expect(otherPage.getByRole("textbox", { name: `Message ${sender.displayName}` })).toBeVisible();
 
-  await page.getByLabel(`Message ${recipient.displayName}`).fill("Hello from the end-to-end suite");
+  await page.getByRole("textbox", { name: `Message ${recipient.displayName}` }).fill("Hello from the end-to-end suite");
   await page.getByRole("button", { name: "Send" }).click();
 
   await expect(otherPage.getByRole("list", { name: sender.displayName })).toContainText(

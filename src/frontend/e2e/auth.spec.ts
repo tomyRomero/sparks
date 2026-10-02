@@ -36,6 +36,8 @@ test("a wrong password keeps the visitor on the sign-in page with a message", as
   await page.getByLabel("Password", { exact: true }).fill("not-the-password");
   await page.getByRole("button", { name: "Sign in" }).click();
 
-  await expect(page.getByRole("alert")).toBeVisible();
+  // Next's route announcer is an alert too, so look for the one saying why.
+  const problem = page.getByRole("alert").filter({ hasText: "Email, username or password is incorrect." });
+  await expect(problem).toBeVisible();
   await expect(page).toHaveURL(/\/sign-in/);
 });

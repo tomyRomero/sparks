@@ -5,7 +5,6 @@ import {
   activityPath,
   actorPhrase,
   byRecency,
-  namedActors,
   noticeHref,
   readActivityFilter,
   withoutTitleLabel,
@@ -33,12 +32,6 @@ describe("actorPhrase", () => {
 
   it("says one other in the singular", () => {
     expect(actorPhrase([nova], 2)).toBe("Nova and 1 other");
-  });
-});
-
-describe("namedActors", () => {
-  it("names two and counts the others once there are more than three", () => {
-    expect(namedActors([nova, kai, lee], 5)).toEqual({ named: [nova, kai], others: 3 });
   });
 });
 
@@ -97,6 +90,11 @@ describe("readActivityFilter", () => {
     expect(readActivityFilter(new URLSearchParams("filter=likes"))).toBe("likes");
     expect(readActivityFilter({ filter: "follows" })).toBe("follows");
     expect(readActivityFilter({ filter: "mentions" })).toBeUndefined();
+  });
+});
+
+describe("activityPath", () => {
+  it("leaves everything bare and names a filter", () => {
     expect(activityPath(undefined)).toBe("/activity");
     expect(activityPath("comments")).toBe("/activity?filter=comments");
   });

@@ -16,24 +16,22 @@ describe("timeAgo", () => {
   });
 });
 
-describe("lastActive", () => {
+describe("agoPhrase", () => {
   it.each([
-    ["2026-09-30T11:59:30Z", "Active just now"],
-    ["2026-09-30T11:48:00Z", "Active 12m ago"],
-    ["2026-09-28T12:00:00Z", "Active 2d ago"],
-    ["2026-09-12T12:00:00Z", "Active on Sep 12"],
-  ])("shows %s as %s", (iso, expected) => {
-    expect(lastActive(iso, now)).toBe(expected);
+    ["2026-09-30T11:59:01Z", "a moment ago"],
+    ["2026-09-30T11:59:00Z", "1m ago"],
+    ["2026-09-30T09:00:00Z", "3h ago"],
+    ["2026-09-23T12:00:01Z", "6d ago"],
+    ["2026-09-23T12:00:00Z", "on Sep 23"],
+  ])("puts %s as %s", (iso, expected) => {
+    expect(agoPhrase(iso, "a moment ago", now)).toBe(expected);
   });
 });
 
-describe("agoPhrase", () => {
-  it.each([
-    ["2026-09-30T11:59:30Z", "a moment ago"],
-    ["2026-09-30T09:00:00Z", "3h ago"],
-    ["2026-09-12T12:00:00Z", "on Sep 12"],
-  ])("puts %s as %s", (iso, expected) => {
-    expect(agoPhrase(iso, "a moment ago", now)).toBe(expected);
+describe("lastActive", () => {
+  it("is agoPhrase after Active, with just now for under a minute", () => {
+    expect(lastActive("2026-09-30T11:59:30Z", now)).toBe("Active just now");
+    expect(lastActive("2026-09-12T12:00:00Z", now)).toBe("Active on Sep 12");
   });
 });
 
