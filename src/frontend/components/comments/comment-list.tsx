@@ -45,7 +45,15 @@ export function CommentList({ path, queryKey, initial, viewer, depth, empty }: C
     );
   }
 
-  const comments = query.data.pages.flatMap((page) => page.items);
+  // A comment just written can show at the top and again where it belongs.
+  const seen = new Set<number>();
+  const comments = query.data.pages
+    .flatMap((page) => page.items)
+    .filter((comment) => {
+      if (seen.has(comment.id)) return false;
+      seen.add(comment.id);
+      return true;
+    });
   if (comments.length === 0) {
     return empty ?? null;
   }

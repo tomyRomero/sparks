@@ -1,6 +1,6 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
+import { type InfiniteData, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { TextForm } from "@/components/posts/text-form";
@@ -24,9 +24,20 @@ export function CommentSection({ postId, initial, viewer }: CommentSectionProps)
   const queryClient = useQueryClient();
 
   async function comment(body: string) {
-    await api<Comment>(`/posts/${postId}/comments`, { method: "POST", json: { body } });
+    const created = await api<Comment>(`/posts/${postId}/comments`, { method: "POST", json: { body } });
     updateCachedPost(queryClient, postId, (post) => ({ ...post, commentCount: post.commentCount + 1 }));
-    await queryClient.invalidateQueries({ queryKey: queryKeys.thread(postId) });
+    // The thread reads oldest first, so on a long one the new comment belongs
+    // pages beyond what's loaded. It shows at the top for now, under the box
+    // it was written in; a short thread reloads with it in its place.
+    const thread = queryClient.getQueryData<InfiniteData<CursorPage<Comment>>>(queryKeys.thread(postId));
+    if (thread?.pages.at(-1)?.nextCursor) {
+      queryClient.setQueryData<InfiniteData<CursorPage<Comment>>>(queryKeys.thread(postId), {
+        ...thread,
+        pages: thread.pages.map((page, index) => (index === 0 ? { ...page, items: [created, ...page.items] } : page)),
+      });
+    } else {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.thread(postId) });
+    }
   }
 
   return (
