@@ -21,7 +21,7 @@ export function PostCard({ post, signedIn, eagerImage = false }: PostCardProps) 
   return (
     <article
       aria-label={`${kindInfo(post.kind).label} by ${post.author.displayName}`}
-      className="flex flex-col gap-3.5 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-5"
+      className="@container flex flex-col gap-3.5 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-5"
     >
       <header className="flex items-center gap-3">
         <IntentLink href={profile} className="shrink-0 rounded-full" tabIndex={-1} aria-hidden>

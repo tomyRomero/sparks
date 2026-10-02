@@ -3,15 +3,16 @@ import type { SparkKind } from "@/lib/api/types";
 import { kindInfo } from "@/lib/kinds";
 import { cn } from "@/lib/utils";
 
+// On a narrow card, wherever it is on the page, the chips shrink to their icons.
 const chip =
   "inline-flex h-[26px] shrink-0 items-center gap-1.5 rounded-full px-2.5 font-mono text-[11px] whitespace-nowrap";
 
 export function KindChip({ kind }: { kind: SparkKind }) {
   const { label, icon: Icon } = kindInfo(kind);
   return (
-    <span className={cn(chip, "border border-line bg-surface text-muted max-sm:px-2")}>
+    <span className={cn(chip, "border border-line bg-surface text-muted @max-md:px-2")}>
       <Icon className="size-3.5" aria-hidden />
-      <span className="max-sm:sr-only">{label}</span>
+      <span className="@max-md:sr-only">{label}</span>
     </span>
   );
 }
@@ -20,8 +21,8 @@ export function AiChip() {
   return (
     <span className={cn(chip, "bg-charge-soft text-charge")}>
       <Zap className="size-3 fill-current" aria-hidden />
-      <span className="max-sm:hidden">AI draft</span>
-      <span className="sm:hidden">AI</span>
+      <span className="@max-md:hidden">AI draft</span>
+      <span className="@md:hidden">AI</span>
     </span>
   );
 }

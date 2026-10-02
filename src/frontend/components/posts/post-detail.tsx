@@ -59,7 +59,7 @@ export function PostDetail({ initial, viewer }: { initial: Post; viewer: Current
   }
 
   return (
-    <article className="flex flex-col gap-4 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-6">
+    <article className="@container flex flex-col gap-4 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-6">
       <header className="flex items-center gap-3">
         <Link href={`/u/${post.author.username}`} className="shrink-0 rounded-full" tabIndex={-1} aria-hidden>
           <Avatar name={post.author.displayName} src={post.author.avatarUrl} size={48} />
