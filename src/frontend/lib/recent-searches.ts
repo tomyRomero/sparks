@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 
 // Kept in this browser only. Storage can be blocked (private windows,
-// site data turned off), in which case there's simply no history.
+// site data turned off), and then there's no history.
 const STORAGE_KEY = "sparks:recent-searches";
 const KEEP = 6;
 
