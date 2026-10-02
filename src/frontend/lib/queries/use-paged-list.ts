@@ -35,6 +35,18 @@ export function usePagedList<T, Cursor extends number | string = number>(
   return { query, items: query.data?.pages.flatMap((page) => page.items) ?? [] };
 }
 
+/**
+ * What the list on screen was loaded for. After a filter changes, the old
+ * list stays until the new one arrives, and so must anything describing it,
+ * such as its empty message, or the new filter's message would flash up over
+ * the old filter's results. `key` tells one filter from another.
+ */
+export function useShownFor<T>(current: T, key: string, stale: boolean): T {
+  const [shown, setShown] = useState({ key, value: current });
+  if (!stale && shown.key !== key) setShown({ key, value: current });
+  return stale ? shown.value : current;
+}
+
 /** What a list needs from its query to page and to show that it's loading. */
 export type ListPaging = {
   hasNextPage: boolean;

@@ -10,7 +10,7 @@ import { Segmented } from "@/components/ui/segmented";
 import type { CursorPage, OpaquePage, Post } from "@/lib/api/types";
 import { type FeedFilter, type FeedSort, feedHref, feedPath, readFeedFilter, sameFilter, unfiltered } from "@/lib/feed";
 import { queryKeys } from "@/lib/queries/keys";
-import { usePagedList } from "@/lib/queries/use-paged-list";
+import { usePagedList, useShownFor } from "@/lib/queries/use-paged-list";
 import { cn } from "@/lib/utils";
 import { PostList } from "./feed";
 import { KindMenu } from "./kind-menu";
@@ -63,8 +63,9 @@ export function HomeFeed({ initialFilter, initial, signedIn }: HomeFeedProps) {
     window.history.replaceState(null, "", feedHref({ ...filter, ...next }));
   }
 
-  const filtered = filter.kinds.length > 0 || filter.pictures;
   const loading = query.isPending || query.isPlaceholderData;
+  const listed = useShownFor(filter, href, loading);
+  const filtered = listed.kinds.length > 0 || listed.pictures;
   return (
     <>
       <div ref={anchor} aria-hidden />
@@ -114,11 +115,11 @@ export function HomeFeed({ initialFilter, initial, signedIn }: HomeFeedProps) {
               <p className="font-display text-lg font-semibold">
                 {filtered
                   ? "No sparks match these filters"
-                  : filter.following
-                    ? filter.sort === "top"
+                  : listed.following
+                    ? listed.sort === "top"
                       ? "Nothing from the people you follow was liked this week"
                       : "Nothing from the people you follow yet"
-                    : filter.sort === "top"
+                    : listed.sort === "top"
                       ? "Nothing's been liked this week"
                       : "No sparks yet"}
               </p>
@@ -131,14 +132,14 @@ export function HomeFeed({ initialFilter, initial, signedIn }: HomeFeedProps) {
                 >
                   Clear filters
                 </Button>
-              ) : filter.following ? (
+              ) : listed.following ? (
                 <>
                   <p className="mt-1 text-muted">Follow a few people and their sparks show up here.</p>
                   <WhoToFollow />
                 </>
               ) : (
                 <p className="mt-1 text-muted">
-                  {filter.sort === "top" ? "Like a spark and it shows up here." : "Be the first to share one."}
+                  {listed.sort === "top" ? "Like a spark and it shows up here." : "Be the first to share one."}
                 </p>
               )}
             </>

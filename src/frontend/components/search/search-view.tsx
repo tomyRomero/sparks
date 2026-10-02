@@ -16,7 +16,7 @@ import type { CursorPage, Post, SearchCounts, SparkKind, UserSummary } from "@/l
 import { kinds } from "@/lib/kinds";
 import { limits } from "@/lib/limits";
 import { queryKeys } from "@/lib/queries/keys";
-import { usePagedList } from "@/lib/queries/use-paged-list";
+import { usePagedList, useShownFor } from "@/lib/queries/use-paged-list";
 import { forgetAllSearches, forgetSearch, rememberSearch, useRecentSearches } from "@/lib/recent-searches";
 import {
   memberSearchPath,
@@ -267,7 +267,9 @@ type SparkResultsProps = {
 };
 
 function SparkResults({ q, kinds, initial, signedIn }: SparkResultsProps) {
-  const { query, items } = usePagedList(sparkSearchPath(q, kinds), queryKeys.feed({ q, kinds }), initial);
+  const path = sparkSearchPath(q, kinds);
+  const { query, items } = usePagedList(path, queryKeys.feed({ q, kinds }), initial);
+  const listed = useShownFor({ q, kinds }, path, query.isPlaceholderData);
   if (query.isPending) return <FeedSkeleton count={3} />;
   return (
     <PostList
@@ -275,13 +277,14 @@ function SparkResults({ q, kinds, initial, signedIn }: SparkResultsProps) {
       paging={query}
       signedIn={signedIn}
       stale={query.isPlaceholderData}
-      empty={<NoResults q={q} what={kinds.length ? "sparks of those kinds" : "sparks"} />}
+      empty={<NoResults q={listed.q} what={listed.kinds.length ? "sparks of those kinds" : "sparks"} />}
     />
   );
 }
 
 function MemberResults({ q, initial }: { q: string; initial: CursorPage<UserSummary> | undefined }) {
   const { query, items } = usePagedList(memberSearchPath(q), queryKeys.members(q), initial);
+  const listed = useShownFor(q, q, query.isPlaceholderData);
   return (
     <Panel>
       {query.isPending ? (
@@ -291,7 +294,7 @@ function MemberResults({ q, initial }: { q: string; initial: CursorPage<UserSumm
           members={items}
           paging={query}
           stale={query.isPlaceholderData}
-          empty={<NoResults q={q} what="members" />}
+          empty={<NoResults q={listed} what="members" />}
         />
       )}
     </Panel>

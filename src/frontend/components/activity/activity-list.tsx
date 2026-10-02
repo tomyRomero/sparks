@@ -24,7 +24,7 @@ import {
 import type { ActivityFilter, ActivityItem, ActivityKind, OpaquePage } from "@/lib/api/types";
 import { markActivityRead } from "@/lib/queries/activity";
 import { queryKeys } from "@/lib/queries/keys";
-import { usePagedList } from "@/lib/queries/use-paged-list";
+import { usePagedList, useShownFor } from "@/lib/queries/use-paged-list";
 import { fullDate, timeAgo } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { ActivitySkeleton } from "./activity-skeleton";
@@ -95,6 +95,7 @@ export function ActivityList({ initialFilter, initial, now, viewerUsername }: Ac
   }
 
   const stale = query.isPlaceholderData;
+  const listed = useShownFor(filter, filter ?? "all", stale);
   return (
     <>
       <Segmented
@@ -110,7 +111,7 @@ export function ActivityList({ initialFilter, initial, now, viewerUsername }: Ac
           <ActivitySkeleton />
         ) : items.length === 0 ? (
           <div className={cn("px-6 py-16 text-center transition-opacity", stale && "opacity-50")}>
-            <p className="font-display text-lg font-semibold">{emptyTitles[filter ?? "all"]}</p>
+            <p className="font-display text-lg font-semibold">{emptyTitles[listed ?? "all"]}</p>
             <p className="mt-1 text-muted">
               When someone likes or comments on your sparks, or follows you, it shows up here.
             </p>
