@@ -1,4 +1,5 @@
 import { test as base, expect, type Page } from "@playwright/test";
+import type { SparkKind } from "@/lib/api/types";
 
 export { expect };
 
@@ -43,8 +44,8 @@ export async function signUp(page: Page, account = newAccount()): Promise<Accoun
 }
 
 /** Shares a spark through the API, for tests about what happens to one. */
-export async function shareSpark(page: Page, body: string): Promise<number> {
-  const response = await page.request.post("/api/v1/posts", { data: { kind: "regular", body } });
+export async function shareSpark(page: Page, body: string, kind: SparkKind = "regular"): Promise<number> {
+  const response = await page.request.post("/api/v1/posts", { data: { kind, body } });
   expect(response.ok(), await response.text()).toBe(true);
   return ((await response.json()) as { id: number }).id;
 }

@@ -19,6 +19,12 @@ const test = base.extend<object, { member: Member }>({
       const page = await context.newPage();
       const { username } = await signUp(page);
       const spark = await shareSpark(page, "Checking every page with axe, one spark at a time.");
+      // Its title and logline match the guest search, on the card that stays dark in either theme.
+      await shareSpark(
+        page,
+        "Title: The Last Spark\n\nA projectionist finds a reel that plays a different film every night.",
+        "movieScript",
+      );
       await provide({ username, spark, storageState: await context.storageState() });
       await context.close();
     },

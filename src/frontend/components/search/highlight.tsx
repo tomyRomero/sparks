@@ -16,7 +16,9 @@ export function Marked({ text }: { text: string }) {
   if (!term) return text;
   return matchParts(text, term).map((part, index) =>
     part.match ? (
-      <mark key={index} className="rounded-[3px] bg-mark [box-decoration-break:clone] text-inherit">
+      // Ink rather than the surrounding colour, so a match stays readable on
+      // the movie card's dark screen, which keeps its light text in either theme.
+      <mark key={index} className="rounded-[3px] bg-mark [box-decoration-break:clone] text-ink">
         {part.text}
       </mark>
     ) : (
