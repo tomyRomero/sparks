@@ -46,6 +46,22 @@ public sealed class UserService(
     public Task<ProfileResponse> RemoveAvatarAsync(long userId, CancellationToken ct) =>
         ReplaceAvatarAsync(userId, key: null, ct);
 
+    /// <summary>
+    /// Members whose username or display name contains the search, newest
+    /// first. The viewer is left out: this is for finding other people.
+    /// </summary>
+    public async Task<CursorPage<UserSummary>> SearchAsync(UserSearchQuery query, long? viewerId, CancellationToken ct)
+    {
+        var fetched = await Matching(query.Q, viewerId)
+            .NewestFirst(query)
+            .Select(user => new UserSummary(user.Id, user.Username, user.DisplayName, FileUrls.Of(user.AvatarKey)))
+            .ToListAsync(ct);
+        return CursorPage.From(fetched, query.Limit, user => user.Id);
+    }
+
+    public Task<int> CountMatchingAsync(string q, long? viewerId, CancellationToken ct) =>
+        Matching(q, viewerId).CountAsync(ct);
+
     /// <summary>Points the profile at a new picture (or none), then removes the old file.</summary>
     private async Task<ProfileResponse> ReplaceAvatarAsync(long userId, string? key, CancellationToken ct)
     {
@@ -66,22 +82,6 @@ public sealed class UserService(
             .Select(ToProfile(userId))
             .SingleOrDefaultAsync(ct)
         ?? throw UserErrors.UserNotFound();
-
-    /// <summary>
-    /// Members whose username or display name contains the search, newest
-    /// first. The viewer is left out: this is for finding other people.
-    /// </summary>
-    public async Task<CursorPage<UserSummary>> SearchAsync(UserSearchQuery query, long? viewerId, CancellationToken ct)
-    {
-        var fetched = await Matching(query.Q, viewerId)
-            .NewestFirst(query)
-            .Select(user => new UserSummary(user.Id, user.Username, user.DisplayName, FileUrls.Of(user.AvatarKey)))
-            .ToListAsync(ct);
-        return CursorPage.From(fetched, query.Limit, user => user.Id);
-    }
-
-    public Task<int> CountMatchingAsync(string q, long? viewerId, CancellationToken ct) =>
-        Matching(q, viewerId).CountAsync(ct);
 
     private IQueryable<UserEntity> Matching(string? q, long? viewerId)
     {

@@ -227,7 +227,7 @@ public sealed class CommentTests(SparksApiFactory factory)
 
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
         await using var db = factory.CreateDbContext();
-        (await db.Comments.CountAsync(c => c.PostId == post.Id, Ct)).Should().Be(0);
+        (await db.Comments.CountAsync(row => row.PostId == post.Id, Ct)).Should().Be(0);
         (await db.CommentLikes.CountAsync(like => like.CommentId == reply.Id, Ct)).Should().Be(0);
     }
 

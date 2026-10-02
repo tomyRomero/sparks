@@ -48,7 +48,7 @@ public sealed class SignUpTests(SparksApiFactory factory)
         var refreshToken = response.CookieValue(AuthCookies.RefreshToken);
 
         await using var db = factory.CreateDbContext();
-        var user = await db.Users.SingleAsync(u => u.Username == account.Username, Ct);
+        var user = await db.Users.SingleAsync(row => row.Username == account.Username, Ct);
         var storedHashes = await db.RefreshTokens
             .Where(token => token.Session.UserId == user.Id)
             .Select(token => token.TokenHash)

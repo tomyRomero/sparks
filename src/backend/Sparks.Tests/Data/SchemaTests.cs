@@ -129,13 +129,13 @@ public sealed class SchemaTests(SparksApiFactory factory)
         db.CommentLikes.Add(new CommentLikeEntity { Comment = reply, User = fan, CreatedAt = DateTime.UtcNow });
         await db.SaveChangesAsync(Ct);
 
-        await db.Posts.Where(p => p.Id == post.Id).ExecuteDeleteAsync(Ct);
+        await db.Posts.Where(row => row.Id == post.Id).ExecuteDeleteAsync(Ct);
 
         long[] commentIds = [comment.Id, reply.Id];
-        (await db.Comments.CountAsync(c => c.PostId == post.Id, Ct)).Should().Be(0);
-        (await db.PostLikes.CountAsync(l => l.PostId == post.Id, Ct)).Should().Be(0);
-        (await db.CommentLikes.CountAsync(l => commentIds.Contains(l.CommentId), Ct)).Should().Be(0);
-        (await db.Users.CountAsync(u => u.Id == author.Id || u.Id == fan.Id, Ct)).Should().Be(2);
+        (await db.Comments.CountAsync(row => row.PostId == post.Id, Ct)).Should().Be(0);
+        (await db.PostLikes.CountAsync(like => like.PostId == post.Id, Ct)).Should().Be(0);
+        (await db.CommentLikes.CountAsync(like => commentIds.Contains(like.CommentId), Ct)).Should().Be(0);
+        (await db.Users.CountAsync(user => user.Id == author.Id || user.Id == fan.Id, Ct)).Should().Be(2);
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public sealed class SchemaTests(SparksApiFactory factory)
         await db.SaveChangesAsync(Ct);
 
         await ShouldFailWithAsync(
-            () => db.Users.Where(u => u.Id == author.Id).ExecuteDeleteAsync(Ct),
+            () => db.Users.Where(user => user.Id == author.Id).ExecuteDeleteAsync(Ct),
             ConstraintViolation);
     }
 
@@ -164,7 +164,7 @@ public sealed class SchemaTests(SparksApiFactory factory)
         }
 
         await using var other = factory.CreateDbContext();
-        var stored = await other.Users.SingleAsync(u => u.Id == user.Id, Ct);
+        var stored = await other.Users.SingleAsync(row => row.Id == user.Id, Ct);
 
         stored.CreatedAt.Should().Be(createdAt);
         stored.CreatedAt.Kind.Should().Be(DateTimeKind.Utc);

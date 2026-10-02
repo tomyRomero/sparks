@@ -212,7 +212,11 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
             .Select(group => group.PostId!.Value)
             .Distinct()
             .ToList();
-        var commentIds = groups.Where(group => group.CommentId is not null).Select(group => group.CommentId!.Value).Distinct().ToList();
+        var commentIds = groups
+            .Where(group => group.CommentId is not null)
+            .Select(group => group.CommentId!.Value)
+            .Distinct()
+            .ToList();
 
         var actors = await db.Users
             .Where(user => actorIds.Contains(user.Id))

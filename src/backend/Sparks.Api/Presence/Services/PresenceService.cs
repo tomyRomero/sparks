@@ -38,7 +38,7 @@ public sealed class PresenceService(
         {
             var now = time.GetUtcNow().UtcDateTime;
             await TrySetLastSeenAsync(userId, now, ct);
-            await hub.Clients.All.PresenceChanged(new PresenceResponse(userId, true, now));
+            await hub.Clients.All.PresenceChanged(new PresenceResponse(userId, Online: true, now));
         }
         catch
         {
@@ -63,7 +63,7 @@ public sealed class PresenceService(
             // Back already, in the moment since: their return was announced instead.
             if (!tracker.IsOnline(userId))
             {
-                await hub.Clients.All.PresenceChanged(new PresenceResponse(userId, false, leftAt));
+                await hub.Clients.All.PresenceChanged(new PresenceResponse(userId, Online: false, leftAt));
             }
         }
     }

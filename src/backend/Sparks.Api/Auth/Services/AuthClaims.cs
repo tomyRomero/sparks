@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 
 namespace Sparks.Api.Auth.Services;
@@ -19,6 +20,6 @@ public static class AuthClaims
     /// <summary>The signed-in user's id, or null for an anonymous request.</summary>
     public static long? FindUserId(this ClaimsPrincipal principal) =>
         principal.FindFirstValue(UserId) is { } value
-            ? long.Parse(value, System.Globalization.CultureInfo.InvariantCulture)
+            ? long.Parse(value, CultureInfo.InvariantCulture)
             : null;
 }

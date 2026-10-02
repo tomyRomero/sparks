@@ -30,7 +30,7 @@ public sealed class PasswordResetService(
     public async Task RequestResetAsync(string emailAddress, CancellationToken ct)
     {
         var address = emailAddress.Trim();
-        var user = await db.Users.SingleOrDefaultAsync(u => u.Email == address, ct);
+        var user = await db.Users.SingleOrDefaultAsync(user => user.Email == address, ct);
         if (user is null)
         {
             logger.LogInformation("Password reset requested for an address with no account");

@@ -6,9 +6,11 @@ public static class Passwords
     /// <summary>About a quarter of a second per hash on current hardware.</summary>
     private const int WorkFactor = 12;
 
-    // Checked against when an account doesn't exist, so a failed sign-in takes
-    // the same time whether or not the email is registered.
-    private static readonly Lazy<string> _unknownAccountHash =
+    /// <summary>
+    /// Checked against when an account doesn't exist, so a failed sign-in takes
+    /// the same time whether or not the email is registered.
+    /// </summary>
+    private static readonly Lazy<string> UnknownAccountHash =
         new(() => BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString(), WorkFactor));
 
     public static string Hash(string password) => BCrypt.Net.BCrypt.HashPassword(password, WorkFactor);
@@ -21,7 +23,7 @@ public static class Passwords
     {
         if (hash is null)
         {
-            BCrypt.Net.BCrypt.Verify(password, _unknownAccountHash.Value);
+            BCrypt.Net.BCrypt.Verify(password, UnknownAccountHash.Value);
             return false;
         }
 

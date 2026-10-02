@@ -202,19 +202,18 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
                 && (message.Conversation.UserAId == userId || message.Conversation.UserBId == userId),
             ct);
 
-
-    private Task<long?> FindPairAsync(long userAId, long userBId, CancellationToken ct) =>
-        db.Conversations
-            .Where(conversation => conversation.UserAId == userAId && conversation.UserBId == userBId)
-            .Select(conversation => (long?)conversation.Id)
-            .SingleOrDefaultAsync(ct);
-
     /// <summary>The other participant's id, or null when the member isn't in the conversation.</summary>
     public Task<long?> OtherParticipantAsync(long conversationId, long userId, CancellationToken ct) =>
         db.Conversations
             .Where(conversation => conversation.Id == conversationId
                 && (conversation.UserAId == userId || conversation.UserBId == userId))
             .Select(conversation => (long?)(conversation.UserAId == userId ? conversation.UserBId : conversation.UserAId))
+            .SingleOrDefaultAsync(ct);
+
+    private Task<long?> FindPairAsync(long userAId, long userBId, CancellationToken ct) =>
+        db.Conversations
+            .Where(conversation => conversation.UserAId == userAId && conversation.UserBId == userBId)
+            .Select(conversation => (long?)conversation.Id)
             .SingleOrDefaultAsync(ct);
 
     private async Task<long> FindOtherParticipantAsync(long conversationId, long userId, CancellationToken ct) =>

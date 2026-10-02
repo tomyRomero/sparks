@@ -22,6 +22,20 @@ public sealed class GeminiSparkWriter(HttpClient http, IOptions<GeminiOptions> o
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
 
+    private static readonly object DraftSchema = new
+    {
+        type = "OBJECT",
+        properties = new { body = new { type = "STRING" } },
+        required = new[] { "body" },
+    };
+
+    private static readonly object DraftWithImageSchema = new
+    {
+        type = "OBJECT",
+        properties = new { body = new { type = "STRING" }, imagePrompt = new { type = "STRING" } },
+        required = new[] { "body", "imagePrompt" },
+    };
+
     public async Task<SparkDraft> DraftAsync(SparkKind kind, string prompt, CancellationToken ct)
     {
         var brief = SparkBriefs.For(kind);
@@ -100,20 +114,6 @@ public sealed class GeminiSparkWriter(HttpClient http, IOptions<GeminiOptions> o
         text = text.Trim();
         return text.Length <= maxLength ? text : text[..maxLength];
     }
-
-    private static readonly object DraftSchema = new
-    {
-        type = "OBJECT",
-        properties = new { body = new { type = "STRING" } },
-        required = new[] { "body" },
-    };
-
-    private static readonly object DraftWithImageSchema = new
-    {
-        type = "OBJECT",
-        properties = new { body = new { type = "STRING" }, imagePrompt = new { type = "STRING" } },
-        required = new[] { "body", "imagePrompt" },
-    };
 
     private sealed record GenerateContentRequest(
         Content SystemInstruction, IReadOnlyList<Content> Contents, GenerationConfig GenerationConfig);

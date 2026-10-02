@@ -99,7 +99,7 @@ public sealed class ProfileTests(SparksApiFactory factory)
         var likedPosts = await reader.GetJsonAsync<CursorPage<PostResponse>>($"{UsersPath}/{user.Username}/liked", Ct);
 
         posts.Items.Select(post => post.Id).Should().Equal(secondPost.Id, firstPost.Id);
-        comments.Items.Select(c => c.Id).Should().Equal(reply.Id, comment.Id);
+        comments.Items.Select(item => item.Id).Should().Equal(reply.Id, comment.Id);
         likedPosts.Items.Select(post => post.Id).Should().Equal(firstPost.Id, othersPost.Id);
     }
 

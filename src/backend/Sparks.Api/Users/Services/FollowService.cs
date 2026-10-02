@@ -89,7 +89,7 @@ public sealed class FollowService(SparksDbContext db, TimeProvider time, Activit
             .ThenByDescending(user => user.Id)
             .Take(limit)
             .Select(user => new MemberResponse(
-                user.Id, user.Username, user.DisplayName, FileUrls.Of(user.AvatarKey), user.Bio, false))
+                user.Id, user.Username, user.DisplayName, FileUrls.Of(user.AvatarKey), user.Bio, FollowedByMe: false))
             .ToListAsync(ct);
 
     /// <summary>
