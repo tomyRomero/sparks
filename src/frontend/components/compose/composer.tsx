@@ -7,7 +7,7 @@ import { useEffect, useEffectEvent, useId, useRef, useState, useTransition } fro
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CharacterCount } from "@/components/ui/character-count";
-import { Input, Textarea } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/input";
 import { Segmented } from "@/components/ui/segmented";
 import { api } from "@/lib/api/client";
 import { ApiError, errorMessage } from "@/lib/api/problem";
@@ -290,20 +290,22 @@ function ComposerForm({ viewer, saved }: { viewer: CurrentUser; saved: ComposeDr
               </label>
               <CharacterCount length={idea.length} max={limits.aiPromptMax} showFrom={limits.aiPromptMax * 0.9} />
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Input
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+              <Textarea
                 id={`${id}-idea`}
+                rows={1}
                 value={idea}
                 onChange={(event) => setIdea(event.target.value)}
                 onKeyDown={(event) => {
                   // Enter drafts rather than sharing whatever is in the text box below.
-                  if (event.key === "Enter" && !event.metaKey && !event.ctrlKey) {
+                  if (event.key === "Enter" && !event.metaKey && !event.ctrlKey && !event.nativeEvent.isComposing) {
                     event.preventDefault();
                     draftWithAi();
                   }
                 }}
                 maxLength={limits.aiPromptMax}
                 placeholder="A radio station that went quiet in 1962"
+                className="min-h-10 py-1.5"
                 disabled={busy}
                 aria-invalid={draftError ? true : undefined}
                 aria-describedby={draftError ? `${id}-idea-error` : undefined}
@@ -343,7 +345,10 @@ function ComposerForm({ viewer, saved }: { viewer: CurrentUser; saved: ComposeDr
             maxLength={limits.postBodyMax}
             rows={kind === "movieScript" || kind === "bookPlot" ? 10 : 6}
             placeholder={withAi ? "Your draft appears here, ready to edit." : "What's on your mind?"}
-            className={cn(drafting && "charge-shimmer")}
+            className={cn(
+              kind === "movieScript" || kind === "bookPlot" ? "min-h-72" : "min-h-44",
+              drafting && "charge-shimmer",
+            )}
             aria-busy={drafting}
             disabled={busy}
             aria-invalid={shareError ? true : undefined}

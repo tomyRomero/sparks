@@ -105,6 +105,7 @@ export function ProfileForm({ profile: initial }: { profile: Profile }) {
             name="bio"
             maxLength={limits.bioMax}
             rows={4}
+            className="min-h-30"
             {...bio.props}
             {...fieldDescription("bio", bioError, "hint")}
           />

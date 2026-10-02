@@ -79,7 +79,7 @@ export function ChatComposer({ name, username, onSend, onShare, onTyping }: Chat
                 send();
               }
             }}
-            className="block [field-sizing:content] max-h-40 min-h-11 resize-none rounded-[22px] bg-canvas px-5 py-2.5 text-[15px]"
+            className="block max-h-40 min-h-11 resize-none rounded-[22px] bg-canvas px-5 py-2.5 text-[15px]"
           />
         </div>
         <button
