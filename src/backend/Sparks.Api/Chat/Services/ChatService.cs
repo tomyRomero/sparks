@@ -43,12 +43,13 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
                 || (conversation.LastMessageAt == at && conversation.Id < id));
         }
 
-        var fetched = await conversations
-            .OrderByDescending(conversation => conversation.LastMessageAt)
-            .ThenByDescending(conversation => conversation.Id)
-            .Take(query.Limit + 1)
-            .Select(ToConversationResponse(userId))
-            .ToListAsync(ct);
+        var fetched = await ReadAsync(
+            conversations
+                .OrderByDescending(conversation => conversation.LastMessageAt)
+                .ThenByDescending(conversation => conversation.Id)
+                .Take(query.Limit + 1),
+            userId,
+            ct);
 
         var page = fetched.Take(query.Limit).ToList();
         var nextCursor = fetched.Count > query.Limit
@@ -110,11 +111,11 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
     /// 404 as for a conversation that doesn't exist.
     /// </summary>
     public async Task<ConversationResponse> GetAsync(long conversationId, long userId, CancellationToken ct) =>
-        await db.Conversations.AsNoTracking()
-            .Where(conversation => conversation.Id == conversationId
-                && (conversation.UserAId == userId || conversation.UserBId == userId))
-            .Select(ToConversationResponse(userId))
-            .SingleOrDefaultAsync(ct)
+        (await ReadAsync(
+            db.Conversations.AsNoTracking().Where(conversation => conversation.Id == conversationId
+                && (conversation.UserAId == userId || conversation.UserBId == userId)),
+            userId,
+            ct)).SingleOrDefault()
         ?? throw ConversationNotFound();
 
     /// <summary>A conversation's messages, newest first, for one of its participants.</summary>
@@ -226,6 +227,35 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
         await OtherParticipantAsync(conversationId, userId, ct) ?? throw ConversationNotFound();
 
     /// <summary>A conversation from one participant's side, with counts computed in SQL.</summary>
+    /// <summary>
+    /// Reads conversations, then the last message of each in a second query.
+    /// As one query, EF Core ranked every message in the database to find
+    /// them, so the inbox slowed down as anyone chatted; this looks up one
+    /// message per conversation on the page.
+    /// </summary>
+    private async Task<List<ConversationResponse>> ReadAsync(
+        IQueryable<ConversationEntity> conversations, long viewerId, CancellationToken ct)
+    {
+        var read = await conversations.Select(ToConversationResponse(viewerId)).ToListAsync(ct);
+        if (read.Count == 0)
+        {
+            return read;
+        }
+
+        var ids = read.Select(conversation => conversation.Id).ToArray();
+        var lastIds = db.Messages
+            .Where(message => ids.Contains(message.ConversationId))
+            .GroupBy(message => message.ConversationId)
+            .Select(messages => messages.Max(message => message.Id));
+        var lastMessages = await db.Messages.AsNoTracking()
+            .Where(message => lastIds.Contains(message.Id))
+            .Select(ToMessageResponse)
+            .ToDictionaryAsync(message => message.ConversationId, ct);
+        return read.ConvertAll(conversation =>
+            conversation with { LastMessage = lastMessages.GetValueOrDefault(conversation.Id) });
+    }
+
+    /// <summary>A conversation from the viewer's side; <see cref="ReadAsync"/> adds the last message.</summary>
     private static Expression<Func<ConversationEntity, ConversationResponse>> ToConversationResponse(long viewerId) =>
         conversation => new ConversationResponse(
             conversation.Id,
@@ -234,10 +264,7 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
                 conversation.UserAId == viewerId ? conversation.UserB.Username : conversation.UserA.Username,
                 conversation.UserAId == viewerId ? conversation.UserB.DisplayName : conversation.UserA.DisplayName,
                 FileUrls.Of(conversation.UserAId == viewerId ? conversation.UserB.AvatarKey : conversation.UserA.AvatarKey)),
-            conversation.Messages.AsQueryable()
-                .OrderByDescending(message => message.Id)
-                .Select(ToMessageResponse)
-                .FirstOrDefault(),
+            LastMessage: null,
             conversation.Messages.Count(message => message.SenderId != viewerId && message.ReadAt == null),
             conversation.LastMessageAt);
 

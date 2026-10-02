@@ -50,12 +50,10 @@ public sealed class PostService(
             posts = posts.Where(post => post.Likes.Count < likes || (post.Likes.Count == likes && post.Id < id));
         }
 
-        var fetched = await posts
-            .OrderByDescending(post => post.Likes.Count)
-            .ThenByDescending(post => post.Id)
-            .Take(query.Limit + 1)
-            .Select(ToResponse(viewerId))
-            .ToListAsync(ct);
+        var fetched = await ReadAsync(
+            posts.OrderByDescending(post => post.Likes.Count).ThenByDescending(post => post.Id).Take(query.Limit + 1),
+            viewerId,
+            ct);
         var page = fetched.Take(query.Limit).ToList();
         var nextCursor = fetched.Count > query.Limit ? OpaqueCursor.Encode(page[^1].LikeCount, page[^1].Id) : null;
         return new OpaqueCursorPage<PostResponse>(page, nextCursor);
@@ -83,10 +81,7 @@ public sealed class PostService(
             ct);
 
     public async Task<PostResponse> GetAsync(long postId, long? viewerId, CancellationToken ct) =>
-        await db.Posts.AsNoTracking()
-            .Where(post => post.Id == postId)
-            .Select(ToResponse(viewerId))
-            .SingleOrDefaultAsync(ct)
+        (await ReadAsync(db.Posts.AsNoTracking().Where(post => post.Id == postId), viewerId, ct)).SingleOrDefault()
         ?? throw PostErrors.PostNotFound();
 
     public async Task<PostResponse> CreateAsync(long authorId, CreatePostRequest request, CancellationToken ct)
@@ -211,11 +206,50 @@ public sealed class PostService(
     }
 
     /// <summary>
-    /// The projection every post read uses, with counts and the top comment
-    /// computed in SQL. Only comments on the spark itself count as its top
-    /// one, never replies.
+    /// Reads posts with their counts, then the top comment of each in a
+    /// second query. As one query, EF Core ranked every top-level comment in
+    /// the database before joining the page to them, which took seconds once
+    /// there were tens of thousands; this ranks only the page's comments.
+    /// Only comments on the spark itself count as its top one, never replies.
     /// </summary>
-    internal static Expression<Func<PostEntity, PostResponse>> ToResponse(long? viewerId) => post => new PostResponse(
+    private async Task<List<PostResponse>> ReadAsync(IQueryable<PostEntity> posts, long? viewerId, CancellationToken ct)
+    {
+        var read = await posts.Select(ToResponse(viewerId)).ToListAsync(ct);
+        if (read.Count == 0)
+        {
+            return read;
+        }
+
+        var ids = read.Select(post => post.Id).ToArray();
+        var topComments = await db.Comments
+            .Where(comment => ids.Contains(comment.PostId) && comment.ParentCommentId == null)
+            .GroupBy(comment => comment.PostId)
+            .Select(thread => thread
+                .OrderByDescending(comment => comment.Likes.Count)
+                .ThenBy(comment => comment.Id)
+                .Select(comment => new
+                {
+                    comment.PostId,
+                    comment.Id,
+                    Excerpt = comment.Body.Substring(0, CommentPreview.ExcerptLength),
+                    AuthorId = comment.Author.Id,
+                    comment.Author.Username,
+                    comment.Author.DisplayName,
+                    comment.Author.AvatarKey,
+                })
+                .First())
+            .ToDictionaryAsync(
+                top => top.PostId,
+                top => new CommentPreview(
+                    top.Id,
+                    top.Excerpt,
+                    new UserSummary(top.AuthorId, top.Username, top.DisplayName, FileUrls.Of(top.AvatarKey))),
+                ct);
+        return read.ConvertAll(post => post with { TopComment = topComments.GetValueOrDefault(post.Id) });
+    }
+
+    /// <summary>A post with its counts, computed in SQL; <see cref="ReadAsync"/> adds the top comment.</summary>
+    private static Expression<Func<PostEntity, PostResponse>> ToResponse(long? viewerId) => post => new PostResponse(
         post.Id,
         post.Kind,
         post.Body,
@@ -227,16 +261,7 @@ public sealed class PostService(
         post.Likes.Count,
         post.Comments.Count,
         viewerId != null && post.Likes.Any(like => like.UserId == viewerId),
-        post.Comments
-            .Where(comment => comment.ParentCommentId == null)
-            .OrderByDescending(comment => comment.Likes.Count)
-            .ThenBy(comment => comment.Id)
-            .Select(comment => new CommentPreview(
-                comment.Id,
-                comment.Body.Substring(0, CommentPreview.ExcerptLength),
-                new UserSummary(
-                    comment.Author.Id, comment.Author.Username, comment.Author.DisplayName, FileUrls.Of(comment.Author.AvatarKey))))
-            .FirstOrDefault());
+        TopComment: null);
 
     private static IQueryable<PostEntity> Filter(IQueryable<PostEntity> posts, SparkKind[] kinds, bool pictures, string? q)
     {
@@ -282,10 +307,10 @@ public sealed class PostService(
             post.AuthorId == me || db.Follows.Any(follow => follow.FollowerId == me && follow.FolloweeId == post.AuthorId));
     }
 
-    private static async Task<CursorPage<PostResponse>> PageAsync(
+    private async Task<CursorPage<PostResponse>> PageAsync(
         IQueryable<PostEntity> posts, PageRequest page, long? viewerId, CancellationToken ct)
     {
-        var fetched = await posts.NewestFirst(page).Select(ToResponse(viewerId)).ToListAsync(ct);
+        var fetched = await ReadAsync(posts.NewestFirst(page), viewerId, ct);
         return CursorPage.From(fetched, page.Limit, post => post.Id);
     }
 
