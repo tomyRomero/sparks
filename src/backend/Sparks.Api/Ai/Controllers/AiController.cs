@@ -4,7 +4,7 @@ using Sparks.Api.Ai.Models;
 using Sparks.Api.Ai.Services;
 using Sparks.Api.Auth.Services;
 using Sparks.Api.Common.Security;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Models;
 
 namespace Sparks.Api.Ai.Controllers;
 

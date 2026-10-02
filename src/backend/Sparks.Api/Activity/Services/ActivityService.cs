@@ -3,7 +3,7 @@ using Sparks.Api.Activity.Models;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 using Sparks.Api.Users.Models;
 
 namespace Sparks.Api.Activity.Services;

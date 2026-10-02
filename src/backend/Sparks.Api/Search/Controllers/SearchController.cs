@@ -1,13 +1,16 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sparks.Api.Auth.Services;
-using Sparks.Api.Posts.Models;
 using Sparks.Api.Posts.Services;
+using Sparks.Api.Search.Models;
 using Sparks.Api.Users.Services;
 
-namespace Sparks.Api.Search;
+namespace Sparks.Api.Search.Controllers;
 
+/// <summary>
+/// Search across sparks and members. The results themselves come from the
+/// post feed and member search; this tells the tabs how many each finds.
+/// </summary>
 [ApiController]
 [Route("api/v1/search")]
 public sealed class SearchController(PostService posts, UserService users) : ControllerBase
@@ -20,11 +23,3 @@ public sealed class SearchController(PostService posts, UserService users) : Con
             await posts.CountMatchingAsync(query.Q, ct),
             await users.CountMatchingAsync(query.Q, User.FindUserId(), ct));
 }
-
-public sealed record SearchCountsQuery
-{
-    [Required, StringLength(PostFilters.MaxQueryLength, MinimumLength = 1)]
-    public string Q { get; init; } = string.Empty;
-}
-
-public sealed record SearchCounts(int Sparks, int Members);

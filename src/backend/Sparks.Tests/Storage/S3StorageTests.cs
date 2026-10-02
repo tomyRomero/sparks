@@ -2,7 +2,7 @@ using System.Net;
 using Amazon.S3;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 using Sparks.Tests.Infrastructure;
 
 namespace Sparks.Tests.Storage;

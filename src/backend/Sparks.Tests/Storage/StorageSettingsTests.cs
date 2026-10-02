@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 
 namespace Sparks.Tests.Storage;
 

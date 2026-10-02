@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Sparks.Api.Common.Data;
 
-namespace Sparks.Api.Storage;
+namespace Sparks.Api.Storage.Services;
 
 /// <summary>
 /// Deletes stored images that no post or avatar uses: pictures painted or
@@ -58,49 +58,5 @@ public sealed class UploadSweep(
             ? db.Posts.Where(post => post.ImageKey != null && keys.Contains(post.ImageKey)).Select(post => post.ImageKey!)
             : db.Users.Where(user => user.AvatarKey != null && keys.Contains(user.AvatarKey)).Select(user => user.AvatarKey!);
         return [.. await used.ToListAsync(ct)];
-    }
-}
-
-internal sealed class UploadSweeper(
-    IServiceScopeFactory scopes,
-    IOptions<StorageOptions> options,
-    TimeProvider time,
-    ILogger<UploadSweeper> logger) : BackgroundService
-{
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        using var timer = new PeriodicTimer(options.Value.SweepEvery, time);
-        do
-        {
-            try
-            {
-                await using var scope = scopes.CreateAsyncScope();
-                await scope.ServiceProvider.GetRequiredService<UploadSweep>().SweepAsync(stoppingToken);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                logger.LogError(ex, "Couldn't sweep unused uploads");
-            }
-        }
-        while (await timer.WaitForNextTickAsync(stoppingToken));
-    }
-}
-
-public static class FileStorageExtensions
-{
-    /// <summary>
-    /// Deletes a file the database has just stopped using. The change is
-    /// already saved, so a failure is only logged; the sweep retries it.
-    /// </summary>
-    public static async Task TryDeleteAsync(this IFileStorage storage, string key, ILogger logger)
-    {
-        try
-        {
-            await storage.DeleteAsync(key, CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "Couldn't delete {Key}; the upload sweep will retry", key);
-        }
     }
 }

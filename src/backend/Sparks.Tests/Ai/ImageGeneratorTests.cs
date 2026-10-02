@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 using Sparks.Api.Ai;
 using Sparks.Api.Ai.Providers;
 using Sparks.Api.Common.Errors;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 using Sparks.Tests.Infrastructure;
 
 namespace Sparks.Tests.Ai;

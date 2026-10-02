@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
 using Sparks.Api.Storage;
+using Sparks.Api.Storage.Models;
+using Sparks.Api.Storage.Services;
 using Sparks.Tests.Infrastructure;
 
 namespace Sparks.Tests.Storage;

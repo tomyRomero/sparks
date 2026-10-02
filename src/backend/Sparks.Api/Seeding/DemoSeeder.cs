@@ -12,7 +12,7 @@ using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
 using Sparks.Api.Posts.Services;
 using Sparks.Api.Realtime;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 using Sparks.Api.Users.Data;
 using Sparks.Api.Users.Services;
 

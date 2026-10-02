@@ -5,7 +5,7 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Options;
 
-namespace Sparks.Api.Storage;
+namespace Sparks.Api.Storage.Services;
 
 /// <summary>
 /// Any S3-compatible bucket (R2, S3, B2, MinIO). The bucket stays private;

@@ -2,7 +2,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Sparks.Api.Ai.Services;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 
 namespace Sparks.Api.Ai.Providers;
 

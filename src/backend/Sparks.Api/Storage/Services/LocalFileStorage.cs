@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Options;
 
-namespace Sparks.Api.Storage;
+namespace Sparks.Api.Storage.Services;
 
 /// <summary>Stores files on the API's own disk, under <see cref="StorageOptions.LocalRoot"/>.</summary>
 public sealed class LocalFileStorage(IOptions<StorageOptions> options, IHostEnvironment environment) : IFileStorage

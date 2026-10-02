@@ -8,7 +8,7 @@ using Sparks.Api.Ai.Providers;
 using Sparks.Api.Auth.Services;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Posts.Data;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 
 namespace Sparks.Api.Seeding;
 

@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Models;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 using Sparks.Api.Users.Data;
 using Sparks.Api.Users.Models;
 

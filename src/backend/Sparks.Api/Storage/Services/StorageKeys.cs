@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace Sparks.Api.Storage;
+namespace Sparks.Api.Storage.Services;
 
 /// <summary>
 /// Keys look like <c>avatars/42/3f9c...e1.webp</c>: folder, owner id, random

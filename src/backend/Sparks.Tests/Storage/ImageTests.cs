@@ -6,7 +6,8 @@ using Sparks.Api.Auth.Models;
 using Sparks.Api.Common.Security;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Models;
+using Sparks.Api.Storage.Services;
 using Sparks.Api.Users.Models;
 using Sparks.Tests.Infrastructure;
 

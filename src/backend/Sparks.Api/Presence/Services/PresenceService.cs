@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Presence.Models;
 using Sparks.Api.Realtime;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 using Sparks.Api.Users.Models;
 
 namespace Sparks.Api.Presence.Services;

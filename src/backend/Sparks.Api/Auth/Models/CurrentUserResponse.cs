@@ -1,4 +1,4 @@
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 using Sparks.Api.Users.Data;
 
 namespace Sparks.Api.Auth.Models;

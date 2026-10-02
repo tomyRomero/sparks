@@ -6,7 +6,7 @@ using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 using Sparks.Api.Users.Models;
 
 namespace Sparks.Api.Posts.Services;

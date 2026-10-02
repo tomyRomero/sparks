@@ -8,7 +8,7 @@ using Microsoft.Extensions.Time.Testing;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
-using Sparks.Api.Search;
+using Sparks.Api.Search.Models;
 using Sparks.Tests.Infrastructure;
 
 namespace Sparks.Tests.Posts;

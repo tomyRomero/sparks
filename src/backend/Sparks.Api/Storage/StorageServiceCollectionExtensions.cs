@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using Sparks.Api.Storage.Services;
 
 namespace Sparks.Api.Storage;
 

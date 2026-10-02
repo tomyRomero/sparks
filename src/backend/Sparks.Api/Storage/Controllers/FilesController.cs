@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Sparks.Api.Common.Errors;
+using Sparks.Api.Storage.Services;
 
-namespace Sparks.Api.Storage;
+namespace Sparks.Api.Storage.Controllers;
 
 /// <summary>
 /// Serves stored images. They're public, as the posts and profiles showing
@@ -19,7 +19,7 @@ public sealed class FilesController(IFileStorage storage) : ControllerBase
     {
         if (!StorageKeys.IsValid(key) || await storage.OpenReadAsync(key, ct) is not { } content)
         {
-            throw ApiException.NotFound("FILE_NOT_FOUND", "That file doesn't exist.");
+            throw StorageErrors.FileNotFound();
         }
 
         Response.Headers.CacheControl = "public, max-age=31536000, immutable";

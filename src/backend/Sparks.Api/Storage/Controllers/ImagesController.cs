@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Sparks.Api.Auth.Services;
 using Sparks.Api.Common.Security;
+using Sparks.Api.Storage.Models;
+using Sparks.Api.Storage.Services;
 
-namespace Sparks.Api.Storage;
+namespace Sparks.Api.Storage.Controllers;
 
 /// <summary>Images for posts, stored first and attached when the post is written.</summary>
 [ApiController]

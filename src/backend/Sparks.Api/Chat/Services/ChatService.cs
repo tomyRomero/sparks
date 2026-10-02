@@ -8,7 +8,7 @@ using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Posts.Services;
 using Sparks.Api.Realtime;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Services;
 using Sparks.Api.Users.Models;
 using Sparks.Api.Users.Services;
 

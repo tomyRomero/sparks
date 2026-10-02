@@ -1,4 +1,4 @@
-namespace Sparks.Api.Storage;
+namespace Sparks.Api.Storage.Services;
 
 /// <summary>
 /// Image storage by key: an S3-compatible bucket (<see cref="S3FileStorage"/>)

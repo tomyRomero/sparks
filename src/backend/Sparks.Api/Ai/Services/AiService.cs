@@ -1,6 +1,7 @@
 using Sparks.Api.Ai.Models;
 using Sparks.Api.Posts.Data;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Models;
+using Sparks.Api.Storage.Services;
 
 namespace Sparks.Api.Ai.Services;
 

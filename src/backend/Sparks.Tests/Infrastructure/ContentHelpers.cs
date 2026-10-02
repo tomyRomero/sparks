@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
-using Sparks.Api.Storage;
+using Sparks.Api.Storage.Models;
 
 namespace Sparks.Tests.Infrastructure;
 

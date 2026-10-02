@@ -1,4 +1,4 @@
-namespace Sparks.Api.Storage;
+namespace Sparks.Api.Storage.Services;
 
 /// <summary>The image formats Sparks accepts. SVG isn't one: it can carry script.</summary>
 public enum ImageFormat

@@ -1,4 +1,4 @@
-namespace Sparks.Api.Storage;
+namespace Sparks.Api.Storage.Services;
 
 /// <summary>
 /// The paths stored files are served at, by the API's <c>/files</c>

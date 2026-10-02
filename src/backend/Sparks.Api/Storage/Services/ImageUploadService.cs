@@ -1,6 +1,4 @@
-using Sparks.Api.Common.Errors;
-
-namespace Sparks.Api.Storage;
+namespace Sparks.Api.Storage.Services;
 
 /// <summary>Checks images before they're stored: their size, and what their bytes say they are.</summary>
 public sealed class ImageUploadService(IFileStorage storage)
@@ -20,12 +18,12 @@ public sealed class ImageUploadService(IFileStorage storage)
     {
         if (file.Length == 0)
         {
-            throw ApiException.BadRequest("EMPTY_FILE", "The file is empty.");
+            throw StorageErrors.EmptyFile();
         }
 
         if (file.Length > maxBytes)
         {
-            throw ApiException.BadRequest("IMAGE_TOO_LARGE", $"Images can be up to {maxBytes / (1024 * 1024)} MB.");
+            throw StorageErrors.ImageTooLarge(maxBytes);
         }
 
         await using var content = file.OpenReadStream();
@@ -42,7 +40,7 @@ public sealed class ImageUploadService(IFileStorage storage)
         var header = new byte[ImageFormats.HeaderLength];
         var read = await content.ReadAtLeastAsync(header, header.Length, throwOnEndOfStream: false, ct);
         var format = ImageFormats.Detect(header.AsSpan(0, read))
-            ?? throw ApiException.BadRequest("UNSUPPORTED_IMAGE", "Images must be PNG, JPEG, GIF or WebP.");
+            ?? throw StorageErrors.UnsupportedImage();
 
         content.Position = 0;
         var key = StorageKeys.New(folder, ownerId, format);
