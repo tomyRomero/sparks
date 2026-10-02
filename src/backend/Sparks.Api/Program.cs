@@ -99,10 +99,10 @@ try
         await app.MigrateDatabaseAsync();
     }
 
-    // dotnet run -- seed
-    if (args is ["seed"])
+    // dotnet run -- seed [--scale]
+    if (args is ["seed"] or ["seed", "--scale"])
     {
-        return await app.SeedDemoDataAsync();
+        return await app.SeedDemoDataAsync(scale: args is [_, "--scale"]);
     }
 
     // Order matters: forwarded headers first for the real client IP, request

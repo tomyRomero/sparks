@@ -55,6 +55,22 @@ public sealed class SparksApiFactory : WebApplicationFactory<Program>, IAsyncLif
     public SparksDbContext CreateDbContext() =>
         new(Services.GetRequiredService<DbContextOptions<SparksDbContext>>());
 
+    /// <summary>
+    /// The same API against a database of its own in the same container,
+    /// migrated and ready, for a test whose data would get in other tests' way.
+    /// The caller disposes it.
+    /// </summary>
+    public async Task<WebApplicationFactory<Program>> WithDatabaseAsync(string database, CancellationToken ct)
+    {
+        var connectionString = new SqlConnectionStringBuilder(_sql.GetConnectionString()) { InitialCatalog = database }
+            .ConnectionString;
+        var api = WithWebHostBuilder(builder =>
+            builder.UseSetting($"ConnectionStrings:{DatabaseServiceCollectionExtensions.ConnectionStringName}", connectionString));
+        await using var scope = api.Services.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<SparksDbContext>().Database.MigrateAsync(ct);
+        return api;
+    }
+
     public async ValueTask InitializeAsync()
     {
         var cancellationToken = TestContext.Current.CancellationToken;

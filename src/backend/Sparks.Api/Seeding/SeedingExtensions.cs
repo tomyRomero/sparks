@@ -8,10 +8,12 @@ public static class SeedingExtensions
 
     /// <summary>
     /// <c>dotnet run -- seed</c>: fills a development database with demo data
-    /// and exits. Every demo account gets the password in user secrets
-    /// (<see cref="PasswordSetting"/>), which <c>scripts/setup-dev.sh</c> creates.
+    /// and exits. <c>seed --scale</c> adds thousands of members and hundreds of
+    /// thousands of likes, follows, comments and messages on top (see
+    /// <see cref="ScaleSeeder"/>). Every account gets the password in user
+    /// secrets (<see cref="PasswordSetting"/>), which <c>scripts/setup-dev.sh</c> creates.
     /// </summary>
-    public static async Task<int> SeedDemoDataAsync(this WebApplication app)
+    public static async Task<int> SeedDemoDataAsync(this WebApplication app, bool scale)
     {
         var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(DemoSeeder));
         if (!app.Environment.IsDevelopment())
@@ -31,8 +33,15 @@ public static class SeedingExtensions
         }
 
         await using var scope = app.Services.CreateAsyncScope();
-        var seeder = ActivatorUtilities.CreateInstance<DemoSeeder>(scope.ServiceProvider);
-        if (await seeder.RunAsync(password, app.Lifetime.ApplicationStopping))
+        var ct = app.Lifetime.ApplicationStopping;
+        var seeded = await ActivatorUtilities.CreateInstance<DemoSeeder>(scope.ServiceProvider).RunAsync(password, ct);
+        if (scale)
+        {
+            seeded |= await ActivatorUtilities.CreateInstance<ScaleSeeder>(scope.ServiceProvider)
+                .RunAsync(password, new ScaleOptions(), ct);
+        }
+
+        if (seeded)
         {
             logger.LogInformation(
                 "Sign in as {Username} with the {Setting} from user secrets", DemoSeeder.MainUsername, PasswordSetting);
