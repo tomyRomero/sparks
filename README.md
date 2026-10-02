@@ -12,8 +12,9 @@ Sparks started in 2024 as a Next.js app built on Clerk, MySQL on RDS, S3, Pusher
 - **Likes.** Posts and comments update immediately, and every list showing the item stays in sync.
 - **Live messaging.** A two-pane messenger over SignalR: conversations grouped by day, typing indicators, read receipts, unread badges, messages that show the moment they're sent, and any spark shared straight into a chat.
 - **Online status.** Who's online now and when everyone else was last around, kept current over the same live connection.
-- **Activity.** Who liked or replied to your sparks and comments, with an unread count.
-- **Profiles and search.** Profile pages with posts, comments and likes; avatar upload; search across sparks and members.
+- **Following.** Follow people and switch the feed to only their sparks; followers and following lists on every profile, with suggestions when your Following feed is empty.
+- **Activity.** Who liked, commented on or replied to your sparks and comments, and who followed you, with an unread count.
+- **Profiles and search.** Profile pages with sparks, pictures, comments and likes; avatar upload; search across sparks and members.
 - **Accounts.** Sign-up, sign-in and password reset, built from scratch rather than on a hosted auth service.
 
 ## Architecture
@@ -66,7 +67,7 @@ flowchart LR
 
 **Storage.** Images go to a private R2 bucket through the S3 API, and the API serves them at `/files`, so the browser stays on one origin and the bucket is never public. A key holds the owner's id and a random name, and its content never changes, so browsers cache images for good. The storage sits behind one interface; a `Local` setting keeps images in a folder instead, for tests and working offline.
 
-**Paging.** Every list pages by cursor rather than page number, so new posts never shift a page. Activity merges three tables, so its cursor carries the whole sort key, encoded as an opaque token.
+**Paging.** Every list pages by cursor rather than page number, so new posts never shift a page. Lists that no single id orders (activity, which merges four tables, the inbox, follow lists and the top sparks) carry the whole sort key in an opaque cursor.
 
 **Errors.** Every error is an RFC 9457 problem details response with a machine-readable code (`POST_NOT_FOUND`, `PROMPT_DECLINED`) and a trace id that matches the logs. Expected outcomes such as a 404 or a request the client abandoned aren't logged as errors.
 
@@ -174,7 +175,7 @@ The API tests run each feature over HTTP through `WebApplicationFactory` against
 src/
 ├── backend/
 │   ├── Sparks.Api/         One project, a folder per feature
-│   │   ├── Auth/  Posts/  Users/  Activity/  Chat/  Presence/  Storage/  Ai/  Realtime/
+│   │   ├── Auth/  Posts/  Users/  Activity/  Chat/  Presence/  Search/  Storage/  Ai/  Realtime/
 │   │   ├── Common/         Errors, paging, security middleware, rate limits
 │   │   ├── Migrations/     EF Core migrations
 │   │   └── Seeding/        Demo data (`dotnet run -- seed`)
@@ -188,7 +189,7 @@ src/
         ├── queries/        Query keys, paging and cache updates
         └── realtime/       The SignalR connection
 scripts/setup-dev.sh        Local secrets
-docker-compose.yml          SQL Server for development
+docker-compose.yml          SQL Server and the image bucket for development
 ```
 
 ## Contact
