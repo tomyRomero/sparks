@@ -14,6 +14,9 @@ public sealed class SessionTests(SparksApiFactory factory)
 {
     private const string MePath = "/api/v1/auth/me";
 
+    /// <summary>The token lifetimes the API runs with.</summary>
+    private static readonly JwtOptions Jwt = new();
+
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
@@ -51,7 +54,7 @@ public sealed class SessionTests(SparksApiFactory factory)
         var client = api.CreateClient();
         await client.SignUpAsync(AuthHelpers.NewAccount(), Ct);
 
-        clock.Advance(TimeSpan.FromMinutes(31));
+        clock.Advance(Jwt.AccessTokenLifetime + TimeSpan.FromSeconds(1));
         var expired = await client.GetAsync(MePath, Ct);
         var refresh = await client.PostAsync("/api/v1/auth/refresh", content: null, Ct);
         var afterRefresh = await client.GetAsync(MePath, Ct);
@@ -108,7 +111,7 @@ public sealed class SessionTests(SparksApiFactory factory)
             .CookieValue(AuthCookies.RefreshToken);
         var rotated = (await client.RefreshWithAsync(stolen, Ct)).CookieValue(AuthCookies.RefreshToken);
 
-        clock.Advance(TimeSpan.FromMinutes(1));
+        clock.Advance(Jwt.RotationGracePeriod + TimeSpan.FromSeconds(1));
         var replay = await client.RefreshWithAsync(stolen, Ct);
 
         replay.StatusCode.Should().Be(HttpStatusCode.Unauthorized);

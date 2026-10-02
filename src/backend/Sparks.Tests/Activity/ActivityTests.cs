@@ -159,7 +159,7 @@ public sealed class ActivityTests(SparksApiFactory factory)
     [InlineData("likes", ActivityKind.PostLike)]
     [InlineData("comments", ActivityKind.Comment)]
     [InlineData("replies", ActivityKind.Reply)]
-    public async Task Activity_filters_by_sort(string filter, ActivityKind expected)
+    public async Task Activity_filters_by_kind(string filter, ActivityKind expected)
     {
         var (me, _) = await factory.SignedInClientAsync(Ct);
         var (other, _) = await factory.SignedInClientAsync(Ct);
@@ -175,21 +175,22 @@ public sealed class ActivityTests(SparksApiFactory factory)
     }
 
     [Fact]
-    public async Task New_activity_is_pushed_live_to_the_member_its_about()
+    public async Task New_activity_is_pushed_live_to_the_member_its_about_but_not_their_own()
     {
-        var (me, meUser, myToken) = await factory.SignedInWithTokenAsync(Ct);
+        var (me, _, myToken) = await factory.SignedInWithTokenAsync(Ct);
         var (fan, fanUser) = await factory.SignedInClientAsync(Ct);
         var post = await me.CreatePostAsync("Watch this", Ct);
         await using var live = await factory.ConnectLiveAsync(myToken, Ct);
-        var liked = live.NextAsync<ActivityNotice>(nameof(IRealtimeClient.ActivityReceived), Ct);
+        var first = live.NextAsync<ActivityNotice>(nameof(IRealtimeClient.ActivityReceived), Ct);
         var commented = live.NextAsync<ActivityNotice>(
             nameof(IRealtimeClient.ActivityReceived), Ct, notice => notice.Kind == ActivityKind.Comment);
 
+        // My own like goes first: had it been pushed, it would be the first notice.
+        await LikePostAsync(me, post.Id);
         await LikePostAsync(fan, post.Id);
         await fan.CommentAsync(post.Id, "Nice one", Ct);
-        await LikePostAsync(me, post.Id);
 
-        (await liked).Should().BeEquivalentTo(new
+        (await first).Should().BeEquivalentTo(new
         {
             Kind = ActivityKind.PostLike,
             Actor = new { fanUser.Username },
@@ -197,7 +198,6 @@ public sealed class ActivityTests(SparksApiFactory factory)
             Excerpt = "Watch this",
         });
         (await commented).Excerpt.Should().Be("Nice one");
-        meUser.Id.Should().NotBe(fanUser.Id);
     }
 
     [Fact]

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.Net.Http.Headers;
+using Sparks.Api.Auth.Services;
 using Sparks.Tests.Infrastructure;
 
 namespace Sparks.Tests.Auth;
@@ -13,6 +14,9 @@ namespace Sparks.Tests.Auth;
 public sealed class LoginTests(SparksApiFactory factory)
 {
     private static readonly string WrongPassword = AuthHelpers.Password + "-wrong";
+
+    /// <summary>The lockout policy the API runs with.</summary>
+    private static readonly AccountLockoutOptions Lockout = new();
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
@@ -60,14 +64,15 @@ public sealed class LoginTests(SparksApiFactory factory)
         var client = factory.CreateClient();
 
         var statuses = new List<HttpStatusCode>();
-        for (var attempt = 0; attempt < 5; attempt++)
+        for (var attempt = 0; attempt < Lockout.AttemptThreshold; attempt++)
         {
             statuses.Add((await client.LogInAsync(account.Email, WrongPassword, Ct)).StatusCode);
         }
 
         var withRightPassword = await client.LogInAsync(account.Email, AuthHelpers.Password, Ct);
 
-        statuses.Should().Equal(Enumerable.Repeat(HttpStatusCode.Unauthorized, 4).Append(HttpStatusCode.Locked));
+        statuses.Should().Equal(
+            Enumerable.Repeat(HttpStatusCode.Unauthorized, Lockout.AttemptThreshold - 1).Append(HttpStatusCode.Locked));
         withRightPassword.StatusCode.Should().Be(HttpStatusCode.Locked);
         withRightPassword.Headers.RetryAfter.Should().NotBeNull();
         (await BodyAsync(withRightPassword)).GetProperty("code").GetString().Should().Be("ACCOUNT_LOCKED");
@@ -81,7 +86,7 @@ public sealed class LoginTests(SparksApiFactory factory)
         var client = factory.CreateClient();
 
         var statuses = new List<HttpStatusCode>();
-        for (var attempt = 0; attempt < 5; attempt++)
+        for (var attempt = 0; attempt < Lockout.AttemptThreshold; attempt++)
         {
             var identifier = attempt % 2 == 0 ? account.Username : account.Email;
             statuses.Add((await client.LogInAsync(identifier, WrongPassword, Ct)).StatusCode);
@@ -97,7 +102,7 @@ public sealed class LoginTests(SparksApiFactory factory)
         var client = factory.CreateClient();
 
         HttpResponseMessage last = null!;
-        for (var attempt = 0; attempt < 5; attempt++)
+        for (var attempt = 0; attempt < Lockout.AttemptThreshold; attempt++)
         {
             last = await client.LogInAsync(ghost, WrongPassword, Ct);
         }
@@ -114,12 +119,12 @@ public sealed class LoginTests(SparksApiFactory factory)
         var account = AuthHelpers.NewAccount();
         await api.CreateClient().SignUpAsync(account, Ct);
         var client = api.CreateClient();
-        for (var attempt = 0; attempt < 5; attempt++)
+        for (var attempt = 0; attempt < Lockout.AttemptThreshold; attempt++)
         {
             await client.LogInAsync(account.Email, WrongPassword, Ct);
         }
 
-        clock.Advance(TimeSpan.FromMinutes(15) + TimeSpan.FromSeconds(1));
+        clock.Advance(Lockout.LockoutDuration + TimeSpan.FromSeconds(1));
         var response = await client.LogInAsync(account.Email, AuthHelpers.Password, Ct);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -132,13 +137,13 @@ public sealed class LoginTests(SparksApiFactory factory)
         await factory.CreateClient().SignUpAsync(account, Ct);
         var client = factory.CreateClient();
 
-        for (var attempt = 0; attempt < 4; attempt++)
+        for (var attempt = 0; attempt < Lockout.AttemptThreshold - 1; attempt++)
         {
             await client.LogInAsync(account.Email, WrongPassword, Ct);
         }
 
-        await client.LogInAsync(account.Email, AuthHelpers.Password, Ct);
-        for (var attempt = 0; attempt < 3; attempt++)
+        (await client.LogInAsync(account.Email, AuthHelpers.Password, Ct)).StatusCode.Should().Be(HttpStatusCode.OK);
+        for (var attempt = 0; attempt < Lockout.AttemptThreshold - 2; attempt++)
         {
             await client.LogInAsync(account.Email, WrongPassword, Ct);
         }

@@ -35,6 +35,7 @@ public sealed class ChatTests(SparksApiFactory factory)
             LastMessage = (MessageResponse?)null,
             UnreadCount = 0,
         });
+        first.Headers.Location!.ToString().Should().EndWith($"{ConversationsPath}/{conversation.Id}");
         (await again.ReadAsync<ConversationResponse>(Ct)).Id.Should().Be(conversation.Id);
         var bobsView = await fromBob.ReadAsync<ConversationResponse>(Ct);
         bobsView.Id.Should().Be(conversation.Id);
@@ -159,7 +160,9 @@ public sealed class ChatTests(SparksApiFactory factory)
     public async Task Each_participant_gets_the_conversation_from_their_side()
     {
         var (alice, aliceUser) = await factory.SignedInClientAsync(Ct);
-        var (bob, conversationId) = await OpenWithNewMemberAsync(alice);
+        var (bob, bobUser) = await factory.SignedInClientAsync(Ct);
+        var opened = await alice.PostJsonAsync(ConversationsPath, new StartConversationRequest { Username = bobUser.Username }, Ct);
+        var conversationId = (await opened.ReadAsync<ConversationResponse>(Ct)).Id;
         var sent = await SendAsync(alice, conversationId, "Hello Bob");
 
         var bobsView = await bob.GetJsonAsync<ConversationResponse>($"{ConversationsPath}/{conversationId}", Ct);
@@ -172,7 +175,7 @@ public sealed class ChatTests(SparksApiFactory factory)
             LastMessage = new { sent.Id, sent.Body },
             UnreadCount = 1,
         });
-        alicesView.With.Id.Should().NotBe(aliceUser.Id);
+        alicesView.With.Id.Should().Be(bobUser.Id);
         alicesView.UnreadCount.Should().Be(0, "her own messages are never unread for her");
     }
 

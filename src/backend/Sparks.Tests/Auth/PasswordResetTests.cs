@@ -124,7 +124,7 @@ public sealed class PasswordResetTests(SparksApiFactory factory)
         var account = AuthHelpers.NewAccount();
         var client = api.CreateClient();
         await client.SignUpAsync(account, Ct);
-        for (var attempt = 0; attempt < 5; attempt++)
+        for (var attempt = 0; attempt < new AccountLockoutOptions().AttemptThreshold; attempt++)
         {
             await client.LogInAsync(account.Email, "wrong-" + AuthHelpers.Password, Ct);
         }
