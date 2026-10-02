@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, UserRound, WifiOff } from "lucide-react";
 import Link from "next/link";
-import { Fragment, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Fragment, useEffect, useEffectEvent, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api/client";
@@ -120,6 +120,22 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
     void query.fetchNextPage();
   }
 
+  // Older messages load as the reader nears the top; the button stays for
+  // keyboards, and for when loading fails.
+  const top = useRef<HTMLDivElement>(null);
+  const reachedTop = useEffectEvent(loadEarlier);
+  const { hasNextPage, isFetchingNextPage, isFetchNextPageError } = query;
+  useEffect(() => {
+    const element = top.current;
+    if (!element || !hasNextPage || isFetchingNextPage || isFetchNextPageError) return;
+    const observer = new IntersectionObserver(([entry]) => entry.isIntersecting && reachedTop(), {
+      root: scroller.current,
+      rootMargin: "400px 0px 0px 0px",
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, isFetchNextPageError]);
+
   // Sending shows the message at once; the server's copy replaces it when it
   // arrives. A failed one stays, with its content, until it's retried or removed.
   async function deliver(item: Outgoing) {
@@ -207,7 +223,7 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
         {/* A short conversation sits just above the message box, as chats do. */}
         <div className="mx-auto flex min-h-full max-w-3xl flex-col justify-end">
           {query.hasNextPage && (
-            <div className="mb-4 flex justify-center">
+            <div ref={top} className="mb-4 flex justify-center">
               <Button variant="ghost" size="sm" onClick={loadEarlier} disabled={query.isFetchingNextPage}>
                 {query.isFetchingNextPage ? "Loading…" : "Load earlier messages"}
               </Button>
