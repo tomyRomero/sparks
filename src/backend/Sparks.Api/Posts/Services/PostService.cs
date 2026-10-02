@@ -238,7 +238,7 @@ public sealed class PostService(
         {
             if (OpaqueCursor.Decode(query.Cursor, partCount: 2) is not [var likes, var id])
             {
-                throw ApiException.BadRequest("INVALID_CURSOR", "That cursor didn't come from this API.");
+                throw OpaqueCursor.Invalid();
             }
 
             posts = posts.Where(post => post.Likes.Count < likes || (post.Likes.Count == likes && post.Id < id));

@@ -26,6 +26,10 @@ public sealed class AuthService(
     public async Task<bool> IsUsernameFreeAsync(string username, CancellationToken ct) =>
         !await db.Users.AnyAsync(user => user.Username == username, ct);
 
+    /// <summary>The signed-in member's account; null once it no longer exists.</summary>
+    public Task<UserEntity?> FindAccountAsync(long userId, CancellationToken ct) =>
+        db.Users.AsNoTracking().SingleOrDefaultAsync(user => user.Id == userId, ct);
+
     /// <summary>Creates an account and signs it in.</summary>
     /// <exception cref="AccountConflictException">The username or email is taken.</exception>
     public async Task<SignedIn> SignUpAsync(SignupRequest request, ClientInfo client, CancellationToken ct)

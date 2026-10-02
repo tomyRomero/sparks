@@ -2,6 +2,7 @@ using System.Buffers.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text;
+using Sparks.Api.Common.Errors;
 
 namespace Sparks.Api.Common.Models;
 
@@ -61,6 +62,10 @@ public static class OpaqueCursor
 
         return parts;
     }
+
+    /// <summary>The answer to a cursor <see cref="Decode"/> can't read.</summary>
+    public static ApiException Invalid() =>
+        ApiException.BadRequest("INVALID_CURSOR", "That cursor didn't come from this API.");
 }
 
 /// <summary>Paging for lists with an <see cref="OpaqueCursor"/>.</summary>

@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Sparks.Api.Chat.Data;
 using Sparks.Api.Chat.Models;
 using Sparks.Api.Common.Data;
-using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Posts.Services;
 using Sparks.Api.Realtime;
@@ -35,7 +34,7 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
         {
             if (OpaqueCursor.Decode(query.Cursor, partCount: 2) is not [var ticks, var id] || ticks > DateTime.MaxValue.Ticks)
             {
-                throw ApiException.BadRequest("INVALID_CURSOR", "That cursor didn't come from this API.");
+                throw OpaqueCursor.Invalid();
             }
 
             var at = new DateTime(ticks, DateTimeKind.Utc);
@@ -65,14 +64,10 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
     public async Task<(ConversationResponse Conversation, bool Created)> OpenAsync(
         long userId, string username, CancellationToken ct)
     {
-        var otherId = await db.Users
-            .Where(user => user.Username == username)
-            .Select(user => (long?)user.Id)
-            .SingleOrDefaultAsync(ct)
-            ?? throw UserErrors.UserNotFound();
+        var otherId = await db.Users.IdOfAsync(username, ct);
         if (otherId == userId)
         {
-            throw ApiException.BadRequest("CANNOT_MESSAGE_YOURSELF", "You can't start a conversation with yourself.");
+            throw ChatErrors.CannotMessageYourself();
         }
 
         var (userAId, userBId) = ConversationEntity.OrderPair(userId, otherId);
@@ -116,7 +111,7 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
                 && (conversation.UserAId == userId || conversation.UserBId == userId)),
             userId,
             ct)).SingleOrDefault()
-        ?? throw ConversationNotFound();
+        ?? throw ChatErrors.ConversationNotFound();
 
     /// <summary>A conversation's messages, newest first, for one of its participants.</summary>
     public async Task<CursorPage<MessageResponse>> GetMessagesAsync(
@@ -222,9 +217,8 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
             .Select(conversation => (long?)(conversation.UserAId == userId ? conversation.UserBId : conversation.UserAId))
             .SingleOrDefaultAsync(ct);
 
-    /// <summary>Outsiders get the same 404 as for a missing conversation, so ids reveal nothing.</summary>
     private async Task<long> FindOtherParticipantAsync(long conversationId, long userId, CancellationToken ct) =>
-        await OtherParticipantAsync(conversationId, userId, ct) ?? throw ConversationNotFound();
+        await OtherParticipantAsync(conversationId, userId, ct) ?? throw ChatErrors.ConversationNotFound();
 
     /// <summary>A conversation from one participant's side, with counts computed in SQL.</summary>
     /// <summary>
@@ -290,7 +284,4 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
                     message.SharedPost.CreatedAt),
             message.CreatedAt,
             message.ReadAt);
-
-    private static ApiException ConversationNotFound() =>
-        ApiException.NotFound("CONVERSATION_NOT_FOUND", "That conversation doesn't exist.");
 }

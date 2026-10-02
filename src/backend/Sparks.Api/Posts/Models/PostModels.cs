@@ -67,7 +67,7 @@ public sealed record PostFeedQuery : PageRequest
     public bool Following { get; init; }
 
     /// <summary>Matches the post text or the author's name.</summary>
-    [StringLength(PostFilters.MaxQueryLength)]
+    [StringLength(InputLimits.SearchMaxLength)]
     public string? Q { get; init; }
 }
 
@@ -89,7 +89,6 @@ public sealed record TopPostsQuery : OpaquePageRequest
 public static class PostFilters
 {
     public const int MaxKinds = 10;
-    public const int MaxQueryLength = 100;
 }
 
 /// <summary>The viewer's like on an item, after a like or unlike.</summary>

@@ -11,6 +11,8 @@ public static class InputLimits
 
     /// <summary>Letters, digits and underscores. No "@", so a username can never look like an email.</summary>
     public const string UsernamePattern = "^[A-Za-z0-9_]{3,30}$";
+    public const string UsernamePatternMessage = "Usernames are 3 to 30 letters, digits or underscores.";
+
     public const int DisplayNameMaxLength = 50;
     public const int BioMaxLength = 1000;
 
@@ -27,6 +29,7 @@ public static class InputLimits
     public const int AiPromptMaxLength = 1000;
     public const int CommentBodyMaxLength = 2000;
     public const int MessageBodyMaxLength = 2000;
+    public const int SearchMaxLength = 100;
 
     /// <summary>Key of a stored file (image), resolved to a URL by the storage provider.</summary>
     public const int StorageKeyMaxLength = 300;

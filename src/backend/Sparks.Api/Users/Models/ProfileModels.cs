@@ -50,6 +50,6 @@ public sealed record UpdateProfileRequest
 public sealed record UserSearchQuery : PageRequest
 {
     /// <summary>Matches the username or the display name.</summary>
-    [StringLength(100)]
+    [StringLength(InputLimits.SearchMaxLength)]
     public string? Q { get; init; }
 }

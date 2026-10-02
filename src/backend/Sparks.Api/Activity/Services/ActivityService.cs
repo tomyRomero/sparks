@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Sparks.Api.Activity.Models;
 using Sparks.Api.Common.Data;
-using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Storage.Services;
 using Sparks.Api.Users.Models;
@@ -46,8 +45,7 @@ public sealed class ActivityService(SparksDbContext db, TimeProvider time)
 
         if (query.Cursor is not null)
         {
-            var after = ActivityCursor.Parse(query.Cursor)
-                ?? throw ApiException.BadRequest("INVALID_CURSOR", "That cursor didn't come from this API.");
+            var after = ActivityCursor.Parse(query.Cursor) ?? throw OpaqueCursor.Invalid();
 
             // The groups after the cursor in the sort order below.
             groups = groups.Where(group =>

@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Sparks.Api.Activity.Services;
 using Sparks.Api.Common.Data;
-using Sparks.Api.Common.Errors;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Storage.Services;
 using Sparks.Api.Users.Data;
@@ -104,7 +103,7 @@ public sealed class FollowService(SparksDbContext db, TimeProvider time, Activit
         {
             if (OpaqueCursor.Decode(page.Cursor, partCount: 2) is not [var ticks, var id] || ticks > DateTime.MaxValue.Ticks)
             {
-                throw ApiException.BadRequest("INVALID_CURSOR", "That cursor didn't come from this API.");
+                throw OpaqueCursor.Invalid();
             }
 
             var at = new DateTime(ticks, DateTimeKind.Utc);

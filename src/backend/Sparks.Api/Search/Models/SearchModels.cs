@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
-using Sparks.Api.Posts.Models;
+using Sparks.Api.Common.Constants;
 
 namespace Sparks.Api.Search.Models;
 
 public sealed record SearchCountsQuery
 {
-    [Required, StringLength(PostFilters.MaxQueryLength, MinimumLength = 1)]
+    [Required, StringLength(InputLimits.SearchMaxLength, MinimumLength = 1)]
     public string Q { get; init; } = string.Empty;
 }
 

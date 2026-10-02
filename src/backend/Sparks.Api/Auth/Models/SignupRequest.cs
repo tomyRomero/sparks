@@ -9,9 +9,7 @@ public sealed record SignupRequest
     [Required, EmailAddress, StringLength(InputLimits.EmailMaxLength)]
     public string Email { get; init; } = string.Empty;
 
-    [Required]
-    [RegularExpression(InputLimits.UsernamePattern,
-        ErrorMessage = "Usernames are 3 to 30 letters, digits or underscores.")]
+    [Required, RegularExpression(InputLimits.UsernamePattern, ErrorMessage = InputLimits.UsernamePatternMessage)]
     public string Username { get; init; } = string.Empty;
 
     [Required, StringLength(InputLimits.DisplayNameMaxLength)]
