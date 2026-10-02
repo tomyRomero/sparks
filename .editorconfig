@@ -23,6 +23,7 @@ csharp_style_var_for_built_in_types = true:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
 csharp_prefer_braces = true:warning
 dotnet_style_readonly_field = true:warning
+dotnet_diagnostic.IDE0005.severity = warning
 
 # EF Core writes migrations; they're kept exactly as generated.
 [src/backend/Sparks.Api/Migrations/*.cs]

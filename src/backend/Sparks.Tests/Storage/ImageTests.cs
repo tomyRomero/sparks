@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using FluentAssertions;
-using Microsoft.AspNetCore.Hosting;
 using Sparks.Api.Auth.Models;
 using Sparks.Api.Common.Security;
 using Sparks.Api.Posts.Data;

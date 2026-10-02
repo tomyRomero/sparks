@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text.Json;
 using FluentAssertions;
-using Microsoft.AspNetCore.Hosting;
 using Sparks.Api.Ai.Models;
 using Sparks.Api.Common.Security;
 using Sparks.Api.Posts.Data;

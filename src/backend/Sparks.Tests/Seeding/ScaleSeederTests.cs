@@ -2,7 +2,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Sparks.Api;
 using Sparks.Api.Chat.Models;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Models;

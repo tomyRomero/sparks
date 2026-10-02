@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
-using Sparks.Api;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
