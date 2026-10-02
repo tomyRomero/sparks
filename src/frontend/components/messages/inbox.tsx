@@ -10,7 +10,7 @@ import { ListFooter } from "@/components/ui/list-footer";
 import type { Conversation, OpaquePage } from "@/lib/api/types";
 import { queryKeys } from "@/lib/queries/keys";
 import { messagePreview } from "@/lib/queries/messages";
-import { usePresence } from "@/lib/queries/presence";
+import { usePresenceByGroup } from "@/lib/queries/presence";
 import { usePagedList } from "@/lib/queries/use-paged-list";
 import { fullDate, timeAgo } from "@/lib/time";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,9 @@ export function Inbox({ initial, viewerId }: { initial: OpaquePage<Conversation>
     queryKeys.inbox,
     initial,
   );
-  const presence = usePresence(conversations.map((conversation) => conversation.with.id));
+  const presence = usePresenceByGroup(
+    query.data?.pages.map((page) => page.items.map((conversation) => conversation.with.id)) ?? [],
+  );
   const openId = useSelectedLayoutSegment();
   // With a conversation open, the conversation is the page's subject and has
   // its main heading; this list is then a section beside it.

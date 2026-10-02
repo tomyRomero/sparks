@@ -1,25 +1,44 @@
 "use client";
 
-import { type QueryClient, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, type QueryClient, useQueries, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import type { MemberPresence, Presence } from "@/lib/api/types";
 import { queryKeys } from "./keys";
 
-function byMember(list: Presence[]) {
-  return new Map(list.map((presence) => [presence.userId, presence]));
-}
+/** The most members the API answers for at once. */
+const MAX_IDS = 100;
 
 /** Fetched once, then kept current by live events. */
 export function usePresence(userIds: number[], enabled = true) {
-  const ids = Array.from(new Set(userIds)).sort((a, b) => a - b);
-  const { data } = useQuery({
-    queryKey: queryKeys.presenceOf(ids),
-    queryFn: () => api<Presence[]>(`/presence?${ids.map((id) => `ids=${id}`).join("&")}`),
-    select: byMember,
-    enabled: enabled && ids.length > 0,
-    staleTime: 5 * 60_000,
+  return usePresenceByGroup([userIds], enabled);
+}
+
+/**
+ * Presence for a paged list, fetched a group (a page) at a time: a new page
+ * asks only about its own members, and the rows already shown keep theirs.
+ */
+export function usePresenceByGroup(groups: number[][], enabled = true) {
+  const batches = groups.flatMap((group) => {
+    const ids = Array.from(new Set(group)).sort((a, b) => a - b);
+    return Array.from({ length: Math.ceil(ids.length / MAX_IDS) }, (_, index) =>
+      ids.slice(index * MAX_IDS, (index + 1) * MAX_IDS),
+    );
   });
-  return data;
+  return useQueries({
+    queries: batches.map((ids) => ({
+      queryKey: queryKeys.presenceOf(ids),
+      queryFn: () => api<Presence[]>(`/presence?${ids.map((id) => `ids=${id}`).join("&")}`),
+      enabled,
+      staleTime: 5 * 60_000,
+      // A page whose members changed (a new message moved a chat up) keeps
+      // its old answers until the new ones arrive, rather than going blank.
+      placeholderData: keepPreviousData,
+    })),
+    combine: (results) =>
+      results.some((result) => result.data)
+        ? new Map(results.flatMap((result) => result.data ?? []).map((presence) => [presence.userId, presence]))
+        : undefined,
+  });
 }
 
 export function useMembersAround(enabled: boolean) {
