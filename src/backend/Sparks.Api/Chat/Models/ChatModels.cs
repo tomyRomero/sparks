@@ -18,6 +18,7 @@ public sealed record ConversationResponse(
     int UnreadCount,
     DateTime LastMessageAt);
 
+/// <summary>A message as a chat shows it.</summary>
 /// <param name="Body">The text; empty when the message only shares a spark.</param>
 /// <param name="SharedPost">
 /// The spark the message shares, if any. An empty body with no spark means

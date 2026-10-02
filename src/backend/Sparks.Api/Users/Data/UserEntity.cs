@@ -26,8 +26,8 @@ public class UserEntity : IHasId
     public DateTime CreatedAt { get; set; }
 
     /// <summary>
-    /// When the user last opened their activity feed. Likes and comments on
-    /// their posts after this moment count as unread.
+    /// When the user last opened their activity feed. Activity after this
+    /// moment counts as unread.
     /// </summary>
     public DateTime? ActivityReadAt { get; set; }
 

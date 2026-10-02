@@ -22,10 +22,11 @@ services:
       - mssql-data:/var/opt/mssql
     # The image's launcher script starts SQL Server in the background and
     # waits as process 1, which ignores Docker's stop signal, so every stop
-    # became a forced kill and the next start ran crash recovery. Starting
-    # sqlservr directly makes it process 1 and lets it shut down cleanly. The
-    # launcher's extra steps only print a notice and create databases from
-    # MSSQL_DB, which Sparks doesn't use (EF Core creates the database).
+    # would be a forced kill followed by crash recovery on the next start.
+    # Starting sqlservr directly makes it process 1 and lets it shut down
+    # cleanly. The launcher's extra steps only print a notice and create
+    # databases from MSSQL_DB, which Sparks doesn't use (EF Core creates the
+    # database).
     entrypoint: ["/opt/mssql/bin/sqlservr"]
     # SQL Server refuses to start with less than 2 GB.
     mem_limit: 2g

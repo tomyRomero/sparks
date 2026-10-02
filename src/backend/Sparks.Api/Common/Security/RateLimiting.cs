@@ -106,7 +106,7 @@ public static class RateLimitingServiceCollectionExtensions
         return FixedWindow(context, key, limit, TimeSpan.FromHours(1));
     }
 
-    // An unknown address shares one bucket rather than going unlimited.
+    /// <summary>The client's address. An unknown address shares one bucket rather than going unlimited.</summary>
     private static string ClientIp(HttpContext context) =>
         $"ip:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
 

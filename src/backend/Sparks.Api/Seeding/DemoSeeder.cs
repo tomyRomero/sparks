@@ -84,7 +84,7 @@ public sealed class DemoSeeder(
     {
         if (await db.Users.AnyAsync(user => user.Username == MainUsername, ct))
         {
-            // Seeded before members could follow each other: add the follows.
+            // Seeded by a version without follows: add them.
             if (!await db.Follows.AnyAsync(follow => follow.Follower.Username == MainUsername, ct))
             {
                 await FollowAsync(ct);
@@ -304,6 +304,7 @@ public sealed class DemoSeeder(
         return true;
     }
 
+    /// <summary>A member with a painted portrait.</summary>
     /// <param name="appearance">What the member looks like, for their portrait.</param>
     private async Task<Member> MemberAsync(
         string username, string displayName, string bio, string appearance, string passwordHash, CancellationToken ct)

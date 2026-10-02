@@ -6,7 +6,7 @@ using Sparks.Api.Common.Models;
 
 namespace Sparks.Api.Activity.Controllers;
 
-/// <summary>The signed-in member's activity: what others did to their posts and comments.</summary>
+/// <summary>The signed-in member's activity: what others did to their posts and comments, and who followed them.</summary>
 [ApiController]
 [Route("api/v1/activity")]
 public sealed class ActivityController(ActivityService activity) : ControllerBase

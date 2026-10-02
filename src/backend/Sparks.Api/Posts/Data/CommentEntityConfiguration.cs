@@ -20,7 +20,7 @@ internal sealed class CommentEntityConfiguration : IEntityTypeConfiguration<Comm
             .OnDelete(DeleteBehavior.Cascade);
 
         // SQL Server can't cascade through a self-reference. Deleting a single
-        // comment removes its replies in the service, inside one transaction.
+        // comment removes its replies in the service, in one recursive statement.
         builder.HasOne(comment => comment.ParentComment)
             .WithMany(comment => comment.Replies)
             .HasForeignKey(comment => comment.ParentCommentId)

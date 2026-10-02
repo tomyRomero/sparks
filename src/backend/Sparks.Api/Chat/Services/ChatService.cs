@@ -220,12 +220,10 @@ public sealed class ChatService(SparksDbContext db, TimeProvider time, IHubConte
     private async Task<long> FindOtherParticipantAsync(long conversationId, long userId, CancellationToken ct) =>
         await OtherParticipantAsync(conversationId, userId, ct) ?? throw ChatErrors.ConversationNotFound();
 
-    /// <summary>A conversation from one participant's side, with counts computed in SQL.</summary>
     /// <summary>
-    /// Reads conversations, then the last message of each in a second query.
-    /// As one query, EF Core ranked every message in the database to find
-    /// them, so the inbox slowed down as anyone chatted; this looks up one
-    /// message per conversation on the page.
+    /// Reads conversations, then the last message of each in a second query
+    /// that looks up one message per conversation on the page. Joined into
+    /// one query, EF Core would rank every message in the database first.
     /// </summary>
     private async Task<List<ConversationResponse>> ReadAsync(
         IQueryable<ConversationEntity> conversations, long viewerId, CancellationToken ct)

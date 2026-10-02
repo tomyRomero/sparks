@@ -19,12 +19,14 @@ public interface IRealtimeClient
     /// <summary>A member came online or went offline; sent to every signed-in member.</summary>
     Task PresenceChanged(PresenceResponse presence);
 
-    /// <summary>Someone liked or answered the member's post or comment.</summary>
+    /// <summary>Someone liked or answered the member's post or comment, or followed them.</summary>
     Task ActivityReceived(ActivityNotice notice);
 }
 
+/// <summary>Messages read by one participant, for the other's read receipts.</summary>
 /// <param name="ReaderId">Who read them.</param>
 /// <param name="UpToMessageId">Every message up to this one, from the other participant, is now read.</param>
 public sealed record MessagesReadEvent(long ConversationId, long ReaderId, long UpToMessageId, DateTime ReadAt);
 
+/// <summary>A participant typing in a conversation.</summary>
 public sealed record TypingEvent(long ConversationId, long UserId);

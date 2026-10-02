@@ -18,8 +18,8 @@ internal sealed class PostEntityConfiguration : IEntityTypeConfiguration<PostEnt
         builder.Property(post => post.ImageKey).HasMaxLength(InputLimits.StorageKeyMaxLength);
         builder.Property(post => post.AiPrompt).HasMaxLength(InputLimits.AiPromptMaxLength);
 
-        // Deleting an account is an explicit operation that removes the user's
-        // content first, never a cascade from the users table.
+        // No cascade from users: removing a member's content should be a
+        // deliberate step, never a side effect of deleting a row.
         builder.HasOne(post => post.Author)
             .WithMany()
             .HasForeignKey(post => post.AuthorId)

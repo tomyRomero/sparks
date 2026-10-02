@@ -215,13 +215,6 @@ public sealed class PostService(
         return await LikeStateAsync(postId, userId, ct);
     }
 
-    /// <summary>
-    /// Reads posts with their counts, then the top comment of each in a
-    /// second query. As one query, EF Core ranked every top-level comment in
-    /// the database before joining the page to them, which took seconds once
-    /// there were tens of thousands; this ranks only the page's comments.
-    /// Only comments on the spark itself count as its top one, never replies.
-    /// </summary>
     /// <summary>A page of the ranking, with one more post than the page to tell whether more follow.</summary>
     private async Task<List<RankedPost>> RankTopAsync(TopPostsQuery query, long? viewerId, CancellationToken ct)
     {
@@ -259,6 +252,12 @@ public sealed class PostService(
     /// <summary>A post's place in a ranking.</summary>
     private sealed record RankedPost(long Id, int LikeCount);
 
+    /// <summary>
+    /// Reads posts with their counts, then each one's top comment in a second
+    /// query that ranks only the page's comments. Joined into one query, EF
+    /// Core would rank every top-level comment in the database first. Only
+    /// comments on the spark itself count as its top one, never replies.
+    /// </summary>
     private async Task<List<PostResponse>> ReadAsync(IQueryable<PostEntity> posts, long? viewerId, CancellationToken ct)
     {
         var read = await posts.Select(ToResponse(viewerId)).ToListAsync(ct);
