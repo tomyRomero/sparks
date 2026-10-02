@@ -15,3 +15,6 @@ export const limits = {
   /** PostFilters.MaxQueryLength, for search. */
   searchMax: 100,
 } as const;
+
+/** InputLimits.UsernamePattern. */
+export const USERNAME_PATTERN = /^[A-Za-z0-9_]{3,30}$/;
