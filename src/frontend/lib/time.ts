@@ -10,22 +10,24 @@ export function timeAgo(iso: string, now: Date = new Date()): string {
   if (elapsed < hour) return `${Math.floor(elapsed / minute)}m`;
   if (elapsed < day) return `${Math.floor(elapsed / hour)}h`;
   if (elapsed < 7 * day) return `${Math.floor(elapsed / day)}d`;
-  return then.toLocaleDateString("en", {
-    month: "short",
-    day: "numeric",
-    ...(then.getFullYear() !== now.getFullYear() && { year: "numeric" }),
-  });
+  return shortDate(then, now);
 }
 
 export function fullDate(iso: string): string {
   return new Date(iso).toLocaleString("en", { dateStyle: "medium", timeStyle: "short" });
 }
 
-/** When someone was last around: "Active 12m ago", "Active 2d ago", "Active Sep 12". */
-export function lastActive(iso: string, now: Date = new Date()): string {
+/** timeAgo in a sentence: "5m ago" within the week, "on Sep 12" after, and `justNow` under a minute. */
+export function agoPhrase(iso: string, justNow: string, now: Date = new Date()): string {
+  const elapsed = now.getTime() - new Date(iso).getTime();
+  if (elapsed < minute) return justNow;
   const age = timeAgo(iso, now);
-  if (age === "now") return "Active just now";
-  return /^\d+[mhd]$/.test(age) ? `Active ${age} ago` : `Active ${age}`;
+  return elapsed < 7 * day ? `${age} ago` : `on ${age}`;
+}
+
+/** When someone was last around: "Active 12m ago", "Active 2d ago", "Active on Sep 12". */
+export function lastActive(iso: string, now: Date = new Date()): string {
+  return `Active ${agoPhrase(iso, "just now", now)}`;
 }
 
 /** Whether two moments fall on the same day, in the reader's time zone. */
@@ -41,6 +43,11 @@ export function dayLabel(iso: string, now: Date = new Date()): string {
   if (daysBack === 0) return "Today";
   if (daysBack === 1) return "Yesterday";
   if (daysBack > 1 && daysBack < 7) return then.toLocaleDateString("en", { weekday: "long" });
+  return shortDate(then, now);
+}
+
+/** "Sep 12", with the year when it isn't this one. */
+function shortDate(then: Date, now: Date): string {
   return then.toLocaleDateString("en", {
     month: "short",
     day: "numeric",

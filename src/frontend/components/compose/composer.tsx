@@ -16,7 +16,7 @@ import { type ComposeDraft, type DraftImage, forgetDraft, hasContent, loadDraft,
 import { kindInfo, kinds } from "@/lib/kinds";
 import { limits } from "@/lib/limits";
 import { forgetPostLists } from "@/lib/queries/cache";
-import { timeAgo } from "@/lib/time";
+import { agoPhrase } from "@/lib/time";
 import { useHydrated } from "@/lib/use-hydrated";
 import { cn } from "@/lib/utils";
 import { ComposerPreview } from "./composer-preview";
@@ -272,7 +272,9 @@ function ComposerForm({
         {restoredAt && (
           <div className="-mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-raised px-3.5 py-2.5 text-sm">
             <History className="size-4 shrink-0 text-muted" aria-hidden />
-            <span className="flex-1 text-ink-soft">Your draft from {savedAgo(restoredAt)} is back.</span>
+            <span className="flex-1 text-ink-soft">
+              Your draft from {agoPhrase(restoredAt, "a moment ago")} is back.
+            </span>
             <button type="button" onClick={startOver} className="font-medium text-brand hover:underline">
               Start over
             </button>
@@ -435,11 +437,4 @@ function ComposerForm({
       </aside>
     </div>
   );
-}
-
-/** "a moment ago", "5m ago", "on Sep 12". */
-function savedAgo(iso: string): string {
-  const age = timeAgo(iso);
-  if (age === "now") return "a moment ago";
-  return /^\d+[mhd]$/.test(age) ? `${age} ago` : `on ${age}`;
 }

@@ -7,7 +7,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/problem";
 import type { Profile } from "@/lib/api/types";
-import { AVATAR_MAX_BYTES, IMAGE_TYPES, imageProblem } from "@/lib/images";
+import { AVATAR_MAX_BYTES, IMAGE_TYPES, imageProblem, megabytes } from "@/lib/images";
 import { cn } from "@/lib/utils";
 
 type AvatarFieldProps = {
@@ -84,7 +84,9 @@ export function AvatarField({ profile, onChanged }: AvatarFieldProps) {
             </Button>
           )}
         </div>
-        <p className="text-xs text-muted">A square picture works best. PNG, JPEG, GIF or WebP, up to 2 MB.</p>
+        <p className="text-xs text-muted">
+          A square picture works best. PNG, JPEG, GIF or WebP, up to {megabytes(AVATAR_MAX_BYTES)} MB.
+        </p>
         {error && (
           <p role="alert" className="text-sm text-danger">
             {error}

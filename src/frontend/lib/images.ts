@@ -13,6 +13,6 @@ export function imageProblem(file: File, maxBytes: number): string | null {
 }
 
 /** "3.4" for 3.4 MB. Rounds up, so a file just over the limit never shows as equal. */
-function megabytes(bytes: number, round: (value: number) => number = Math.round): string {
+export function megabytes(bytes: number, round: (value: number) => number = Math.round): string {
   return String(round((bytes / (1024 * 1024)) * 10) / 10);
 }

@@ -52,7 +52,7 @@ export function useMembersAround(enabled: boolean) {
 
 /** Patches cached presence, and refetches "who's around" since a newcomer won't be in it. */
 export function applyPresence(queryClient: QueryClient, presence: Presence) {
-  queryClient.setQueriesData<Presence[]>({ queryKey: ["presence", "of"] }, (list) =>
+  queryClient.setQueriesData<Presence[]>({ queryKey: queryKeys.presenceLists }, (list) =>
     list?.map((item) => (item.userId === presence.userId ? presence : item)),
   );
 

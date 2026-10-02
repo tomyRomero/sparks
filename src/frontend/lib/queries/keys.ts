@@ -34,6 +34,8 @@ export const queryKeys = {
 
   /** Everything under "presence" is patched by live PresenceChanged events. */
   presence: ["presence"] as const,
+  /** Every presenceOf entry, whatever members it asked about. */
+  presenceLists: ["presence", "of"] as const,
   presenceOf: (userIds: number[]) => ["presence", "of", userIds] as const,
   presenceAround: ["presence", "around"] as const,
 
@@ -43,5 +45,6 @@ export const queryKeys = {
   /** The latest few conversations, one page, for "send to"; refreshed with the inbox. */
   recentConversations: ["inbox", "recent"] as const,
   conversation: (id: number) => ["conversation", id] as const,
+  allMessages: ["messages"] as const,
   messages: (conversationId: number) => ["messages", conversationId] as const,
 };

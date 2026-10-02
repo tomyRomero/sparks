@@ -1,5 +1,6 @@
 import type { SparkKind } from "@/lib/api/types";
 import { isKind, kinds } from "@/lib/kinds";
+import { type ParamSource, paramValues } from "@/lib/params";
 
 export type FeedSort = "newest" | "top";
 
@@ -15,14 +16,6 @@ export type FeedFilter = {
 };
 
 export const unfiltered: FeedFilter = { kinds: [], sort: "newest", pictures: false, following: false };
-
-/** A page's search params, from the server (a record) or the browser. */
-export type ParamSource = Record<string, string | string[] | undefined> | URLSearchParams;
-
-export function paramValues(params: ParamSource, name: string): string[] {
-  if (params instanceof URLSearchParams) return params.getAll(name);
-  return [params[name] ?? []].flat();
-}
 
 /** Known kinds from the URL, once each, in the kinds list's order. */
 export function readKinds(params: ParamSource): SparkKind[] {

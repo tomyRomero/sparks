@@ -79,7 +79,7 @@ export function LiveProvider({ viewerId, children }: { viewerId: number; childre
       void queryClient.invalidateQueries({ queryKey: queryKeys.activity });
       void queryClient.invalidateQueries({ queryKey: queryKeys.unreadMessages });
       void queryClient.invalidateQueries({ queryKey: queryKeys.inbox });
-      void queryClient.invalidateQueries({ queryKey: ["messages"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.allMessages });
       void queryClient.invalidateQueries({ queryKey: queryKeys.presence });
     };
 

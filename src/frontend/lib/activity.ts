@@ -1,5 +1,5 @@
 import type { ActivityFilter, ActivityItem, ActivityKind, ActivityNotice, UserSummary } from "@/lib/api/types";
-import { type ParamSource, paramValues } from "@/lib/feed";
+import { type ParamSource, paramValues } from "@/lib/params";
 
 /** What each kind says after the names: "Nova liked your spark". */
 export const activityVerbs: Record<ActivityKind, string> = {

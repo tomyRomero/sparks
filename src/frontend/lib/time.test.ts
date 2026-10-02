@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayLabel, lastActive, sameDay, timeAgo } from "./time";
+import { agoPhrase, dayLabel, lastActive, sameDay, timeAgo } from "./time";
 
 const now = new Date("2026-09-30T12:00:00Z");
 
@@ -21,9 +21,19 @@ describe("lastActive", () => {
     ["2026-09-30T11:59:30Z", "Active just now"],
     ["2026-09-30T11:48:00Z", "Active 12m ago"],
     ["2026-09-28T12:00:00Z", "Active 2d ago"],
-    ["2026-09-12T12:00:00Z", "Active Sep 12"],
+    ["2026-09-12T12:00:00Z", "Active on Sep 12"],
   ])("shows %s as %s", (iso, expected) => {
     expect(lastActive(iso, now)).toBe(expected);
+  });
+});
+
+describe("agoPhrase", () => {
+  it.each([
+    ["2026-09-30T11:59:30Z", "a moment ago"],
+    ["2026-09-30T09:00:00Z", "3h ago"],
+    ["2026-09-12T12:00:00Z", "on Sep 12"],
+  ])("puts %s as %s", (iso, expected) => {
+    expect(agoPhrase(iso, "a moment ago", now)).toBe(expected);
   });
 });
 

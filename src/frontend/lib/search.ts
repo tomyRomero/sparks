@@ -1,6 +1,7 @@
 import type { SparkKind } from "@/lib/api/types";
-import { appendKinds, type ParamSource, paramValues, readKinds } from "@/lib/feed";
+import { appendKinds, readKinds } from "@/lib/feed";
 import { limits } from "@/lib/limits";
+import { type ParamSource, paramValues } from "@/lib/params";
 
 export type SearchTab = "sparks" | "members";
 

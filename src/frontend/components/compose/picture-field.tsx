@@ -9,7 +9,7 @@ import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/problem";
 import type { UploadedImage } from "@/lib/api/types";
 import type { DraftImage } from "@/lib/compose-draft";
-import { IMAGE_TYPES, imageProblem, POST_IMAGE_MAX_BYTES } from "@/lib/images";
+import { IMAGE_TYPES, imageProblem, megabytes, POST_IMAGE_MAX_BYTES } from "@/lib/images";
 import { limits } from "@/lib/limits";
 import { cn } from "@/lib/utils";
 
@@ -142,7 +142,9 @@ export function PictureField({ picture, image, onRemove, paint, disabled = false
           <>
             <ImagePlus className="size-6 text-muted" aria-hidden />
             <span className="text-sm font-medium text-ink-soft">Drop a picture, paste one, or browse</span>
-            <span className="text-xs text-muted">PNG, JPEG, GIF or WebP, up to 5 MB</span>
+            <span className="text-xs text-muted">
+              PNG, JPEG, GIF or WebP, up to {megabytes(POST_IMAGE_MAX_BYTES)} MB
+            </span>
           </>,
           "flex flex-col items-center justify-center gap-1.5 rounded-[14px] border-[1.5px] border-dashed border-line-strong px-4 py-7 text-center transition-colors hover:border-brand hover:bg-brand-soft/30 has-focus-visible:ring-2 has-focus-visible:ring-brand/40",
         )
