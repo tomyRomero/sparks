@@ -3,7 +3,7 @@ import { PageSkeleton } from "@/components/ui/skeleton";
 
 export default function ConversationLoading() {
   return (
-    <PageSkeleton label="Loading the conversation" className="flex flex-1">
+    <PageSkeleton inPlace label="Loading the conversation" className="flex flex-1">
       <ChatSkeleton />
     </PageSkeleton>
   );

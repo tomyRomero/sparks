@@ -3,7 +3,7 @@ import { PageSkeleton } from "@/components/ui/skeleton";
 
 export default function ProfilePicturesLoading() {
   return (
-    <PageSkeleton label="Loading pictures">
+    <PageSkeleton inPlace label="Loading pictures">
       <PictureGridSkeleton />
     </PageSkeleton>
   );

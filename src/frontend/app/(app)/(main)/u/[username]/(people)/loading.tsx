@@ -4,7 +4,7 @@ import { PageSkeleton } from "@/components/ui/skeleton";
 
 export default function PeopleLoading() {
   return (
-    <PageSkeleton label="Loading members">
+    <PageSkeleton inPlace label="Loading members">
       <Panel>
         <MemberListSkeleton />
       </Panel>

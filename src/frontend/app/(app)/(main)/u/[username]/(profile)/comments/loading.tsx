@@ -4,7 +4,7 @@ import { PageSkeleton } from "@/components/ui/skeleton";
 
 export default function ProfileCommentsLoading() {
   return (
-    <PageSkeleton label="Loading comments">
+    <PageSkeleton inPlace label="Loading comments">
       <Panel>
         <CommentListSkeleton count={4} />
       </Panel>

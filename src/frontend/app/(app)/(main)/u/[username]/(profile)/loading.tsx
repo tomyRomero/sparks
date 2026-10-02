@@ -3,7 +3,7 @@ import { PageSkeleton } from "@/components/ui/skeleton";
 
 export default function ProfileSparksLoading() {
   return (
-    <PageSkeleton label="Loading">
+    <PageSkeleton inPlace label="Loading">
       <FeedSkeleton count={3} />
     </PageSkeleton>
   );
