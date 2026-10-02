@@ -20,7 +20,7 @@ export function ViewerMenu({ viewer }: { viewer: CurrentUser }) {
   return (
     <Menu.Root>
       <Menu.Trigger
-        aria-label={`${viewer.displayName}: account menu`}
+        aria-label={`${viewer.displayName} @${viewer.username}: account menu`}
         className="flex w-full items-center justify-center gap-3 rounded-[14px] p-1.5 text-left transition-colors hover:bg-raised data-[state=open]:bg-raised lg:group-data-[expanded=true]/nav:justify-start lg:group-data-[expanded=true]/nav:p-2.5"
       >
         <Avatar name={viewer.displayName} src={viewer.avatarUrl} size={40} />

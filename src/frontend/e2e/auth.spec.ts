@@ -2,7 +2,7 @@ import { expect, newAccount, test } from "./support";
 
 test("a visitor signs up, signs out and signs back in", async ({ page }) => {
   const account = newAccount();
-  const accountMenu = page.getByRole("button", { name: `${account.displayName}: account menu` });
+  const accountMenu = page.getByRole("button", { name: `${account.displayName} @${account.username}: account menu` });
 
   await page.goto("/sign-up");
   await page.getByLabel("Name", { exact: true }).fill(account.displayName);
