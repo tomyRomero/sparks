@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Sparks.Api.Activity.Services;
 using Sparks.Api.Common.Data;
 using Sparks.Api.Common.Errors;
@@ -13,8 +14,20 @@ namespace Sparks.Api.Posts.Services;
 
 /// <summary>Sparks: the feed, a single post, and writing, editing, deleting and liking posts.</summary>
 public sealed class PostService(
-    SparksDbContext db, TimeProvider time, IFileStorage storage, ActivityNotifier activity, ILogger<PostService> logger)
+    SparksDbContext db,
+    HybridCache cache,
+    TimeProvider time,
+    IFileStorage storage,
+    ActivityNotifier activity,
+    ILogger<PostService> logger)
 {
+    /// <summary>How long everyone shares one ranking of the top posts.</summary>
+    private static readonly HybridCacheEntryOptions SharedRankingLifetime = new()
+    {
+        Expiration = TimeSpan.FromMinutes(1),
+        LocalCacheExpiration = TimeSpan.FromMinutes(1),
+    };
+
     /// <summary>Newest posts first, of some kinds, with pictures, from followed members, or matching a search.</summary>
     public Task<CursorPage<PostResponse>> GetFeedAsync(PostFeedQuery query, long? viewerId, CancellationToken ct)
     {
@@ -28,35 +41,32 @@ public sealed class PostService(
 
     /// <summary>
     /// The most liked posts of the last <see cref="TopPostsQuery.Days"/> days,
-    /// newest first among equals. Likes can change between pages, so a post
-    /// may move; the cursor holds the like count and the id.
+    /// newest first among equals. Ranking counts every like in the window, so
+    /// a first page everyone shares (not Following's) is ranked at most once a
+    /// minute; the posts on it, with their counts and the viewer's likes, are
+    /// read fresh. Likes can change between pages, so a post may move; the
+    /// cursor holds the like count and the id.
     /// </summary>
     public async Task<OpaqueCursorPage<PostResponse>> GetTopAsync(TopPostsQuery query, long? viewerId, CancellationToken ct)
     {
-        var since = time.GetUtcNow().UtcDateTime - TimeSpan.FromDays(query.Days);
-        var posts = Filter(db.Posts.AsNoTracking().Where(post => post.CreatedAt >= since), query.Kind, query.Pictures, q: null);
-        if (query.Following)
-        {
-            posts = FromFollowed(posts, viewerId);
-        }
+        var ranked = query.Following || query.Cursor is not null
+            ? await RankTopAsync(query, viewerId, ct)
+            : await cache.GetOrCreateAsync(
+                TopRankingKey(query),
+                query,
+                async (shared, token) => await RankTopAsync(shared, viewerId: null, token),
+                SharedRankingLifetime,
+                cancellationToken: ct);
 
-        if (query.Cursor is not null)
-        {
-            if (OpaqueCursor.Decode(query.Cursor, partCount: 2) is not [var likes, var id])
-            {
-                throw ApiException.BadRequest("INVALID_CURSOR", "That cursor didn't come from this API.");
-            }
+        var page = ranked.Take(query.Limit).ToList();
+        var ids = page.ConvertAll(post => post.Id);
+        var read = (await ReadAsync(db.Posts.AsNoTracking().Where(post => ids.Contains(post.Id)), viewerId, ct))
+            .ToDictionary(post => post.Id);
 
-            posts = posts.Where(post => post.Likes.Count < likes || (post.Likes.Count == likes && post.Id < id));
-        }
-
-        var fetched = await ReadAsync(
-            posts.OrderByDescending(post => post.Likes.Count).ThenByDescending(post => post.Id).Take(query.Limit + 1),
-            viewerId,
-            ct);
-        var page = fetched.Take(query.Limit).ToList();
-        var nextCursor = fetched.Count > query.Limit ? OpaqueCursor.Encode(page[^1].LikeCount, page[^1].Id) : null;
-        return new OpaqueCursorPage<PostResponse>(page, nextCursor);
+        // A post deleted since the ranking was made is left out.
+        var items = page.Where(post => read.ContainsKey(post.Id)).Select(post => read[post.Id]).ToList();
+        var nextCursor = ranked.Count > query.Limit ? OpaqueCursor.Encode(page[^1].LikeCount, page[^1].Id) : null;
+        return new OpaqueCursorPage<PostResponse>(items, nextCursor);
     }
 
     /// <summary>One member's posts, newest first; only those with a picture for the Pictures grid.</summary>
@@ -212,6 +222,41 @@ public sealed class PostService(
     /// there were tens of thousands; this ranks only the page's comments.
     /// Only comments on the spark itself count as its top one, never replies.
     /// </summary>
+    /// <summary>A page of the ranking, with one more post than the page to tell whether more follow.</summary>
+    private async Task<List<RankedPost>> RankTopAsync(TopPostsQuery query, long? viewerId, CancellationToken ct)
+    {
+        var since = time.GetUtcNow().UtcDateTime - TimeSpan.FromDays(query.Days);
+        var posts = Filter(db.Posts.AsNoTracking().Where(post => post.CreatedAt >= since), query.Kind, query.Pictures, q: null);
+        if (query.Following)
+        {
+            posts = FromFollowed(posts, viewerId);
+        }
+
+        if (query.Cursor is not null)
+        {
+            if (OpaqueCursor.Decode(query.Cursor, partCount: 2) is not [var likes, var id])
+            {
+                throw ApiException.BadRequest("INVALID_CURSOR", "That cursor didn't come from this API.");
+            }
+
+            posts = posts.Where(post => post.Likes.Count < likes || (post.Likes.Count == likes && post.Id < id));
+        }
+
+        return await posts
+            .OrderByDescending(post => post.Likes.Count)
+            .ThenByDescending(post => post.Id)
+            .Take(query.Limit + 1)
+            .Select(post => new RankedPost(post.Id, post.Likes.Count))
+            .ToListAsync(ct);
+    }
+
+    /// <summary>What sets a shared first page apart: the window, the filters and the page size.</summary>
+    private static string TopRankingKey(TopPostsQuery query) =>
+        $"posts:top:{query.Days}:{string.Join(',', query.Kind.Where(Enum.IsDefined).Distinct().Order())}:{query.Pictures}:{query.Limit}";
+
+    /// <summary>A post's place in a ranking.</summary>
+    private sealed record RankedPost(long Id, int LikeCount);
+
     private async Task<List<PostResponse>> ReadAsync(IQueryable<PostEntity> posts, long? viewerId, CancellationToken ct)
     {
         var read = await posts.Select(ToResponse(viewerId)).ToListAsync(ct);

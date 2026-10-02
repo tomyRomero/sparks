@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging.Abstractions;
 using Sparks.Api.Activity.Services;
 using Sparks.Api.Ai.Services;
@@ -24,6 +25,7 @@ namespace Sparks.Api.Seeding;
 /// </summary>
 public sealed class DemoSeeder(
     SparksDbContext db,
+    HybridCache cache,
     IFileStorage storage,
     ImageUploadService images,
     IImageGenerator painter,
@@ -36,7 +38,7 @@ public sealed class DemoSeeder(
 
     private readonly SeedClock _clock = new(realTime.GetUtcNow());
     private ActivityNotifier Activity => new(db, hub, NullLogger<ActivityNotifier>.Instance);
-    private PostService Posts => new(db, _clock, storage, Activity, NullLogger<PostService>.Instance);
+    private PostService Posts => new(db, cache, _clock, storage, Activity, NullLogger<PostService>.Instance);
     private CommentService Comments => new(db, _clock, Activity);
     private ChatService Chat => new(db, _clock, hub);
     private FollowService Follows => new(db, _clock, Activity);

@@ -76,6 +76,8 @@ try
         .AddJsonOptions(json => UseApiJson(json.JsonSerializerOptions));
     builder.Services.AddOpenApi();
 
+    // In memory, per instance: rankings everyone shares are worked out once a minute.
+    builder.Services.AddHybridCache();
     builder.Services.AddScoped<PostService>();
     builder.Services.AddScoped<CommentService>();
     builder.Services.AddScoped<UserService>();

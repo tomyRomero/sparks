@@ -1,9 +1,11 @@
 using System.Net;
 using System.Text.Json;
 using FluentAssertions;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
+using Sparks.Api;
 using Sparks.Api.Common.Models;
 using Sparks.Api.Posts.Data;
 using Sparks.Api.Posts.Models;
@@ -138,6 +140,40 @@ public sealed class PostTests(SparksApiFactory factory)
         first.Items.Select(post => post.Id).Should().Equal(loved.Id, liked.Id);
         second.Items.Select(post => post.Id).Should().Equal(quiet.Id);
         second.NextCursor.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Top_keeps_a_shared_ranking_for_a_minute_but_reads_counts_fresh()
+    {
+        // Two years ahead, so the other Top test's week doesn't overlap this one.
+        var clock = new FakeTimeProvider(DateTimeOffset.UtcNow.AddYears(2));
+        using var api = factory.WithWebHostBuilder(builder =>
+            builder.ConfigureTestServices(services => services.AddSingleton<TimeProvider>(clock)));
+        var (author, _) = await api.SignedInClientAsync(Ct);
+        var older = await author.CreatePostAsync("Liked first", Ct);
+        var newer = await author.CreatePostAsync("Liked later", Ct);
+        await LikeAsync(api, older, fans: 1);
+        var reader = api.CreateClient();
+        var before = await reader.GetJsonAsync<OpaqueCursorPage<PostResponse>>($"{PostsPath}/top?limit=2", Ct);
+
+        await LikeAsync(api, newer, fans: 2);
+        var after = await reader.GetJsonAsync<OpaqueCursorPage<PostResponse>>($"{PostsPath}/top?limit=2", Ct);
+        var following = await author.GetJsonAsync<OpaqueCursorPage<PostResponse>>(
+            $"{PostsPath}/top?limit=2&following=true", Ct);
+
+        before.Items.Select(post => post.Id).Should().Equal(older.Id, newer.Id);
+        after.Items.Select(post => post.Id).Should().Equal([older.Id, newer.Id], "everyone shares one ranking for a minute");
+        after.Items.Select(post => post.LikeCount).Should().Equal(1, 2);
+        following.Items.Select(post => post.Id).Should().Equal([newer.Id, older.Id], "a Following ranking is the viewer's own");
+    }
+
+    private static async Task LikeAsync(WebApplicationFactory<Program> api, PostResponse post, int fans)
+    {
+        for (var i = 0; i < fans; i++)
+        {
+            var (fan, _) = await api.SignedInClientAsync(Ct);
+            (await fan.PutAsync($"{PostsPath}/{post.Id}/like", content: null, Ct)).EnsureSuccessStatusCode();
+        }
     }
 
     [Fact]
