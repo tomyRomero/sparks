@@ -225,8 +225,10 @@ public sealed class PostService(
     /// <summary>A page of the ranking, with one more post than the page to tell whether more follow.</summary>
     private async Task<List<RankedPost>> RankTopAsync(TopPostsQuery query, long? viewerId, CancellationToken ct)
     {
-        var since = time.GetUtcNow().UtcDateTime - TimeSpan.FromDays(query.Days);
-        var posts = Filter(db.Posts.AsNoTracking().Where(post => post.CreatedAt >= since), query.Kind, query.Pictures, q: null);
+        var now = time.GetUtcNow().UtcDateTime;
+        var since = now - TimeSpan.FromDays(query.Days);
+        var inWindow = db.Posts.AsNoTracking().Where(post => post.CreatedAt >= since && post.CreatedAt <= now);
+        var posts = Filter(inWindow, query.Kind, query.Pictures, q: null);
         if (query.Following)
         {
             posts = FromFollowed(posts, viewerId);
