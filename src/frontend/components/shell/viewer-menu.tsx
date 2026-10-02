@@ -1,7 +1,7 @@
 "use client";
 
 import * as Menu from "@radix-ui/react-dropdown-menu";
-import { Check, Ellipsis, LoaderCircle, LogOut, Monitor, Moon, Settings, Sun, UserRound } from "lucide-react";
+import { Check, Ellipsis, LoaderCircle, LogOut, Settings, UserRound } from "lucide-react";
 import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
 import { menuContentStyle, menuItemStyle } from "@/components/ui/menu";
@@ -11,12 +11,7 @@ import { toTheme } from "@/lib/preferences";
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { whenExpanded } from "./sidebar-styles";
-
-const themeOptions = [
-  { value: "system", label: "System", icon: Monitor },
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-] as const;
+import { themeOptions } from "./theme-switch";
 
 export function ViewerMenu({ viewer }: { viewer: CurrentUser }) {
   const { signingOut, signOut } = useSignOut();

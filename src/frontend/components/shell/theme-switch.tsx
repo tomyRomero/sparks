@@ -1,12 +1,12 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "lucide-react";
+import { type LucideIcon, Monitor, Moon, Sun } from "lucide-react";
 import { useId } from "react";
 import type { Theme } from "@/lib/preferences";
 import { useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
-const options: { value: Theme; label: string; icon: typeof Sun }[] = [
+export const themeOptions: readonly { value: Theme; label: string; icon: LucideIcon }[] = [
   { value: "system", label: "System", icon: Monitor },
   { value: "light", label: "Light", icon: Sun },
   { value: "dark", label: "Dark", icon: Moon },
@@ -19,7 +19,7 @@ export function ThemeSwitch({ withLabels = false, className }: { withLabels?: bo
   return (
     <fieldset className={cn("inline-flex rounded-full border border-line bg-canvas p-[3px]", className)}>
       <legend className="sr-only">Theme</legend>
-      {options.map(({ value, label, icon: Icon }) => (
+      {themeOptions.map(({ value, label, icon: Icon }) => (
         <label
           key={value}
           title={withLabels ? undefined : label}

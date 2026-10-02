@@ -7,6 +7,7 @@ import type { SparkKind } from "@/lib/api/types";
 import { kindInfo } from "@/lib/kinds";
 import { limits } from "@/lib/limits";
 import { cn } from "@/lib/utils";
+import { DraftWithAiTitle } from "./draft-with-ai-title";
 
 const offered: SparkKind[] = ["movieScript", "bookPlot", "haiku", "artwork", "joke"];
 
@@ -25,12 +26,7 @@ export function QuickDraft() {
       aria-labelledby={`${id}-title`}
       className="flex flex-col gap-3.5 rounded-[18px] border border-line bg-surface p-5 shadow-card"
     >
-      <h2 id={`${id}-title`} className="flex items-center gap-2.5 font-display text-lg font-bold">
-        <span className="inline-flex size-[30px] items-center justify-center rounded-[9px] bg-charge-soft text-charge">
-          <Zap className="size-4 fill-current" aria-hidden />
-        </span>
-        Draft with AI
-      </h2>
+      <DraftWithAiTitle id={`${id}-title`} />
       <p className="text-sm leading-normal text-ink-soft">
         Give it one line and a kind. You edit the draft before anyone sees it.
       </p>

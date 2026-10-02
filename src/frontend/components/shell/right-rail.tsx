@@ -1,6 +1,6 @@
-import { Zap } from "lucide-react";
 import Link from "next/link";
 import type { CurrentUser } from "@/lib/api/types";
+import { DraftWithAiTitle } from "./draft-with-ai-title";
 import { QuickDraft } from "./quick-draft";
 import { Trending } from "./trending";
 import { WhosAround } from "./whos-around";
@@ -12,12 +12,7 @@ export function RightRail({ viewer }: { viewer: CurrentUser | null }) {
         <QuickDraft />
       ) : (
         <section className="flex flex-col gap-3.5 rounded-[18px] border border-line bg-surface p-5 shadow-card">
-          <h2 className="flex items-center gap-2.5 font-display text-lg font-bold">
-            <span className="inline-flex size-[30px] items-center justify-center rounded-[9px] bg-charge-soft text-charge">
-              <Zap className="size-4 fill-current" aria-hidden />
-            </span>
-            Draft with AI
-          </h2>
+          <DraftWithAiTitle />
           <p className="text-sm leading-normal text-ink-soft">
             Give it one line and a kind: a movie pitch, a book plot, a haiku or a painting, with a picture to match.
           </p>

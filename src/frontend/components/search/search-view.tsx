@@ -11,6 +11,7 @@ import { FeedSkeleton } from "@/components/posts/post-skeletons";
 import { MemberList } from "@/components/profile/member-list";
 import { MemberListSkeleton } from "@/components/profile/profile-skeletons";
 import { Panel } from "@/components/ui/panel";
+import { TabCount, tabStyle } from "@/components/ui/tab-nav";
 import { api } from "@/lib/api/client";
 import type { CursorPage, Post, SearchCounts, SparkKind, UserSummary } from "@/lib/api/types";
 import { kinds } from "@/lib/kinds";
@@ -29,13 +30,10 @@ import {
   toTerm,
 } from "@/lib/search";
 import { SEARCH_BOX_ID, takeSearchFocus } from "@/lib/search-focus";
-import { cn } from "@/lib/utils";
 import { HighlightProvider } from "./highlight";
 
 /** How long typing pauses before it searches. */
 const SETTLE_MS = 250;
-
-const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
 
 type SearchViewProps = {
   /** What the server rendered the results below for. */
@@ -234,22 +232,10 @@ function SearchTabs({ search, counts, onChange }: SearchTabsProps) {
                   event.preventDefault();
                   onChange(value);
                 }}
-                className={cn(
-                  "inline-flex h-9 items-center gap-2 rounded-lg px-3.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink",
-                  current && "bg-surface text-ink shadow-sm",
-                )}
+                className={tabStyle(current)}
               >
                 {label}
-                {count !== undefined && (
-                  <span
-                    className={cn(
-                      "min-w-6 rounded-full px-1.5 py-px text-center font-mono text-[11px] tabular-nums",
-                      current ? "bg-brand-soft text-brand" : "bg-line/70 text-muted",
-                    )}
-                  >
-                    {compact.format(count)}
-                  </span>
-                )}
+                {count !== undefined && <TabCount count={count} current={current} />}
               </a>
             </li>
           );
