@@ -43,47 +43,24 @@ const views = [
   { value: "preview", label: "Preview", icon: Eye },
 ] as const;
 
-type ComposerProps = {
-  viewer: CurrentUser;
-  /** Open with the AI drafting panel, as the "Draft with AI" links do. */
-  startWithAi: boolean;
-  initialKind?: SparkKind;
-  /** An idea to draft from straight away, from the right rail's quick draft. */
-  initialIdea?: string;
-};
-
 /**
  * The composer starts once the browser can say whether a draft was saved,
  * so a restored draft never replaces a form the writer has already begun.
- * A link with an idea in it starts a new spark instead.
  */
-export function Composer(props: ComposerProps) {
+export function Composer({ viewer }: { viewer: CurrentUser }) {
   const hydrated = useHydrated();
-  const [saved] = useState(() =>
-    typeof window === "undefined" || props.initialIdea ? null : loadDraft(props.viewer.id),
-  );
+  const [saved] = useState(() => (typeof window === "undefined" ? null : loadDraft(viewer.id)));
   if (!hydrated) return <ComposerSkeleton />;
-  return <ComposerForm {...props} saved={saved} />;
+  return <ComposerForm viewer={viewer} saved={saved} />;
 }
 
-function startingKind(withAi: boolean, initialKind: SparkKind | undefined): SparkKind {
-  if (initialKind && !(withAi && initialKind === "regular")) return initialKind;
-  return withAi ? FIRST_AI_KIND : "regular";
-}
-
-function ComposerForm({
-  viewer,
-  startWithAi,
-  initialKind,
-  initialIdea,
-  saved,
-}: ComposerProps & { saved: ComposeDraft | null }) {
+function ComposerForm({ viewer, saved }: { viewer: CurrentUser; saved: ComposeDraft | null }) {
   const id = useId();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [withAi, setWithAi] = useState(saved?.withAi ?? startWithAi);
-  const [kind, setKind] = useState<SparkKind>(saved?.kind ?? startingKind(startWithAi, initialKind));
-  const [idea, setIdea] = useState(saved?.idea ?? (startWithAi ? (initialIdea ?? "") : ""));
+  const [withAi, setWithAi] = useState(saved?.withAi ?? false);
+  const [kind, setKind] = useState<SparkKind>(saved?.kind ?? "regular");
+  const [idea, setIdea] = useState(saved?.idea ?? "");
   const [draftedFrom, setDraftedFrom] = useState(saved?.draftedFrom ?? null);
   const [body, setBody] = useState(saved?.body ?? "");
   const [imagePrompt, setImagePrompt] = useState(saved?.imagePrompt ?? "");
@@ -145,8 +122,8 @@ function ComposerForm({
   }
 
   function startOver() {
-    setWithAi(startWithAi);
-    setKind(startingKind(startWithAi, initialKind));
+    setWithAi(false);
+    setKind("regular");
     setIdea("");
     setDraftedFrom(null);
     setBody("");
@@ -171,16 +148,6 @@ function ComposerForm({
       }
     });
   }
-
-  // An idea that came with the link is drafted once, as soon as the page
-  // opens; later drafts come from the button.
-  const draftedOnOpen = useRef(false);
-  const draftOnOpen = useEffectEvent(draftWithAi);
-  useEffect(() => {
-    if (draftedOnOpen.current || !startWithAi || !initialIdea?.trim()) return;
-    draftedOnOpen.current = true;
-    draftOnOpen();
-  }, [startWithAi, initialIdea]);
 
   function share(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

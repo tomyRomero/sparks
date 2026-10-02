@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { ComposerPrompt } from "@/components/posts/composer-prompt";
 import { FeedScope } from "@/components/posts/feed-scope";
 import { HomeFeed } from "@/components/posts/home-feed";
 import { FeedBarSkeleton, FeedSkeleton } from "@/components/posts/post-skeletons";
@@ -18,7 +17,6 @@ export default async function HomePage({ searchParams }: PageProps<"/">) {
   return (
     <>
       <PageHeader title="Home">{viewer && <FeedScope />}</PageHeader>
-      {viewer && <ComposerPrompt viewer={viewer} />}
       <Suspense
         key={feedHref(filter)}
         fallback={

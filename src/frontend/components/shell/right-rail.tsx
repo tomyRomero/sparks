@@ -1,18 +1,23 @@
+import { Zap } from "lucide-react";
 import Link from "next/link";
 import type { CurrentUser } from "@/lib/api/types";
-import { DraftWithAiTitle } from "./draft-with-ai-title";
-import { QuickDraft } from "./quick-draft";
 import { Trending } from "./trending";
 import { WhosAround } from "./whos-around";
 
 export function RightRail({ viewer }: { viewer: CurrentUser | null }) {
   return (
-    <aside className="sticky top-0 hidden h-dvh w-[320px] shrink-0 [scrollbar-width:thin] flex-col gap-4 overflow-y-auto py-6 xl:flex 2xl:w-[360px]">
-      {viewer ? (
-        <QuickDraft />
-      ) : (
+    // At least a window tall, at the end of the row and stuck to the bottom:
+    // it stays in view like a sticky column, and one taller than the window
+    // scrolls with the page until its last card shows, with no scroll bar of its own.
+    <aside className="sticky bottom-0 hidden min-h-dvh w-[320px] shrink-0 flex-col gap-4 self-end py-6 xl:flex 2xl:w-[360px]">
+      {!viewer && (
         <section className="flex flex-col gap-3.5 rounded-[18px] border border-line bg-surface p-5 shadow-card">
-          <DraftWithAiTitle />
+          <h2 className="flex items-center gap-2.5 font-display text-lg font-bold">
+            <span className="inline-flex size-[30px] items-center justify-center rounded-[9px] bg-charge-soft text-charge">
+              <Zap className="size-4 fill-current" aria-hidden />
+            </span>
+            Draft with AI
+          </h2>
           <p className="text-sm leading-normal text-ink-soft">
             Give it one line and a kind: a movie pitch, a book plot, a haiku or a painting, with a picture to match.
           </p>

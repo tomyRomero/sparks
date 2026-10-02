@@ -45,16 +45,6 @@ export function FeedSkeleton({ count = 4 }: { count?: number }) {
   );
 }
 
-export function ComposerPromptSkeleton() {
-  return (
-    <div className="mb-3 flex items-center gap-3 rounded-[18px] border border-line bg-surface p-2.5 shadow-card sm:px-4 sm:py-3.5">
-      <Skeleton className="size-[34px] shrink-0 rounded-full sm:size-[42px]" />
-      <Skeleton className="h-11 flex-1 rounded-xl sm:h-[46px]" />
-      <Skeleton className="h-10 w-14 rounded-xl sm:h-[42px] sm:w-36" />
-    </div>
-  );
-}
-
 /** The home feed's filter bar: kinds, pictures, and the sort on the right. */
 export function FeedBarSkeleton() {
   return (
