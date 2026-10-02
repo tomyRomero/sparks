@@ -6,9 +6,11 @@ import { getViewer } from "@/lib/auth/viewer";
 import { SIDEBAR_COOKIE } from "@/lib/preferences";
 import { LiveProvider } from "@/lib/realtime/live";
 
-// One frame for every page, so moving between sections never rebuilds the
-// navigation. Each group fills the space beside it: (main) with a column and
-// the right rail, messages with the inbox and a conversation.
+/**
+ * One frame for every page, so moving between sections never rebuilds the
+ * navigation. Each group fills the space beside it: (main) with a column and
+ * the right rail, messages with the inbox and a conversation.
+ */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const [viewer, cookieStore] = await Promise.all([getViewer(), cookies()]);
   const page = (

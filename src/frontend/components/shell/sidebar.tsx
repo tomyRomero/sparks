@@ -125,11 +125,7 @@ export function Sidebar({ viewer, collapsed: initiallyCollapsed }: SidebarProps)
           <ViewerMenu viewer={viewer} />
         ) : (
           <>
-            <div
-              className={cn(
-                "hidden gap-2 rounded-[18px] border border-line bg-surface p-4 shadow-card lg:group-data-[expanded=true]/nav:grid",
-              )}
-            >
+            <div className="hidden gap-2 rounded-[18px] border border-line bg-surface p-4 shadow-card lg:group-data-[expanded=true]/nav:grid">
               <p className="text-sm text-ink-soft">Join to post, like, comment and chat.</p>
               <Button asChild size="sm">
                 <Link href="/sign-up">Create account</Link>

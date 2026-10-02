@@ -1,8 +1,6 @@
 import type { SparkKind } from "@/lib/api/types";
 import { excerpt } from "@/lib/text";
 
-// Splits a spark by its kind's layout (see SparkBriefs.cs). Text that
-// doesn't follow it shows as written.
 export type SparkText = {
   /** A first line "Title: ...", for movie scripts, book plots and artworks. */
   title: string | null;
@@ -14,6 +12,7 @@ export type SparkText = {
 
 const titledKinds: ReadonlySet<SparkKind> = new Set<SparkKind>(["movieScript", "bookPlot", "artwork"]);
 
+/** Splits a spark by its kind's layout (see SparkBriefs.cs). Text that doesn't follow it shows as written. */
 export function splitSpark(kind: SparkKind, body: string): SparkText {
   if (titledKinds.has(kind)) {
     const titled = /^Title:[ \t]*(\S.*?)[ \t]*(?:\n+([\s\S]*))?$/.exec(body.trim());

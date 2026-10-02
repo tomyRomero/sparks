@@ -6,6 +6,7 @@ import { IntentLink } from "@/components/ui/intent-link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMembersAround } from "@/lib/queries/presence";
 import { lastActive } from "@/lib/time";
+import { cn } from "@/lib/utils";
 
 export function WhosAround() {
   const { data: members, isPending } = useMembersAround(true);
@@ -40,7 +41,7 @@ export function WhosAround() {
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate text-[14.5px] font-semibold">{user.displayName}</span>
                   <span
-                    className={online ? "font-mono text-[11px] text-success" : "font-mono text-[11px] text-muted"}
+                    className={cn("font-mono text-[11px]", online ? "text-success" : "text-muted")}
                     suppressHydrationWarning
                   >
                     {online ? "Online" : lastSeenAt ? lastActive(lastSeenAt) : ""}

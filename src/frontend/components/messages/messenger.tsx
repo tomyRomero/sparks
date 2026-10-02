@@ -3,8 +3,7 @@
 import { useSelectedLayoutSegment } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-// Wide screens show both panes; narrow ones show the inbox until a
-// conversation opens.
+/** Wide screens show both panes; narrow ones show the inbox until a conversation opens. */
 export function Messenger({ inbox, children }: { inbox: React.ReactNode; children: React.ReactNode }) {
   const open = useSelectedLayoutSegment() !== null;
   return (

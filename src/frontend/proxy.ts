@@ -8,7 +8,7 @@ export async function proxy(request: NextRequest) {
   // Next reads the policy from the request and puts its nonce on the scripts
   // it renders; the browser enforces the copy on the response.
   const requestHeaders = new Headers(request.headers);
-  const policy = isPage(request) ? contentSecurityPolicy(nonce()) : null;
+  const policy = isPage(request) ? contentSecurityPolicy(newNonce()) : null;
   if (policy) requestHeaders.set("Content-Security-Policy", policy);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
@@ -72,7 +72,7 @@ function isPage(request: NextRequest) {
   return !pathname.startsWith("/api/") && !pathname.startsWith("/hubs/");
 }
 
-function nonce() {
+function newNonce() {
   return Buffer.from(crypto.randomUUID()).toString("base64");
 }
 

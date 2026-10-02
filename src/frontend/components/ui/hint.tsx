@@ -13,7 +13,7 @@ type HintProps = {
 };
 
 export function Hint({ label, side = "right", children, disabled = false }: HintProps) {
-  // Always controlled: \`disabled\` can change after mount (the sidebar
+  // Always controlled: `disabled` can change after mount (the sidebar
   // collapsing), and Radix warns when a tooltip switches modes.
   const [open, setOpen] = useState(false);
   return (

@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { SparkKind } from "@/lib/api/types";
 import { kindInfo, kinds } from "@/lib/kinds";
 import { cn } from "@/lib/utils";
@@ -16,9 +17,10 @@ type KindPickerProps = {
  * still work. On a phone they're pills that wrap, so the words stay in reach.
  */
 export function KindPicker({ value, onChange, aiOnly, disabled = false }: KindPickerProps) {
+  const blurb = useId();
   const options = aiOnly ? kinds.filter((info) => info.kind !== "regular") : kinds;
   return (
-    <fieldset disabled={disabled} aria-describedby="kind-blurb">
+    <fieldset disabled={disabled} aria-describedby={blurb}>
       <legend className="text-sm font-medium text-ink-soft">Kind</legend>
       <div className="mt-2 flex flex-wrap gap-2 sm:grid sm:grid-cols-5">
         {options.map(({ kind, label, icon: Icon }) => (
@@ -48,7 +50,7 @@ export function KindPicker({ value, onChange, aiOnly, disabled = false }: KindPi
           </label>
         ))}
       </div>
-      <p id="kind-blurb" className="mt-2.5 text-sm text-muted">
+      <p id={blurb} className="mt-2.5 text-sm text-muted">
         {kindInfo(value).blurb}
       </p>
     </fieldset>

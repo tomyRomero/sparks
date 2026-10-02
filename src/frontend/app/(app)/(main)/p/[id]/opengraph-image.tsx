@@ -7,8 +7,6 @@ import { OgFrame, OgMark, ogColors, ogFonts, ogPicture, ogSize } from "@/lib/og"
 import { haikuLines, sparkPreview, splitSpark } from "@/lib/spark-text";
 import { excerpt } from "@/lib/text";
 
-/** A spark as its link preview: its words laid out by kind, its picture, and who wrote it. */
-
 const contentType = "image/png";
 
 // The frame's 1200px less its 64px sides, and less the picture and gap beside it.
@@ -35,6 +33,7 @@ export async function generateImageMetadata({ params }: { params: { id: string }
   return [{ id: "card", alt, size: ogSize, contentType }];
 }
 
+/** A spark as its link preview: its words laid out by kind, its picture, and who wrote it. */
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const post = await getPost((await params).id);
   const [fonts, picture, avatar] = await Promise.all([

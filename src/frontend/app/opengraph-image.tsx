@@ -2,12 +2,11 @@ import { ImageResponse } from "next/og";
 import { kinds } from "@/lib/kinds";
 import { OgFrame, OgMark, ogColors, ogFonts, ogSize } from "@/lib/og";
 
-/** The preview for any page without its own: the home feed, search, a profile. */
-
 export const alt = "Sparks: share short creative sparks, write them with AI, and talk them over";
 export const size = ogSize;
 export const contentType = "image/png";
 
+/** The preview for any page without its own: the home feed, search, a profile. */
 export default async function Image() {
   return new ImageResponse(
     <OgFrame>

@@ -1,4 +1,4 @@
-import { ComposerPromptSkeleton, FeedSkeleton, FeedBarSkeleton } from "@/components/posts/post-skeletons";
+import { ComposerPromptSkeleton, FeedBarSkeleton, FeedSkeleton } from "@/components/posts/post-skeletons";
 import { PageHeader } from "@/components/shell/page-header";
 import { PageSkeleton } from "@/components/ui/skeleton";
 

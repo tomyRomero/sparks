@@ -4,10 +4,11 @@ import { MessageCircle, Send } from "lucide-react";
 import { useState } from "react";
 import { IntentLink } from "@/components/ui/intent-link";
 import type { Post } from "@/lib/api/types";
+import { cn } from "@/lib/utils";
 import { LikeButton, type LikeControl, LikeToggle } from "./like-button";
 import { ShareDialog } from "./share-dialog";
 
-export const actionStyle =
+const actionStyle =
   "inline-flex h-[34px] items-center gap-[7px] rounded-[9px] px-2.5 font-mono text-[12.5px] text-muted transition-colors";
 
 type PostActionsProps = {
@@ -33,7 +34,7 @@ export function PostActions({ post, signedIn, commentsHref, like }: PostActionsP
           signedIn={signedIn}
         />
       )}
-      <IntentLink href={commentsHref} className={`${actionStyle} hover:bg-brand/10 hover:text-brand`}>
+      <IntentLink href={commentsHref} className={cn(actionStyle, "hover:bg-brand/10 hover:text-brand")}>
         <MessageCircle className="size-[18px]" aria-hidden />
         {post.commentCount}
         <span className="sr-only">{post.commentCount === 1 ? " comment" : " comments"}</span>
@@ -41,7 +42,7 @@ export function PostActions({ post, signedIn, commentsHref, like }: PostActionsP
       <button
         type="button"
         onClick={() => setSharing(true)}
-        className={`${actionStyle} hover:bg-raised hover:text-ink`}
+        className={cn(actionStyle, "hover:bg-raised hover:text-ink")}
       >
         <Send className="size-[18px]" aria-hidden />
         Share

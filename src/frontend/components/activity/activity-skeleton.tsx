@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export function ActivitySkeleton({ count = 5 }: { count?: number }) {
   const widths = ["w-3/5", "w-1/2", "w-2/3", "w-2/5"];
@@ -13,7 +14,7 @@ export function ActivitySkeleton({ count = 5 }: { count?: number }) {
           <div className="grid flex-1 gap-2.5">
             <div className="flex">
               {Array.from({ length: index % 3 === 0 ? 3 : 1 }, (_, face) => (
-                <Skeleton key={face} className={face ? "-ml-2 size-[30px] rounded-full" : "size-[30px] rounded-full"} />
+                <Skeleton key={face} className={cn("size-[30px] rounded-full", face > 0 && "-ml-2")} />
               ))}
             </div>
             <Skeleton className={`h-4 ${widths[index % widths.length]}`} />
