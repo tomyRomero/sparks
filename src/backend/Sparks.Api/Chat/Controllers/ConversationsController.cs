@@ -27,7 +27,7 @@ public sealed class ConversationsController(ChatService chat) : ControllerBase
     {
         var (conversation, created) = await chat.OpenAsync(User.GetUserId(), request.Username.Trim(), ct);
         return created
-            ? StatusCode(StatusCodes.Status201Created, conversation)
+            ? CreatedAtAction(nameof(Get), new { id = conversation.Id }, conversation)
             : Ok(conversation);
     }
 
