@@ -1,11 +1,11 @@
 "use client";
 
 import { Search, SquarePen } from "lucide-react";
-import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
 import { useId, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Hint } from "@/components/ui/hint";
+import { IntentLink } from "@/components/ui/intent-link";
 import { ListFooter } from "@/components/ui/list-footer";
 import type { Conversation, OpaquePage } from "@/lib/api/types";
 import { queryKeys } from "@/lib/queries/keys";
@@ -102,7 +102,7 @@ export function Inbox({ initial, viewerId }: { initial: OpaquePage<Conversation>
               const open = openId === String(conversation.id);
               return (
                 <li key={conversation.id}>
-                  <Link
+                  <IntentLink
                     href={`/messages/${conversation.id}`}
                     aria-current={open ? "page" : undefined}
                     className={cn(
@@ -146,7 +146,7 @@ export function Inbox({ initial, viewerId }: { initial: OpaquePage<Conversation>
                         )}
                       </span>
                     </span>
-                  </Link>
+                  </IntentLink>
                 </li>
               );
             })}

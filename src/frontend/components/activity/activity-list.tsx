@@ -2,10 +2,10 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { CornerDownRight, Heart, type LucideIcon, MessageCircle, UserPlus } from "lucide-react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
+import { IntentLink } from "@/components/ui/intent-link";
 import { ListFooter } from "@/components/ui/list-footer";
 import { Panel } from "@/components/ui/panel";
 import { Segmented } from "@/components/ui/segmented";
@@ -157,7 +157,7 @@ export function ActivityList({ initialFilter, initial, now, viewerUsername }: Ac
 function ActivityRow({ item, viewerUsername }: { item: ActivityItem; viewerUsername: string }) {
   const { icon: Icon, tone } = looks[item.kind];
   return (
-    <Link
+    <IntentLink
       href={activityHref(item, viewerUsername)}
       className={cn(
         "relative flex gap-3.5 border-b border-line px-4 py-4 transition-colors hover:bg-raised/50 sm:px-6",
@@ -194,7 +194,7 @@ function ActivityRow({ item, viewerUsername }: { item: ActivityItem; viewerUsern
           <span className="mt-1 line-clamp-2 block text-sm text-muted">“{withoutTitleLabel(item.excerpt)}”</span>
         )}
       </span>
-    </Link>
+    </IntentLink>
   );
 }
 

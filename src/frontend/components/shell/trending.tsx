@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Flame, Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { IntentLink } from "@/components/ui/intent-link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/lib/api/client";
 import type { OpaquePage, Post } from "@/lib/api/types";
@@ -57,7 +58,7 @@ export function Trending() {
 function TrendingItem({ post, rank }: { post: Post; rank: number }) {
   const { label, icon: KindIcon } = kindInfo(post.kind);
   return (
-    <Link
+    <IntentLink
       href={`/p/${post.id}`}
       className="group -mx-2 flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-raised"
     >
@@ -97,7 +98,7 @@ function TrendingItem({ post, rank }: { post: Post; rank: number }) {
           </span>
         </span>
       </span>
-    </Link>
+    </IntentLink>
   );
 }
 

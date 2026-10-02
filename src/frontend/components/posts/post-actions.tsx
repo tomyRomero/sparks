@@ -1,8 +1,8 @@
 "use client";
 
 import { MessageCircle, Send } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
+import { IntentLink } from "@/components/ui/intent-link";
 import type { Post } from "@/lib/api/types";
 import { LikeButton, type LikeControl, LikeToggle } from "./like-button";
 import { ShareDialog } from "./share-dialog";
@@ -33,11 +33,11 @@ export function PostActions({ post, signedIn, commentsHref, like }: PostActionsP
           signedIn={signedIn}
         />
       )}
-      <Link href={commentsHref} className={`${actionStyle} hover:bg-brand/10 hover:text-brand`}>
+      <IntentLink href={commentsHref} className={`${actionStyle} hover:bg-brand/10 hover:text-brand`}>
         <MessageCircle className="size-[18px]" aria-hidden />
         {post.commentCount}
         <span className="sr-only">{post.commentCount === 1 ? " comment" : " comments"}</span>
-      </Link>
+      </IntentLink>
       <button
         type="button"
         onClick={() => setSharing(true)}

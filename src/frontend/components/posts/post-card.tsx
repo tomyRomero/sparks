@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Marked } from "@/components/search/highlight";
 import { Avatar } from "@/components/ui/avatar";
+import { IntentLink } from "@/components/ui/intent-link";
 import type { Post } from "@/lib/api/types";
 import { kindInfo } from "@/lib/kinds";
 import { fullDate, timeAgo } from "@/lib/time";
@@ -24,20 +24,20 @@ export function PostCard({ post, signedIn, eagerImage = false }: PostCardProps) 
       className="flex flex-col gap-3.5 rounded-[18px] border border-line bg-surface p-4 shadow-card sm:p-5"
     >
       <header className="flex items-center gap-3">
-        <Link href={profile} className="shrink-0 rounded-full" tabIndex={-1} aria-hidden>
+        <IntentLink href={profile} className="shrink-0 rounded-full" tabIndex={-1} aria-hidden>
           <Avatar name={post.author.displayName} src={post.author.avatarUrl} size={44} />
-        </Link>
+        </IntentLink>
         <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2">
-          <Link href={profile} className="truncate text-[15.5px] font-semibold hover:underline">
+          <IntentLink href={profile} className="truncate text-[15.5px] font-semibold hover:underline">
             <Marked text={post.author.displayName} />
-          </Link>
+          </IntentLink>
           <span className="truncate font-mono text-xs text-muted">
             @<Marked text={post.author.username} /> ·{" "}
-            <Link href={href} className="hover:underline">
+            <IntentLink href={href} className="hover:underline">
               <time dateTime={post.createdAt} title={fullDate(post.createdAt)} suppressHydrationWarning>
                 {timeAgo(post.createdAt)}
               </time>
-            </Link>
+            </IntentLink>
           </span>
         </div>
         {post.aiPrompt && <AiChip />}
@@ -50,27 +50,27 @@ export function PostCard({ post, signedIn, eagerImage = false }: PostCardProps) 
         // The commenter's face and name go to their profile; anywhere else
         // opens the spark's comments.
         <div className="relative flex items-start gap-2.5 rounded-xl bg-raised px-3.5 py-3 transition-colors has-[a:hover]:bg-line/60">
-          <Link
+          <IntentLink
             href={`/u/${post.topComment.author.username}`}
             className="relative z-10 shrink-0 rounded-full"
             tabIndex={-1}
             aria-hidden
           >
             <Avatar name={post.topComment.author.displayName} src={post.topComment.author.avatarUrl} size={28} />
-          </Link>
+          </IntentLink>
           <p className="line-clamp-2 min-w-0 text-sm leading-normal">
-            <Link
+            <IntentLink
               href={`/u/${post.topComment.author.username}`}
               className="relative z-10 font-semibold hover:underline"
             >
               {post.topComment.author.displayName}
-            </Link>{" "}
-            <Link
+            </IntentLink>{" "}
+            <IntentLink
               href={`${href}#comments`}
               className="text-ink-soft after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand/50"
             >
               {post.topComment.body}
-            </Link>
+            </IntentLink>
           </p>
         </div>
       )}

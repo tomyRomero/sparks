@@ -1,9 +1,9 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import Link from "next/link";
 import { Marked } from "@/components/search/highlight";
 import { Avatar } from "@/components/ui/avatar";
+import { IntentLink } from "@/components/ui/intent-link";
 import { ListFooter } from "@/components/ui/list-footer";
 import type { UserSummary } from "@/lib/api/types";
 import type { ListPaging } from "@/lib/queries/use-paged-list";
@@ -61,12 +61,12 @@ export function MemberRow({ member, action }: { member: ListedMember; action?: R
       <Avatar name={member.displayName} src={member.avatarUrl} size={44} />
       <span className="min-w-0 flex-1">
         {/* The link covers the row; the action sits above it. */}
-        <Link
+        <IntentLink
           href={`/u/${member.username}`}
           className="block truncate font-semibold after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-brand/50 focus-visible:after:ring-inset"
         >
           <Marked text={member.displayName} />
-        </Link>
+        </IntentLink>
         <span className="block truncate label-mono">
           @<Marked text={member.username} />
         </span>

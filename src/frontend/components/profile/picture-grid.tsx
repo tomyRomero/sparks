@@ -2,7 +2,7 @@
 
 import { Heart, MessageCircle } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { IntentLink } from "@/components/ui/intent-link";
 import { ListFooter } from "@/components/ui/list-footer";
 import type { CursorPage, Post } from "@/lib/api/types";
 import { kindInfo } from "@/lib/kinds";
@@ -31,7 +31,7 @@ export function PictureGrid({ initial, path, queryKey, empty }: PictureGridProps
           const { label, icon: KindIcon } = kindInfo(post.kind);
           return (
             <li key={post.id}>
-              <Link
+              <IntentLink
                 href={`/p/${post.id}`}
                 className="group relative block aspect-square overflow-hidden rounded-[14px] bg-raised"
               >
@@ -61,7 +61,7 @@ export function PictureGrid({ initial, path, queryKey, empty }: PictureGridProps
                     </span>
                   </span>
                 </span>
-              </Link>
+              </IntentLink>
             </li>
           );
         })}

@@ -2,7 +2,6 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, CornerDownRight } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
@@ -11,6 +10,7 @@ import { LikeButton } from "@/components/posts/like-button";
 import { TextForm } from "@/components/posts/text-form";
 import { Avatar } from "@/components/ui/avatar";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { IntentLink } from "@/components/ui/intent-link";
 import { api } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/problem";
 import type { Comment, CurrentUser } from "@/lib/api/types";
@@ -86,21 +86,21 @@ export function CommentItem({ comment, viewer, depth, onDeleted, startExpanded =
   return (
     <div className={cn(depth === 0 ? "border-b border-line px-4 py-4 sm:px-6" : "pt-4")}>
       <div className="flex gap-3">
-        <Link href={profile} className="shrink-0" tabIndex={-1} aria-hidden>
+        <IntentLink href={profile} className="shrink-0" tabIndex={-1} aria-hidden>
           <Avatar name={comment.author.displayName} src={comment.author.avatarUrl} size={depth === 0 ? 36 : 30} />
-        </Link>
+        </IntentLink>
         <div className="min-w-0 flex-1">
           <header className="flex items-start gap-2">
             <p className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2">
-              <Link href={profile} className="text-sm font-semibold hover:underline">
+              <IntentLink href={profile} className="text-sm font-semibold hover:underline">
                 {comment.author.displayName}
-              </Link>
+              </IntentLink>
               <span className="label-mono">@{comment.author.username}</span>
-              <Link href={`/c/${comment.id}`} className="label-mono hover:underline">
+              <IntentLink href={`/c/${comment.id}`} className="label-mono hover:underline">
                 <time dateTime={comment.createdAt} title={fullDate(comment.createdAt)} suppressHydrationWarning>
                   {timeAgo(comment.createdAt)}
                 </time>
-              </Link>
+              </IntentLink>
               {comment.editedAt && <span className="label-mono">· edited</span>}
             </p>
             {mine && !editing && (
@@ -178,13 +178,13 @@ export function CommentItem({ comment, viewer, depth, onDeleted, startExpanded =
                   : `${comment.replyCount} ${comment.replyCount === 1 ? "reply" : "replies"}`}
               </button>
             ) : (
-              <Link
+              <IntentLink
                 href={`/c/${comment.id}`}
                 className="mt-1 -ml-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-brand hover:bg-brand/10"
               >
                 <CornerDownRight className="size-4" aria-hidden />
                 Continue this thread
-              </Link>
+              </IntentLink>
             ))}
 
           {showReplies && nestsHere && (

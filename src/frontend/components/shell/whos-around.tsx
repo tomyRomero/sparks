@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { MessageButton } from "@/components/messages/message-button";
 import { Avatar } from "@/components/ui/avatar";
+import { IntentLink } from "@/components/ui/intent-link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMembersAround } from "@/lib/queries/presence";
 import { lastActive } from "@/lib/time";
@@ -35,7 +35,7 @@ export function WhosAround() {
         <ul>
           {members!.map(({ user, online, lastSeenAt }) => (
             <li key={user.id} className="flex items-center gap-3 py-2">
-              <Link href={`/u/${user.username}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg">
+              <IntentLink href={`/u/${user.username}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg">
                 <Avatar name={user.displayName} src={user.avatarUrl} size={38} online={online} />
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate text-[14.5px] font-semibold">{user.displayName}</span>
@@ -46,7 +46,7 @@ export function WhosAround() {
                     {online ? "Online" : lastSeenAt ? lastActive(lastSeenAt) : ""}
                   </span>
                 </span>
-              </Link>
+              </IntentLink>
               <MessageButton username={user.username} compact />
             </li>
           ))}

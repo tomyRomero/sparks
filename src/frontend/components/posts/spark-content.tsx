@@ -2,9 +2,9 @@
 
 import { Heart } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Marked } from "@/components/search/highlight";
+import { IntentLink } from "@/components/ui/intent-link";
 import type { Post } from "@/lib/api/types";
 import { haikuLines, splitSpark } from "@/lib/spark-text";
 import { cn } from "@/lib/utils";
@@ -25,9 +25,9 @@ export function SparkContent({ post, variant, eagerImage = false, onDoubleTap }:
   const href = `/p/${post.id}`;
   const linked = (content: React.ReactNode, className?: string) =>
     card ? (
-      <Link href={href} className={cn("block", className)}>
+      <IntentLink href={href} className={cn("block", className)}>
         {content}
-      </Link>
+      </IntentLink>
     ) : (
       <div className={className}>{content}</div>
     );
@@ -281,9 +281,9 @@ function Picture({ src, href, frame, sizes, eager, className, onDoubleTap }: Pic
   const frameStyle = cn("relative block overflow-hidden rounded-[14px] bg-raised", frame);
   if (href) {
     return (
-      <Link href={href} className={frameStyle} tabIndex={-1} aria-hidden>
+      <IntentLink href={href} className={frameStyle} tabIndex={-1} aria-hidden>
         {image}
-      </Link>
+      </IntentLink>
     );
   }
   return onDoubleTap ? (

@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { Avatar } from "@/components/ui/avatar";
+import { IntentLink } from "@/components/ui/intent-link";
 import type { SharedSpark } from "@/lib/api/types";
 import { kindInfo } from "@/lib/kinds";
 import { splitSpark } from "@/lib/spark-text";
@@ -19,7 +19,7 @@ export function SharedSparkCard({ spark, mine, className }: SharedSparkCardProps
   const { title, text } = splitSpark(spark.kind, spark.body);
   const { label, icon: Icon } = kindInfo(spark.kind);
   return (
-    <Link
+    <IntentLink
       href={`/p/${spark.id}`}
       className={cn(
         "flex w-[380px] max-w-full flex-col gap-2.5 rounded-[20px] bg-surface p-3.5 text-ink transition-colors",
@@ -51,6 +51,6 @@ export function SharedSparkCard({ spark, mine, className }: SharedSparkCardProps
         Open spark
         <ArrowRight className="size-3.5" aria-hidden />
       </span>
-    </Link>
+    </IntentLink>
   );
 }

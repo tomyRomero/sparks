@@ -1,7 +1,7 @@
 "use client";
 
 import { CornerDownRight, Heart, MessageCircle } from "lucide-react";
-import Link from "next/link";
+import { IntentLink } from "@/components/ui/intent-link";
 import { ListFooter } from "@/components/ui/list-footer";
 import type { Comment, CursorPage } from "@/lib/api/types";
 import { usePagedList } from "@/lib/queries/use-paged-list";
@@ -33,12 +33,12 @@ export function CommentFeed({ initial, path, queryKey, empty }: CommentFeedProps
                 {timeAgo(comment.createdAt)}
               </time>
             </p>
-            <Link
+            <IntentLink
               href={`/c/${comment.id}`}
               className="mt-1.5 block leading-relaxed whitespace-pre-line hover:underline"
             >
               {comment.body}
-            </Link>
+            </IntentLink>
             <p className="mt-2 flex gap-4 font-mono text-xs text-muted">
               <span className="inline-flex items-center gap-1">
                 <Heart className="size-3.5" aria-hidden />
@@ -50,9 +50,9 @@ export function CommentFeed({ initial, path, queryKey, empty }: CommentFeedProps
                 {comment.replyCount}
                 <span className="sr-only">{comment.replyCount === 1 ? " reply" : " replies"}</span>
               </span>
-              <Link href={`/p/${comment.postId}`} className="ml-auto text-brand hover:underline">
+              <IntentLink href={`/p/${comment.postId}`} className="ml-auto text-brand hover:underline">
                 View the spark
-              </Link>
+              </IntentLink>
             </p>
           </li>
         ))}
