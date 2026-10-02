@@ -112,17 +112,7 @@ export function HomeFeed({ initialFilter, initial, signedIn }: HomeFeedProps) {
           stale={loading}
           empty={
             <>
-              <p className="font-display text-lg font-semibold">
-                {filtered
-                  ? "No sparks match these filters"
-                  : listed.following
-                    ? listed.sort === "top"
-                      ? "Nothing from the people you follow was liked this week"
-                      : "Nothing from the people you follow yet"
-                    : listed.sort === "top"
-                      ? "Nothing's been liked this week"
-                      : "No sparks yet"}
-              </p>
+              <p className="font-display text-lg font-semibold">{emptyTitle(listed, filtered)}</p>
               {filtered ? (
                 <Button
                   variant="secondary"
@@ -148,6 +138,16 @@ export function HomeFeed({ initialFilter, initial, signedIn }: HomeFeedProps) {
       )}
     </>
   );
+}
+
+function emptyTitle({ following, sort }: FeedFilter, filtered: boolean): string {
+  if (filtered) return "No sparks match these filters";
+  if (following) {
+    return sort === "top"
+      ? "Nothing from the people you follow was liked this week"
+      : "Nothing from the people you follow yet";
+  }
+  return sort === "top" ? "Nothing's been liked this week" : "No sparks yet";
 }
 
 /**

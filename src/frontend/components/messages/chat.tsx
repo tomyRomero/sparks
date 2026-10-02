@@ -7,7 +7,7 @@ import { Fragment, useEffect, useEffectEvent, useLayoutEffect, useRef, useState,
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api/client";
-import type { Conversation, CurrentUser, CursorPage, Message, Post, SharedSpark, UserSummary } from "@/lib/api/types";
+import type { Conversation, CurrentUser, CursorPage, Message, Post, Presence, SharedSpark } from "@/lib/api/types";
 import { groupChat } from "@/lib/chat";
 import { queryKeys } from "@/lib/queries/keys";
 import { addCachedMessage, markCachedMessagesRead, messagePreview } from "@/lib/queries/messages";
@@ -169,13 +169,7 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
 
   const days = groupChat(messages);
   const lastMine = newestFirst.find((message) => message.senderId === viewer.id);
-  const status = typing
-    ? { text: "typing…", tone: "text-brand" }
-    : presence?.online
-      ? { text: "Online", tone: "text-success" }
-      : presence?.lastSeenAt
-        ? { text: lastActive(presence.lastSeenAt), tone: "text-muted" }
-        : null;
+  const status = chatStatus(typing, presence);
 
   return (
     <section aria-labelledby="chat-title" className="flex h-dvh min-w-0 flex-1 flex-col bg-canvas">
@@ -272,7 +266,7 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
                             message={message}
                             mine={mine}
                             first={index === 0}
-                            sender={mine ? null : other}
+                            who={mine ? "You" : other.displayName}
                           />
                         </li>
                       ))}
@@ -298,7 +292,7 @@ export function Chat({ conversation, initial, viewer }: ChatProps) {
                       message={{ body: item.body, sharedPost: item.sharedPost }}
                       mine
                       first={false}
-                      sender={null}
+                      who="You"
                     />
                   </div>
                   {item.failed ? (
@@ -357,11 +351,11 @@ type MessageContentProps = {
   mine: boolean;
   /** The first in its run: a shared spark there gets a line saying who shared it. */
   first: boolean;
-  sender: UserSummary | null;
+  /** "You", or the other participant's name. */
+  who: string;
 };
 
-function MessageContent({ message, mine, first, sender }: MessageContentProps) {
-  const who = mine ? "You" : sender!.displayName;
+function MessageContent({ message, mine, first, who }: MessageContentProps) {
   return (
     <div className={cn("flex min-w-0 flex-col gap-1", mine ? "items-end" : "items-start")}>
       {message.sharedPost && (
@@ -395,6 +389,14 @@ function MessageContent({ message, mine, first, sender }: MessageContentProps) {
       )}
     </div>
   );
+}
+
+/** Under the name: typing, online, or when they were last around. */
+function chatStatus(typing: boolean, presence: Presence | undefined): { text: string; tone: string } | null {
+  if (typing) return { text: "typing…", tone: "text-brand" };
+  if (presence?.online) return { text: "Online", tone: "text-success" };
+  if (presence?.lastSeenAt) return { text: lastActive(presence.lastSeenAt), tone: "text-muted" };
+  return null;
 }
 
 function sharedFrom(post: Post): SharedSpark {
