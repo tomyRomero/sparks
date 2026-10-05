@@ -1,0 +1,77 @@
+# Local development services: SQL Server, and an S3 bucket for pictures.
+# Start with `docker compose up -d --wait`.
+#
+# Everything belongs to the "sparks" project (containers, volumes, network), and
+# ports are published on 127.0.0.1 only, so nothing is reachable from the
+# local network.
+name: sparks
+
+services:
+  sql:
+    # SQL Server 2025, Developer edition. The image is x64-only; on Apple
+    # Silicon, Docker Desktop runs it through Rosetta.
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    platform: linux/amd64
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: "${SA_PASSWORD:?SA_PASSWORD is not set. Run scripts/setup-dev.sh first.}"
+    ports:
+      - "127.0.0.1:14332:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    # The image's launcher script starts SQL Server in the background and
+    # waits as process 1, which ignores Docker's stop signal, so every stop
+    # would be a forced kill followed by crash recovery on the next start.
+    # Starting sqlservr directly makes it process 1 and lets it shut down
+    # cleanly. The launcher's extra steps only print a notice and create
+    # databases from MSSQL_DB, which Sparks doesn't use (EF Core creates the
+    # database).
+    entrypoint: ["/opt/mssql/bin/sqlservr"]
+    # SQL Server refuses to start with less than 2 GB.
+    mem_limit: 2g
+    # A clean shutdown under emulation can take longer than Docker's default
+    # 10 seconds.
+    stop_grace_period: 30s
+    healthcheck:
+      # $$ leaves the variable for the container's shell, so the password
+      # never appears in the container's configuration. sqlcmd reads it from
+      # SQLCMDPASSWORD rather than -P, so it never appears in the process
+      # list either (docker top, ps).
+      test: ["CMD-SHELL", "SQLCMDPASSWORD=\"$$MSSQL_SA_PASSWORD\" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -Q \"SELECT 1\""]
+      # The first start builds the system databases on a new volume, which can
+      # take a few minutes under emulation; later starts take about 30 seconds.
+      start_period: 5m
+      start_interval: 5s
+      # Every check starts sqlcmd under emulation, which costs a burst of CPU;
+      # once healthy, twice a minute is plenty.
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  storage:
+    # SeaweedFS stands in for Cloudflare R2: the same S3 API, so pictures
+    # work without an account. It signs requests with the key pair from .env,
+    # and scripts/setup-dev.sh gives the API the same pair unless a bucket is
+    # already set.
+    image: chrislusf/seaweedfs:4.48
+    command: ["mini", "-dir=/data", "-bucket=sparks", "-admin.ui=false", "-master.telemetry=false"]
+    environment:
+      AWS_ACCESS_KEY_ID: "${STORAGE_ACCESS_KEY_ID:?STORAGE_ACCESS_KEY_ID is not set. Run scripts/setup-dev.sh first.}"
+      AWS_SECRET_ACCESS_KEY: "${STORAGE_SECRET_ACCESS_KEY:?STORAGE_SECRET_ACCESS_KEY is not set. Run scripts/setup-dev.sh first.}"
+    ports:
+      - "127.0.0.1:8333:8333"
+    volumes:
+      - storage-data:/data
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8333/healthz"]
+      start_period: 1m
+      start_interval: 2s
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mssql-data:
+  storage-data:

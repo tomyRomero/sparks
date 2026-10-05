@@ -1,0 +1,19 @@
+"use client";
+
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api/client";
+import type { CursorPage, UserSummary } from "@/lib/api/types";
+import { useDebouncedValue } from "@/lib/forms";
+import { queryKeys } from "./keys";
+
+/** Debounced member search that keeps the last results while the next load. */
+export function useMemberLookup(text: string) {
+  const term = useDebouncedValue(text.trim(), 250);
+  const query = useQuery({
+    queryKey: queryKeys.memberLookup(term),
+    queryFn: () => api<CursorPage<UserSummary>>(`/users?q=${encodeURIComponent(term)}&limit=8`),
+    enabled: term.length > 0,
+    placeholderData: keepPreviousData,
+  });
+  return { term, query };
+}

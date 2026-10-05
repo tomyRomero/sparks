@@ -1,0 +1,309 @@
+@import "tailwindcss";
+
+/*
+ * Sparks' electric look: cool blue-tinted neutrals, a brand blue, and a
+ * cyan "charge" reserved for anything AI. Each colour is a light-dark() pair;
+ * the page follows the system unless data-theme on <html> picks one.
+ */
+:root {
+  color-scheme: light dark;
+  --canvas: light-dark(#f2f5fb, #070c16);
+  --surface: light-dark(#ffffff, #0e1523);
+  --raised: light-dark(#eaf0f9, #141d2f);
+  --line: light-dark(#d9e2ef, #1e2a3f);
+  --line-strong: light-dark(#bccadf, #2b3a54);
+  --ink: light-dark(#0a1424, #e8eef8);
+  --ink-soft: light-dark(#2f3e57, #c2cde0);
+  --muted: light-dark(#56667f, #8a9ab2);
+  --brand: light-dark(#0060d4, #4a92ff);
+  --brand-hover: light-dark(#004fb0, #6ea8ff);
+  --brand-ink: light-dark(#ffffff, #04101f);
+  --brand-soft: light-dark(#e2edff, #10264a);
+  --charge: light-dark(#0a7894, #22d3ee);
+  --charge-bright: light-dark(#22d3ee, #67e8f9);
+  --charge-soft: light-dark(#dcf6fb, #0b2a33);
+  --like: light-dark(#d61a6c, #ff4d94);
+  --danger: light-dark(#c62b3b, #ff6b78);
+  --danger-soft: light-dark(#fdecee, #2d1116);
+  --success: light-dark(#0b7a53, #34d399);
+  --warn: light-dark(#8a5a00, #f5c451);
+  --online: light-dark(#12b76a, #34d399);
+  /* Search matches, like a highlighter pen. */
+  --mark: light-dark(#fde68a, #5a4611);
+  --focus: light-dark(#0060d4, #6ea8ff);
+  /* The dark panel a movie script plays on, in either mode. */
+  --screen: light-dark(#0b1224, #04070e);
+  --screen-ink: #e8eef8;
+  --screen-muted: #8fa3c2;
+  --shadow-near: light-dark(rgb(10 20 36 / 0.05), rgb(0 0 0 / 0.4));
+  --shadow-far: light-dark(rgb(10 20 36 / 0.18), rgb(0 0 0 / 0.7));
+  --card-shadow: 0 1px 2px var(--shadow-near), 0 10px 28px -16px var(--shadow-far);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-charge: var(--charge);
+  --color-charge-bright: var(--charge-bright);
+  --color-charge-soft: var(--charge-soft);
+  --color-like: var(--like);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-warn: var(--warn);
+  --color-online: var(--online);
+  --color-mark: var(--mark);
+  --color-screen: var(--screen);
+  --color-screen-ink: var(--screen-ink);
+  --color-screen-muted: var(--screen-muted);
+
+  --shadow-card: var(--card-shadow);
+
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-instrument-sans), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-wordmark: var(--font-agbalumo), var(--font-bricolage), sans-serif;
+  /* A typewriter face for movie scripts. */
+  --font-script: var(--font-courier-prime), "Courier New", ui-monospace, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --animate-shimmer: shimmer 1.4s linear infinite;
+  --animate-progress: progress 1.2s ease-in-out infinite;
+  --animate-pop: pop 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  --animate-typing: typing 1.2s ease-in-out infinite;
+  --animate-menu-in: menu-in 0.14s ease-out;
+  --animate-heart-pop: heart-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  --animate-like-ring: like-ring 0.45s ease-out forwards;
+  --animate-big-heart: big-heart 0.9s ease-out forwards;
+  --animate-fade-flash: fade-flash 0.9s ease-out forwards;
+  --animate-like-spark: like-spark 0.6s cubic-bezier(0.1, 0.7, 0.3, 1) forwards;
+  --animate-roll-up: roll-up 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
+  --animate-roll-down: roll-down 0.25s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@layer base {
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* Tailwind 4 leaves buttons with the default arrow. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  select:not(:disabled),
+  label:has(> input:is([type="radio"], [type="checkbox"], [type="file"]):not(:disabled)) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: var(--brand-soft);
+  }
+}
+
+/* Mono sentence-case labels: kinds, counts, timestamps. */
+@utility label-mono {
+  @apply font-mono text-[11px] tracking-wide text-muted;
+}
+
+/* The shimmer on AI actions while they work. */
+@utility charge-shimmer {
+  background: linear-gradient(110deg, var(--charge-soft) 30%, var(--charge-bright) 50%, var(--charge-soft) 70%);
+  background-size: 250% 100%;
+  animation: charge 1.6s linear infinite;
+}
+
+@keyframes charge {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+/* The sweep across a skeleton block while its content loads. */
+@utility skeleton-fill {
+  background: linear-gradient(90deg, var(--line) 20%, var(--raised) 50%, var(--line) 80%);
+  background-size: 250% 100%;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+/* The bar that runs along the top of the window while a page loads. */
+@keyframes progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+/* A joke's punchline arriving. */
+@keyframes pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Menus and popovers opening from their trigger. */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/* Liking: the heart pops, a ring spreads and sparks fly off it. */
+@keyframes heart-pop {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(0.78);
+  }
+  60% {
+    transform: scale(1.28);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* A double tap on a picture: a big heart lands on it and lifts away. */
+@keyframes big-heart {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  15% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(0.95);
+  }
+  45% {
+    transform: scale(1);
+  }
+  75% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-12px) scale(1.05);
+    opacity: 0;
+  }
+}
+
+/* The same moment for reduced motion: it appears and fades, nothing moves. */
+@keyframes fade-flash {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  20%,
+  70% {
+    opacity: 1;
+  }
+}
+
+@keyframes like-ring {
+  from {
+    transform: scale(0.3);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.35);
+    opacity: 0;
+    border-width: 0;
+  }
+}
+
+@keyframes like-spark {
+  from {
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-5px) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-16px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* A count changing: the new number rolls in. */
+@keyframes roll-up {
+  from {
+    transform: translateY(70%);
+    opacity: 0;
+  }
+}
+
+@keyframes roll-down {
+  from {
+    transform: translateY(-70%);
+    opacity: 0;
+  }
+}
+
+/* The three dots while someone types. */
+@keyframes typing {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

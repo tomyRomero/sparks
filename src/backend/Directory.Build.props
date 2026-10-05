@@ -1,0 +1,21 @@
+<Project>
+
+  <!-- Shared by every backend project. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Zero warnings: each one is fixed, or suppressed where it occurs with a reason. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- The .editorconfig style rules apply to builds too, not only the editor. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!--
+      Doc comments are compiled, so a broken reference fails the build (and the
+      compiler can report unused usings). Not every member needs one, and a
+      record documents only the parameters that need explaining.
+    -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;CS1573</NoWarn>
+  </PropertyGroup>
+
+</Project>

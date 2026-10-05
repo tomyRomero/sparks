@@ -1,0 +1,221 @@
+@api = http://localhost:5100
+
+### Liveness: the process is up
+GET {{api}}/health/live
+
+### Readiness: dependencies are reachable
+GET {{api}}/health/ready
+
+### OpenAPI document (Development only)
+GET {{api}}/openapi/v1.json
+
+# Auth: the API sets HttpOnly cookies, which the HTTP client keeps between
+# requests. Passwords are prompted for, never saved in this file.
+
+### Is a username free? (what the sign-up form asks as you type)
+GET {{api}}/api/v1/auth/username-available?username=demo
+
+### Sign up
+# @prompt password
+POST {{api}}/api/v1/auth/signup
+Content-Type: application/json
+
+{
+  "email": "demo@example.test",
+  "username": "demo",
+  "displayName": "Demo User",
+  "password": "{{password}}"
+}
+
+### Sign in with email or username
+# @prompt password
+POST {{api}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "demo",
+  "password": "{{password}}"
+}
+
+### Who am I
+GET {{api}}/api/v1/auth/me
+
+### Rotate the refresh token
+POST {{api}}/api/v1/auth/refresh
+
+### Sign out
+POST {{api}}/api/v1/auth/logout
+
+# Posts and comments: reading is anonymous, writing needs the sign-in above.
+# Later requests reuse the ids the create requests return.
+
+### The feed, newest first (optional: kind, q, cursor, limit)
+GET {{api}}/api/v1/posts?limit=10
+
+### Write a post
+# @name createPost
+POST {{api}}/api/v1/posts
+Content-Type: application/json
+
+{
+  "kind": "haiku",
+  "body": "An autumn evening\nthe server answers softly\ntwo hundred and one"
+}
+
+### Edit it
+PATCH {{api}}/api/v1/posts/{{createPost.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "body": "An edited spark."
+}
+
+### Like it
+PUT {{api}}/api/v1/posts/{{createPost.response.body.$.id}}/like
+
+### Comment on it
+# @name createComment
+POST {{api}}/api/v1/posts/{{createPost.response.body.$.id}}/comments
+Content-Type: application/json
+
+{
+  "body": "First!"
+}
+
+### Reply to the comment
+POST {{api}}/api/v1/comments/{{createComment.response.body.$.id}}/replies
+Content-Type: application/json
+
+{
+  "body": "A reply."
+}
+
+### The thread, oldest first
+GET {{api}}/api/v1/posts/{{createPost.response.body.$.id}}/comments
+
+### The comment's replies
+GET {{api}}/api/v1/comments/{{createComment.response.body.$.id}}/replies
+
+### Delete the comment and its replies
+DELETE {{api}}/api/v1/comments/{{createComment.response.body.$.id}}
+
+### Delete the post
+DELETE {{api}}/api/v1/posts/{{createPost.response.body.$.id}}
+
+# Members: profiles are public; editing needs the sign-in above.
+
+### Find members by username or display name
+GET {{api}}/api/v1/users?q=demo
+
+### A profile
+GET {{api}}/api/v1/users/demo
+
+### The lists on a profile: posts, comments, liked
+GET {{api}}/api/v1/users/demo/posts
+
+### Edit your profile (a blank bio clears it)
+PATCH {{api}}/api/v1/users/me
+Content-Type: application/json
+
+{
+  "displayName": "Demo User",
+  "bio": "Writes haiku between builds."
+}
+
+# Activity: what others did to your posts and comments (needs sign-in).
+
+### Newest first (optional: cursor, limit)
+# @name activity
+GET {{api}}/api/v1/activity
+
+### Unread count, for a badge
+GET {{api}}/api/v1/activity/unread-count
+
+### Mark read up to the newest item seen
+POST {{api}}/api/v1/activity/read
+Content-Type: application/json
+
+{
+  "upTo": "{{activity.response.body.$.items[0].at}}"
+}
+
+# Chat: private conversations (needs sign-in). New messages and read receipts
+# are also pushed live over the SignalR hub at /hubs/live.
+
+### Open the conversation with a member (201 the first time, 200 after)
+# @name conversation
+POST {{api}}/api/v1/conversations
+Content-Type: application/json
+
+{
+  "username": "someone_else"
+}
+
+### One conversation, from your side
+GET {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}
+
+### Send a message
+# @name message
+POST {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}/messages
+Content-Type: application/json
+
+{
+  "body": "Hello!"
+}
+
+### Share a spark in a message (the text can be left out)
+POST {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}/messages
+Content-Type: application/json
+
+{
+  "body": "You'll like this one",
+  "sharedPostId": {{createPost.response.body.$.id}}
+}
+
+### The conversation's messages, newest first
+GET {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}/messages
+
+### Mark read up to a message
+POST {{api}}/api/v1/conversations/{{conversation.response.body.$.id}}/read
+Content-Type: application/json
+
+{
+  "upToMessageId": {{message.response.body.$.id}}
+}
+
+### The inbox, most recent conversation first
+GET {{api}}/api/v1/conversations
+
+### Unread messages, for a badge
+GET {{api}}/api/v1/conversations/unread-count
+
+# Presence: who's online (needs sign-in). Arrivals and departures are also
+# pushed live over the hub as PresenceChanged.
+
+### Whether these members are online, and when they last were
+GET {{api}}/api/v1/presence?ids=1&ids=2
+
+### A few members who are around: online first, then the most recently seen
+GET {{api}}/api/v1/presence/around?limit=5
+
+# AI: drafts and pictures (needs sign-in; limited per member per hour).
+# Sample providers answer by default; set Ai:TextProvider=Gemini and
+# Ai:ImageProvider=Cloudflare, with their keys in user secrets, for real ones.
+
+### Draft a spark from an idea
+# @name draft
+POST {{api}}/api/v1/ai/drafts
+Content-Type: application/json
+
+{
+  "kind": "movieScript",
+  "prompt": "A lighthouse keeper keeps hearing a radio station that went off air in 1962"
+}
+
+### Paint the draft's picture (returns a key to attach to a post)
+POST {{api}}/api/v1/ai/images
+Content-Type: application/json
+
+{
+  "prompt": "{{draft.response.body.$.imagePrompt}}"
+}

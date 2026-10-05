@@ -1,0 +1,63 @@
+"use client";
+
+import { MessageCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api/client";
+import { errorMessage } from "@/lib/api/problem";
+import type { Conversation } from "@/lib/api/types";
+import { cn } from "@/lib/utils";
+
+type MessageButtonProps = {
+  username: string;
+  /** A small text button, for lists. */
+  compact?: boolean;
+  /** Just the icon on phones, where it shares a row with other buttons. */
+  iconOnPhones?: boolean;
+};
+
+export function MessageButton({ username, compact = false, iconOnPhones = false }: MessageButtonProps) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+
+  function open() {
+    startTransition(async () => {
+      try {
+        const conversation = await api<Conversation>("/conversations", { method: "POST", json: { username } });
+        router.push(`/messages/${conversation.id}`);
+      } catch (error) {
+        toast.error(errorMessage(error));
+      }
+    });
+  }
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={open}
+        disabled={pending}
+        aria-busy={pending}
+        className="inline-flex h-[34px] shrink-0 items-center rounded-[10px] bg-raised px-3 text-[13px] font-semibold text-ink transition-colors hover:bg-line disabled:opacity-60"
+      >
+        {pending ? "Opening…" : "Message"}
+        <span className="sr-only"> {username}</span>
+      </button>
+    );
+  }
+
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      onClick={open}
+      disabled={pending}
+      className={cn(iconOnPhones && "max-sm:px-2")}
+    >
+      <MessageCircle aria-hidden />
+      <span className={cn(iconOnPhones && "max-sm:sr-only")}>{pending ? "Opening…" : "Message"}</span>
+    </Button>
+  );
+}

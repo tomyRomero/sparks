@@ -1,0 +1,40 @@
+using Microsoft.EntityFrameworkCore;
+using Sparks.Api.Auth.Data;
+using Sparks.Api.Chat.Data;
+using Sparks.Api.Posts.Data;
+using Sparks.Api.Users.Data;
+
+namespace Sparks.Api.Common.Data;
+
+/// <summary>
+/// Entity configurations live in each feature's Data folder and are picked up here.
+/// </summary>
+public sealed class SparksDbContext(DbContextOptions<SparksDbContext> options) : DbContext(options)
+{
+    public DbSet<UserEntity> Users => Set<UserEntity>();
+    public DbSet<FollowEntity> Follows => Set<FollowEntity>();
+    public DbSet<SessionEntity> Sessions => Set<SessionEntity>();
+    public DbSet<RefreshTokenEntity> RefreshTokens => Set<RefreshTokenEntity>();
+    public DbSet<PasswordResetTokenEntity> PasswordResetTokens => Set<PasswordResetTokenEntity>();
+    public DbSet<PostEntity> Posts => Set<PostEntity>();
+    public DbSet<PostLikeEntity> PostLikes => Set<PostLikeEntity>();
+    public DbSet<CommentEntity> Comments => Set<CommentEntity>();
+    public DbSet<CommentLikeEntity> CommentLikes => Set<CommentLikeEntity>();
+    public DbSet<ConversationEntity> Conversations => Set<ConversationEntity>();
+    public DbSet<MessageEntity> Messages => Set<MessageEntity>();
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+        configurationBuilder.Properties<DateTime?>().HaveConversion<UtcDateTimeConverter>();
+
+        // Enums are stored by name: rows stay readable, and reordering an enum
+        // can't silently change what existing rows mean.
+        configurationBuilder.Properties<Enum>().HaveConversion<string>();
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(SparksDbContext).Assembly);
+    }
+}

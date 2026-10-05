@@ -1,0 +1,31 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.{cs,csproj,props}]
+indent_size = 4
+
+[*.cs]
+# Layout
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_sort_system_directives_first = true
+csharp_new_line_before_open_brace = all
+
+# Language
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_prefer_braces = true:warning
+dotnet_style_readonly_field = true:warning
+dotnet_diagnostic.IDE0005.severity = warning
+
+# EF Core writes migrations; they're kept exactly as generated.
+[src/backend/Sparks.Api/Migrations/*.cs]
+generated_code = true
+charset = unset

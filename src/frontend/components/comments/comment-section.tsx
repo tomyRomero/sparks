@@ -1,0 +1,91 @@
+"use client";
+
+import { type InfiniteData, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { TextForm } from "@/components/posts/text-form";
+import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api/client";
+import type { Comment, CurrentUser, CursorPage } from "@/lib/api/types";
+import { limits } from "@/lib/limits";
+import { updateCachedPost } from "@/lib/queries/cache";
+import { queryKeys } from "@/lib/queries/keys";
+import { CommentList } from "./comment-list";
+
+type CommentSectionProps = {
+  postId: number;
+  initial: CursorPage<Comment>;
+  viewer: CurrentUser | null;
+};
+
+export function CommentSection({ postId, initial, viewer }: CommentSectionProps) {
+  const pathname = usePathname();
+  const queryClient = useQueryClient();
+
+  async function comment(body: string) {
+    const created = await api<Comment>(`/posts/${postId}/comments`, { method: "POST", json: { body } });
+    updateCachedPost(queryClient, postId, (post) => ({ ...post, commentCount: post.commentCount + 1 }));
+    // The thread reads oldest first, so on a long one the new comment belongs
+    // pages beyond what's loaded. It shows at the top for now, under the box
+    // it was written in; a short thread reloads with it in its place.
+    const thread = queryClient.getQueryData<InfiniteData<CursorPage<Comment>>>(queryKeys.thread(postId));
+    if (thread?.pages.at(-1)?.nextCursor) {
+      queryClient.setQueryData<InfiniteData<CursorPage<Comment>>>(queryKeys.thread(postId), {
+        ...thread,
+        pages: thread.pages.map((page, index) => (index === 0 ? { ...page, items: [created, ...page.items] } : page)),
+      });
+    } else {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.thread(postId) });
+    }
+  }
+
+  return (
+    <section
+      id="comments"
+      aria-labelledby="comments-heading"
+      className="mt-4 scroll-mt-20 overflow-hidden rounded-[18px] border border-line bg-surface shadow-card"
+    >
+      <h2 id="comments-heading" className="px-4 pt-4 font-display text-lg font-semibold sm:px-6">
+        Comments
+      </h2>
+      <div className="flex gap-3 border-b border-line px-4 py-4 sm:px-6">
+        {viewer ? (
+          <>
+            <Avatar name={viewer.displayName} src={viewer.avatarUrl} size={36} />
+            <TextForm
+              className="flex-1"
+              label="Write a comment"
+              placeholder="Add to the conversation…"
+              maxLength={limits.commentBodyMax}
+              submitLabel="Comment"
+              onSubmit={comment}
+            />
+          </>
+        ) : (
+          <div className="flex w-full flex-wrap items-center justify-between gap-3">
+            <p className="text-muted">Sign in to join the conversation.</p>
+            <Button asChild size="sm">
+              <Link href={`/sign-in?next=${encodeURIComponent(pathname)}`}>Sign in</Link>
+            </Button>
+          </div>
+        )}
+      </div>
+      <div className="-mb-px">
+        <CommentList
+          path={`/posts/${postId}/comments`}
+          queryKey={queryKeys.thread(postId)}
+          initial={initial}
+          viewer={viewer}
+          depth={0}
+          empty={
+            <div className="px-6 py-12 text-center">
+              <p className="font-display text-lg font-semibold">No comments yet</p>
+              <p className="mt-1 text-muted">Say what it made you think of.</p>
+            </div>
+          }
+        />
+      </div>
+    </section>
+  );
+}
