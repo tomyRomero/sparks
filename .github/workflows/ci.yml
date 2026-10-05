@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, upgrade]
+    branches: [main]
   pull_request:
 
 # A newer push to the same branch cancels the run in progress.
